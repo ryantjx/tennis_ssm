@@ -24,6 +24,23 @@
             --shadow: 0 4px 24px rgba(0, 0, 0, 0.35);
         }
 
+        [data-theme="light"] {
+            --bg: #f6f7f9;
+            --surface: #ffffff;
+            --surface-2: #f0f2f5;
+            --border: #d8dce6;
+            --text: #1a1d27;
+            --text-muted: #5c6270;
+            --accent: #16a34a;
+            --accent-dim: #15803d;
+            --accent-glow: rgba(22, 163, 74, 0.12);
+            --danger: #dc2626;
+            --danger-glow: rgba(220, 38, 38, 0.10);
+            --warning: #b45309;
+            --info: #2563eb;
+            --shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        }
+
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
@@ -32,6 +49,7 @@
             color: var(--text);
             line-height: 1.55;
             min-height: 100vh;
+            transition: background 0.25s, color 0.25s;
         }
 
         a { color: var(--accent); text-decoration: none; }
@@ -112,6 +130,22 @@
             color: var(--accent);
             box-shadow: 0 1px 4px rgba(0,0,0,0.25);
         }
+
+        .theme-toggle {
+            width: 38px;
+            height: 38px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--text);
+            cursor: pointer;
+            font-size: 1.1rem;
+            display: grid;
+            place-items: center;
+            transition: all 0.2s;
+        }
+
+        .theme-toggle:hover { border-color: var(--accent); }
 
         /* Layout */
         .container {
@@ -338,6 +372,12 @@
             background: var(--danger-glow);
             color: var(--danger);
             border: 1px solid rgba(248, 113, 113, 0.25);
+        }
+
+        .match-summary .result .badge.future {
+            background: rgba(96, 165, 250, 0.12);
+            color: var(--info);
+            border: 1px solid rgba(96, 165, 250, 0.25);
         }
 
         .match-summary .confidence {
@@ -585,10 +625,15 @@
                     <div class="subtitle" id="subtitle">Loading model data…</div>
                 </div>
             </div>
-            <nav class="tabs" role="tablist" aria-label="Main sections">
-                <button class="tab active" role="tab" data-tab="matches" aria-selected="true">Match Predictions</button>
-                <button class="tab" role="tab" data-tab="rankings" aria-selected="false">Player Rankings</button>
-            </nav>
+            <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
+                <nav class="tabs" role="tablist" aria-label="Main sections">
+                    <button class="tab active" role="tab" data-tab="matches" aria-selected="true">Match Predictions</button>
+                    <button class="tab" role="tab" data-tab="rankings" aria-selected="false">Player Rankings</button>
+                </nav>
+                <button id="theme-toggle" class="theme-toggle" aria-label="Toggle light and dark mode" title="Toggle theme">
+                    🌙
+                </button>
+            </div>
         </div>
     </header>
 
@@ -609,12 +654,9 @@
                     <input type="checkbox" id="only-incorrect"> Only incorrect
                 </label>
                 <label>
-                    <input type="checkbox" id="only-upcoming" checked> Group by date
+                    <input type="checkbox" id="show-future" checked> Show future fixtures
                 </label>
                 <label>
-                    Sort:
-                    <select id="sort" aria-label="Sort matches">
-                        <option value="date-desc">Newest first</option>
                         <option value="date-asc">Oldest first</option>
                         <option value="confidence-desc">Highest confidence</option>
                         <option value="confidence-asc">Lowest confidence</option>
@@ -728,12 +770,17 @@
         function applyFilters() {
             const search = document.getElementById('search').value.toLowerCase();
             const onlyIncorrect = document.getElementById('only-incorrect').checked;
+            const showFuture = document.getElementById('show-future').checked;
             const sort = document.getElementById('sort').value;
 
-            filteredMatches = DATA.matches.filter(m => {
+            const baseMatches = DATA.matches || [];
+            const futureMatches = showFuture ? (DATA.future_matches || []) : [];
+            const allMatches = [...baseMatches, ...futureMatches];
+
+            filteredMatches = allMatches.filter(m => {
                 if (search && !m.player1.toLowerCase().includes(search) && !m.player2.toLowerCase().includes(search))
                     return false;
-                if (onlyIncorrect && m.correct) return false;
+                if (onlyIncorrect && (m.correct || m.is_future)) return false;
                 return true;
             });
 
@@ -800,22 +847,41 @@
         }
 
         function matchCardHTML(m) {
-            const p1Win = m.actual_winner === m.player1;
+            const isFuture = !!m.is_future;
+            const p1Win = !isFuture && m.actual_winner === m.player1;
             const p1Class = p1Win ? 'winner' : 'loser';
             const p2Class = p1Win ? 'loser' : 'winner';
-            const badge = m.correct
-                ? '<span class="badge correct">✓ Correct</span>'
-                : '<span class="badge incorrect">✗ Upset</span>';
+            let badge;
+            if (isFuture) {
+                badge = '<span class="badge future">🔮 Future</span>';
+            } else if (m.correct) {
+                badge = '<span class="badge correct">✓ Correct</span>';
+            } else {
+                badge = '<span class="badge incorrect">✗ Upset</span>';
+            }
             const p1Pct = (m.p_player1_win * 100).toFixed(1);
             const p2Pct = (m.p_player2_win * 100).toFixed(1);
             const tier = confidenceTier(m.confidence);
             const skillDiff = m.player1_skill - m.player2_skill;
             const predicted = m.predicted_winner === m.player1 ? m.player1 : m.player2;
 
+            const actualWinnerHTML = isFuture
+                ? `<div class="detail-box"><div class="label">Fixture status</div><div class="value" style="color:var(--info)">Not yet played</div><div class="sub">Hypothetical match at current skill estimates</div></div>`
+                : `<div class="detail-box">
+                    <div class="label">Actual winner</div>
+                    <div class="value">${m.actual_winner}</div>
+                    <div class="sub">${m.correct ? 'Prediction matched result' : 'Result was an upset'}</div>
+                   </div>
+                   <div class="detail-box">
+                    <div class="label">Match log-score</div>
+                    <div class="value" style="color:${m.log_score > Math.log(0.5) ? 'var(--accent)' : 'var(--danger)'}">${m.log_score.toFixed(4)}</div>
+                    <div class="sub">Uniform baseline = ${DATA.metrics.uniform_baseline.toFixed(4)}</div>
+                   </div>`;
+
             return `
-                <div class="match-card" data-match>
+                <div class="match-card ${isFuture ? 'future-match' : ''}" data-match>
                     <div class="match-summary">
-                        <div class="date">${m.date}</div>
+                        <div class="date">${m.date}${isFuture ? ' · Future' : ''}</div>
                         <div class="player-block ${p1Class}">
                             <div class="player-name">${m.player1} ${p1Win ? '<span class="seed">W</span>' : ''}</div>
                             <div class="player-prob">${p1Pct}% win prob</div>
@@ -840,19 +906,10 @@
                         <div class="details-grid">
                             <div class="detail-box">
                                 <div class="label">Predicted winner</div>
-                                <div class="value" style="color:${m.correct ? 'var(--accent)' : 'var(--danger)'};">${predicted}</div>
+                                <div class="value" style="color:${isFuture ? 'var(--info)' : (m.correct ? 'var(--accent)' : 'var(--danger)')};">${predicted}</div>
                                 <div class="sub">Model picked ${(m.confidence * 100).toFixed(1)}% likely winner</div>
                             </div>
-                            <div class="detail-box">
-                                <div class="label">Actual winner</div>
-                                <div class="value">${m.actual_winner}</div>
-                                <div class="sub">${m.correct ? 'Prediction matched result' : 'Result was an upset'}</div>
-                            </div>
-                            <div class="detail-box">
-                                <div class="label">Match log-score</div>
-                                <div class="value" style="color:${m.log_score > Math.log(0.5) ? 'var(--accent)' : 'var(--danger)'}">${m.log_score.toFixed(4)}</div>
-                                <div class="sub">Uniform baseline = ${DATA.metrics.uniform_baseline.toFixed(4)}</div>
-                            </div>
+                            ${actualWinnerHTML}
                             <div class="detail-box" style="grid-column: 1 / -1;">
                                 <div class="label">Skill comparison at match time</div>
                                 <div class="skill-comparison">
@@ -905,9 +962,30 @@
             });
         });
 
+        // Theme toggle
+        const themeToggle = document.getElementById('theme-toggle');
+        const savedTheme = localStorage.getItem('tennis-ssm-theme');
+        const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        let isDark = savedTheme ? savedTheme === 'dark' : systemDark;
+
+        function applyTheme() {
+            document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+            themeToggle.textContent = isDark ? '🌙' : '☀️';
+            themeToggle.setAttribute('aria-label', isDark ? 'Switch to light mode' : 'Switch to dark mode');
+        }
+
+        themeToggle.addEventListener('click', () => {
+            isDark = !isDark;
+            localStorage.setItem('tennis-ssm-theme', isDark ? 'dark' : 'light');
+            applyTheme();
+        });
+
+        applyTheme();
+
         // Filters
         document.getElementById('search').addEventListener('input', applyFilters);
         document.getElementById('only-incorrect').addEventListener('change', applyFilters);
+        document.getElementById('show-future').addEventListener('change', applyFilters);
         document.getElementById('only-upcoming').addEventListener('change', applyFilters);
         document.getElementById('sort').addEventListener('change', applyFilters);
     </script>

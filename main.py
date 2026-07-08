@@ -296,10 +296,23 @@ def main():
     print()
 
     # ------------------------------------------------------------------
-    # 9. Export predictions as JSON for the frontend
+    # 9. Generate future / non-played match predictions
     # ------------------------------------------------------------------
     print("=" * 70)
-    print("9. Exporting predictions for frontend...")
+    print("9. Generating future match predictions...")
+    print("=" * 70)
+
+    future_matches_json = generate_future_predictions(
+        loaded_model, loaded_state, current_time, id_to_name, name_to_id, num_players
+    )
+    print(f"  Generated {len(future_matches_json)} future match predictions")
+    print()
+
+    # ------------------------------------------------------------------
+    # 10. Export predictions as JSON for the frontend
+    # ------------------------------------------------------------------
+    print("=" * 70)
+    print("10. Exporting predictions for frontend...")
     print("=" * 70)
 
     import json
@@ -377,12 +390,14 @@ def main():
         },
         "metrics": {
             "n_test_matches": n_test,
+            "n_future_matches": len(future_matches_json),
             "accuracy": round(accuracy, 4),
             "avg_log_score": round(avg_log_score, 4),
             "uniform_baseline": round(float(jnp.log(0.5)), 4),
         },
         "top_players": top_players_json[:30],
         "matches": matches_json,
+        "future_matches": future_matches_json,
     }
 
     # Save to frontend/ for GitHub Pages
@@ -395,6 +410,87 @@ def main():
     print("=" * 70)
     print("Done!")
     print("=" * 70)
+
+
+def generate_future_predictions(
+    loaded_model,
+    loaded_state,
+    current_time,
+    id_to_name,
+    name_to_id,
+    num_players,
+    n_matches=50,
+):
+    """Generate predictions for hypothetical future matches between top players.
+
+    These are non-played matches — they show what the model would forecast if
+    the top-ranked players faced each other at the current synchronized time.
+    """
+    import datetime
+
+    # Use the top 20 players by skill for synthetic future fixtures
+    top_ids = sorted(
+        [(i, float(loaded_state.mean[i, 0])) for i in range(loaded_model.num_players)],
+        key=lambda x: -x[1],
+    )[:20]
+
+    fixtures = []
+    # Round-robin style pairings among top players
+    for i in range(len(top_ids)):
+        for j in range(i + 1, min(i + 4, len(top_ids))):
+            p1_id, p2_id = top_ids[i][0], top_ids[j][0]
+            fixtures.append((int(p1_id), int(p2_id)))
+            if len(fixtures) >= n_matches:
+                break
+        if len(fixtures) >= n_matches:
+            break
+
+    future_matches_json = []
+    origin = datetime.date(2022, 12, 31)
+    future_date = origin + datetime.timedelta(days=int(current_time) + 1)
+
+    for p1_id, p2_id in fixtures:
+        p1_name = id_to_name.get(p1_id, f"Unknown({p1_id})")
+        p2_name = id_to_name.get(p2_id, f"Unknown({p2_id})")
+
+        match_data = WTATennisResults(
+            match_index=jnp.array(0),
+            player1_id=jnp.array(p1_id),
+            player2_id=jnp.array(p2_id),
+            winner=jnp.array(1.0),
+            timestamp=jnp.array(current_time + 1),
+            player1_timestamp_previous=jnp.array(current_time),
+            player2_timestamp_previous=jnp.array(current_time),
+        )
+
+        pred = loaded_model.propagate_and_predict(
+            loaded_state, float(current_time), match_data
+        )
+        p1_prob = float(pred.p_player1_win)
+        p2_prob = float(pred.p_player2_win)
+        predicted_winner = p1_name if p1_prob > 0.5 else p2_name
+        confidence = abs(p1_prob - 0.5) + 0.5
+
+        future_matches_json.append({
+            "date": future_date.isoformat(),
+            "timestamp": int(current_time + 1),
+            "player1": p1_name,
+            "player2": p2_name,
+            "p_player1_win": round(p1_prob, 4),
+            "p_player2_win": round(p2_prob, 4),
+            "predicted_winner": predicted_winner,
+            "actual_winner": None,
+            "correct": None,
+            "confidence": round(confidence, 4),
+            "log_score": None,
+            "player1_skill": round(float(pred.player1_mean[0, 0]), 4),
+            "player2_skill": round(float(pred.player2_mean[0, 0]), 4),
+            "player1_skill_sd": round(float(jnp.sqrt(jnp.maximum(pred.player1_var[0], 1e-8))), 4),
+            "player2_skill_sd": round(float(jnp.sqrt(jnp.maximum(pred.player2_var[0], 1e-8))), 4),
+            "is_future": True,
+        })
+
+    return future_matches_json
 
 
 if __name__ == "__main__":
