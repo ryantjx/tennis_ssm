@@ -56,12 +56,20 @@ class TennisMatchPrediction(NamedTuple):
         p_player2_win: Probability that player 2 wins the match.
         skill_diff_mean: Mean of the skill difference (player1 - player2).
         skill_diff_std: Standard deviation of the skill difference.
+        player1_mean: Mean skill of player 1 at match time.
+        player2_mean: Mean skill of player 2 at match time.
+        player1_var: Variance of player 1's skill at match time.
+        player2_var: Variance of player 2's skill at match time.
     """
 
     p_player1_win: Array
     p_player2_win: Array
     skill_diff_mean: Array
     skill_diff_std: Array
+    player1_mean: Array
+    player2_mean: Array
+    player1_var: Array
+    player2_var: Array
 
 
 # ---------------------------------------------------------------------------
@@ -636,6 +644,10 @@ class GaussianFactorialTennis:
             p_player2_win=p_player2_win,
             skill_diff_mean=skill_diff_mean,
             skill_diff_std=skill_diff_std,
+            player1_mean=propagated.mean[0:1],
+            player2_mean=propagated.mean[1:2],
+            player1_var=var_1.reshape(1),
+            player2_var=var_2.reshape(1),
         )
 
     def predict_match(
@@ -690,6 +702,10 @@ class GaussianFactorialTennis:
             p_player2_win=p_player2_win,
             skill_diff_mean=skill_diff_mean,
             skill_diff_std=skill_diff_std,
+            player1_mean=p1_state.mean,
+            player2_mean=p2_state.mean,
+            player1_var=var_1.reshape(1),
+            player2_var=var_2.reshape(1),
         )
 
 

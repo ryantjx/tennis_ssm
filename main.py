@@ -319,6 +319,19 @@ def main():
 
         # Actual result: player1 = Winner in raw data
         actual_winner = p1_name
+        predicted_winner = p1_name if p1_prob > 0.5 else p2_name
+        is_correct = predicted_winner == actual_winner
+        confidence = abs(p1_prob - 0.5) + 0.5  # in [0.5, 1.0]
+
+        # Log-score for this match (model probability assigned to actual winner)
+        actual_winner_prob = p1_prob if actual_winner == p1_name else p2_prob
+        match_log_score = float(jnp.log(jnp.maximum(actual_winner_prob, 1e-8)))
+
+        # Skill estimates at prediction time (after propagation to match timestamp)
+        p1_skill = float(predictions.player1_mean[i, 0, 0])
+        p2_skill = float(predictions.player2_mean[i, 0, 0])
+        p1_skill_sd = float(jnp.sqrt(jnp.maximum(predictions.player1_var[i, 0], 1e-8)))
+        p2_skill_sd = float(jnp.sqrt(jnp.maximum(predictions.player2_var[i, 0], 1e-8)))
 
         # Date from timestamp
         ts = int(test_jax.timestamp[i])
@@ -326,12 +339,20 @@ def main():
 
         matches_json.append({
             "date": match_date,
+            "timestamp": ts,
             "player1": p1_name,
             "player2": p2_name,
             "p_player1_win": round(p1_prob, 4),
             "p_player2_win": round(p2_prob, 4),
+            "predicted_winner": predicted_winner,
             "actual_winner": actual_winner,
-            "correct": p1_prob > 0.5,
+            "correct": is_correct,
+            "confidence": round(confidence, 4),
+            "log_score": round(match_log_score, 4),
+            "player1_skill": round(p1_skill, 4),
+            "player2_skill": round(p2_skill, 4),
+            "player1_skill_sd": round(p1_skill_sd, 4),
+            "player2_skill_sd": round(p2_skill_sd, 4),
         })
 
     # Build top players list
@@ -364,11 +385,11 @@ def main():
         "matches": matches_json,
     }
 
-    # Save to docs/ for GitHub Pages
-    os.makedirs("docs", exist_ok=True)
-    with open("docs/predictions.json", "w") as f:
+    # Save to frontend/ for GitHub Pages
+    os.makedirs("frontend", exist_ok=True)
+    with open("frontend/predictions.json", "w") as f:
         json.dump(output_json, f, indent=2)
-    print(f"  Saved {len(matches_json)} predictions to docs/predictions.json")
+    print(f"  Saved {len(matches_json)} predictions to frontend/predictions.json")
     print()
 
     print("=" * 70)

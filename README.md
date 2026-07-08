@@ -51,10 +51,12 @@ Trained parameters: τ=0.029, s=1.76, init_var=1.71
 
 Predictions are deployed to GitHub Pages at **https://ryantjx.github.io/tennis_ssm/**.
 
-The frontend shows:
-- Match-by-match predictions with win probabilities and actual results
-- Player skill rankings
-- Filtering by player name, sort by date or confidence
+The frontend is a single-page vanilla JS app in `frontend/` (inspired by the [cuthberto-carlos](https://github.com/state-space-models/cuthberto-carlos/tree/main/frontend) tournament frontend). It features:
+- **Header tabs** for switching between *Match Predictions* and *Player Rankings*
+- **Match cards** with win-probability bars, confidence tiers, and correct/upset badges
+- **Expandable details** for every prediction: predicted/actual winner, per-match log-score, and the model's skill estimates for both players at match time
+- **Date grouping**, search by player, "only incorrect" filter, and sorting by date, confidence, or log-score
+- **Player rankings** with skill ratings and uncertainty
 
 ## Extensions
 
