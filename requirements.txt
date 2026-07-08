@@ -1,0 +1,9 @@
+jax
+jaxlib
+cuthbert
+cuthbertlib
+polars
+pandas
+openpyxl
+optax
+fastexcel
