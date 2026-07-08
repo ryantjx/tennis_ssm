@@ -693,6 +693,8 @@
         let currentPage = 0;
         const PAGE_SIZE = 25;
 
+        // Wait for DOM to be ready
+        function init() {
         // Fetch data
         fetch('predictions.json')
             .then(r => {
@@ -711,10 +713,12 @@
             })
             .catch(err => {
                 document.getElementById('subtitle').textContent = 'Error loading predictions data';
+                const msg = (err && err.message) ? err.message : String(err);
                 document.getElementById('match-list').innerHTML =
-                    `<div class="empty"><div class="empty-icon">⚠️</div>Could not load predictions.json.<br>${err.message}</div>`;
+                    `<div class="empty"><div class="empty-icon">⚠️</div>Could not load predictions.json.<br>${msg}</div>`;
                 console.error(err);
             });
+        }
 
         function renderMetrics() {
             const m = DATA.metrics;
@@ -768,10 +772,17 @@
         }
 
         function applyFilters() {
-            const search = document.getElementById('search').value.toLowerCase();
-            const onlyIncorrect = document.getElementById('only-incorrect').checked;
-            const showFuture = document.getElementById('show-future').checked;
-            const sort = document.getElementById('sort').value;
+            const searchEl = document.getElementById('search');
+            const onlyIncorrectEl = document.getElementById('only-incorrect');
+            const showFutureEl = document.getElementById('show-future');
+            const sortEl = document.getElementById('sort');
+            
+            if (!searchEl || !onlyIncorrectEl || !showFutureEl || !sortEl) return;
+            
+            const search = searchEl.value.toLowerCase();
+            const onlyIncorrect = onlyIncorrectEl.checked;
+            const showFuture = showFutureEl.checked;
+            const sort = sortEl.value;
 
             const baseMatches = DATA.matches || [];
             const futureMatches = showFuture ? (DATA.future_matches || []) : [];
@@ -983,11 +994,24 @@
         applyTheme();
 
         // Filters
-        document.getElementById('search').addEventListener('input', applyFilters);
-        document.getElementById('only-incorrect').addEventListener('change', applyFilters);
-        document.getElementById('show-future').addEventListener('change', applyFilters);
-        document.getElementById('only-upcoming').addEventListener('change', applyFilters);
-        document.getElementById('sort').addEventListener('change', applyFilters);
+        const searchEl = document.getElementById('search');
+        const onlyIncorrectEl = document.getElementById('only-incorrect');
+        const showFutureEl = document.getElementById('show-future');
+        const onlyUpcomingEl = document.getElementById('only-upcoming');
+        const sortEl = document.getElementById('sort');
+        
+        if (searchEl) searchEl.addEventListener('input', applyFilters);
+        if (onlyIncorrectEl) onlyIncorrectEl.addEventListener('change', applyFilters);
+        if (showFutureEl) showFutureEl.addEventListener('change', applyFilters);
+        if (onlyUpcomingEl) onlyUpcomingEl.addEventListener('change', applyFilters);
+        if (sortEl) sortEl.addEventListener('change', applyFilters);
+        
+        // Start initialization
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
     </script>
 </body>
 </html>
