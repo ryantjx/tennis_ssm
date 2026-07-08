@@ -350,6 +350,13 @@ def main():
         ts = int(test_jax.timestamp[i])
         match_date = (datetime.date(2022, 12, 31) + datetime.timedelta(days=ts)).isoformat()
 
+        # Tournament info from test data metadata
+        tournament = test_data.match_metadata.tournament[i] if hasattr(test_data, 'match_metadata') else "Unknown"
+        location = test_data.match_metadata.location[i] if hasattr(test_data, 'match_metadata') else "Unknown"
+        tier = test_data.match_metadata.tier[i] if hasattr(test_data, 'match_metadata') else "Unknown"
+        surface = test_data.match_metadata.surface[i] if hasattr(test_data, 'match_metadata') else "Unknown"
+        round_name = test_data.match_metadata.round[i] if hasattr(test_data, 'match_metadata') else "Unknown"
+
         matches_json.append({
             "date": match_date,
             "timestamp": ts,
@@ -366,6 +373,11 @@ def main():
             "player2_skill": round(p2_skill, 4),
             "player1_skill_sd": round(p1_skill_sd, 4),
             "player2_skill_sd": round(p2_skill_sd, 4),
+            "tournament": tournament,
+            "location": location,
+            "tier": tier,
+            "surface": surface,
+            "round": round_name,
         })
 
     # Build top players list
@@ -487,6 +499,11 @@ def generate_future_predictions(
             "player2_skill": round(float(pred.player2_mean[0, 0]), 4),
             "player1_skill_sd": round(float(jnp.sqrt(jnp.maximum(pred.player1_var[0], 1e-8))), 4),
             "player2_skill_sd": round(float(jnp.sqrt(jnp.maximum(pred.player2_var[0], 1e-8))), 4),
+            "tournament": "Hypothetical Matchup",
+            "location": "TBD",
+            "tier": "Exhibition",
+            "surface": "TBD",
+            "round": "Final",
             "is_future": True,
         })
 

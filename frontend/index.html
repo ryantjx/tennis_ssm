@@ -299,6 +299,13 @@
             font-weight: 600;
         }
 
+        .tournament-info {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 0.3rem;
+            font-weight: 500;
+        }
+
         .match-summary .player-block {
             display: flex;
             flex-direction: column;
@@ -897,10 +904,15 @@
                     <div class="sub">Uniform baseline = ${DATA.metrics.uniform_baseline.toFixed(4)}</div>
                    </div>`;
 
+            // Tournament info display
+            const tournamentInfo = m.tournament && m.tournament !== 'Unknown' 
+                ? `<div class="tournament-info">🏆 ${m.tournament}${m.location && m.location !== 'Unknown' ? ` · ${m.location}` : ''}${m.tier && m.tier !== 'Unknown' ? ` · ${m.tier}` : ''}${m.surface && m.surface !== 'Unknown' ? ` · ${m.surface}` : ''}${m.round && m.round !== 'Unknown' ? ` · ${m.round}` : ''}</div>`
+                : '';
+
             return `
                 <div class="match-card ${isFuture ? 'future-match' : ''}" data-match>
                     <div class="match-summary">
-                        <div class="date">${m.date}${isFuture ? ' · Future' : ''}</div>
+                        <div class="date">${m.date}${isFuture ? ' · Future' : ''}${tournamentInfo}</div>
                         <div class="player-block ${p1Class}">
                             <div class="player-name">${m.player1} ${p1Win ? '<span class="seed">W</span>' : ''}</div>
                             <div class="player-prob">${p1Pct}% win prob</div>

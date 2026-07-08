@@ -16,7 +16,7 @@ from typing import NamedTuple
 import polars as pl
 from jax import numpy as jnp
 
-from src.data.data_types import WTATennisResults
+from src.data.data_types import WTATennisResults, TennisMatchMetadata
 
 # Base URL for yearly Excel files
 DATA_URL_TEMPLATE = "http://www.tennis-data.co.uk/{year}w/{year}.xlsx"
@@ -33,6 +33,7 @@ class TennisData(NamedTuple):
         name_to_id: Dict mapping player name strings to integer player IDs.
         num_players: Total number of unique players.
         num_matches: Total number of matches.
+        match_metadata: ``TennisMatchMetadata`` with string data for each match.
     """
 
     jax_data: WTATennisResults
@@ -41,6 +42,7 @@ class TennisData(NamedTuple):
     name_to_id: dict
     num_players: int
     num_matches: int
+    match_metadata: TennisMatchMetadata
 
 
 def _consolidate_name_string(s: str | None) -> str | None:
@@ -118,9 +120,9 @@ def load_wta(
     data = pl.concat(frames, how="diagonal_relaxed")
 
     # --- Clean and prepare ---
-    # tennis-data.co.uk columns: Date, Winner, Loser, W1, L1, ... (and more)
-    # We only need: Date, Winner, Loser for the sigmoid model
-    data = data.select(["Date", "Winner", "Loser"]).drop_nulls()
+    # tennis-data.co.uk columns: Date, Winner, Loser, Tournament, Location, Tier, Surface, Round
+    # Select tournament info along with match data
+    data = data.select(["Date", "Winner", "Loser", "Tournament", "Location", "Tier", "Surface", "Round"]).drop_nulls(subset=["Date", "Winner", "Loser"])
 
     # Parse dates — the Excel reader may return Date as string or date
     if data.schema["Date"] == pl.String:
@@ -134,7 +136,16 @@ def load_wta(
     data = data.with_columns(
         _consolidate_name_expr("Winner").alias("Winner"),
         _consolidate_name_expr("Loser").alias("Loser"),
-    ).drop_nulls()
+    ).drop_nulls(subset=["Winner", "Loser"])
+    
+    # Fill null tournament info
+    data = data.with_columns(
+        pl.col("Tournament").fill_null("Unknown"),
+        pl.col("Location").fill_null("Unknown"),
+        pl.col("Tier").fill_null("Unknown"),
+        pl.col("Surface").fill_null("Unknown"),
+        pl.col("Round").fill_null("Unknown"),
+    )
 
     # Filter by date range
     start_dt = pl.lit(start_date).str.strptime(pl.Date, format="%Y-%m-%d")
@@ -228,6 +239,15 @@ def load_wta(
 
     # --- Convert to JAX NamedTuple ---
     jax_data = to_jax_data(data)
+    
+    # --- Extract match metadata (strings) ---
+    match_metadata = TennisMatchMetadata(
+        tournament=data.select(pl.col("Tournament")).to_numpy().flatten().tolist(),
+        location=data.select(pl.col("Location")).to_numpy().flatten().tolist(),
+        tier=data.select(pl.col("Tier")).to_numpy().flatten().tolist(),
+        surface=data.select(pl.col("Surface")).to_numpy().flatten().tolist(),
+        round=data.select(pl.col("Round")).to_numpy().flatten().tolist(),
+    )
 
     return TennisData(
         jax_data=jax_data,
@@ -236,6 +256,7 @@ def load_wta(
         name_to_id=name_to_id,
         num_players=num_players,
         num_matches=data.height,
+        match_metadata=match_metadata,
     )
 
 

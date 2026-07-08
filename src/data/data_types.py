@@ -35,6 +35,23 @@ class WTATennisResults(NamedTuple):
     player2_timestamp_previous: Array
 
 
+class TennisMatchMetadata(NamedTuple):
+    """NamedTuple for match metadata (strings) that can't be JAX arrays.
+    
+    Attributes:
+        tournament: Tournament name for each match.
+        location: Tournament location for each match.
+        tier: Tournament tier for each match.
+        surface: Court surface for each match.
+        round: Tournament round for each match.
+    """
+    tournament: list[str]
+    location: list[str]
+    tier: list[str]
+    surface: list[str]
+    round: list[str]
+
+
 class TennisDynamicsOnlyData(NamedTuple):
     """NamedTuple for propagating a single player's state through the dynamics
     with no observation (e.g. between matches or for synchronisation).
