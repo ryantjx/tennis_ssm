@@ -15,12 +15,12 @@ interface PredictionCardProps {
 export function PredictionCard({ match, onOpen }: PredictionCardProps) {
   const isFuture = !!match.is_future;
   const highlightedPlayer = match.actual_winner ?? match.predicted_winner;
-  const status = match.match_status === "in_progress"
+  const status: string | null = match.match_status === "in_progress"
     ? "Live"
     : match.match_status === "suspended"
       ? "Suspended"
       : isFuture
-        ? "Upcoming"
+        ? null
         : match.correct
           ? "Correct"
           : "Wrong";
@@ -41,7 +41,7 @@ export function PredictionCard({ match, onOpen }: PredictionCardProps) {
       <div className="prediction-card__meta">
         <div className="prediction-card__meta-row">
           <strong>{formatDate(match.date)}</strong>
-          <span className={`status-pill status-pill--${status.toLowerCase()}`}>{status}</span>
+          {status ? <span className={`status-pill status-pill--${status.toLowerCase()}`}>{status}</span> : null}
         </div>
         <div className="prediction-card__meta-row">
           <span className="eyebrow">{match.surface || "Unknown surface"} · {match.round || "Unknown round"}</span>

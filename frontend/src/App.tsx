@@ -76,7 +76,6 @@ function App() {
   const logDelta = data.metrics.avg_log_score - data.metrics.uniform_baseline;
   const upcoming = filteredMatches.filter((match) => match.is_future);
   const completed = filteredMatches.filter((match) => !match.is_future);
-  const predictionWindow = evaluatedPredictionWindow(data);
   const trainWindow = data.data_windows?.train_display_start && data.data_windows?.train_display_end
     ? `${data.data_windows.train_display_start} to ${data.data_windows.train_display_end}`
     : `${data.data_windows?.train_start ?? "unknown"} to ${data.data_windows?.train_end ?? "unknown"}`;
@@ -116,6 +115,7 @@ function App() {
               <div>
                 <dt>Accuracy</dt>
                 <dd>{formatPercent(data.metrics.accuracy, 1)}</dd>
+                <span>Correct picks across evaluated test and post-selection results</span>
               </div>
               <div>
                 <dt>Log score</dt>
@@ -147,7 +147,6 @@ function App() {
               <span className="eyebrow">Model notes</span>
               <h2 id="methodology-title">Methodology</h2>
             </div>
-            <p>Latest run: {generatedAt.toLocaleString()}</p>
           </div>
           <div className="methodology-grid">
             <article className="methodology-brief">
@@ -162,15 +161,17 @@ function App() {
                 <MathEquation label="Gaussian filtered posterior" mathml="<math display='block'><mrow><mi>p</mi><mo>(</mo><msubsup><mi>x</mi><mi>t</mi><mi>i</mi></msubsup><mo>|</mo><msub><mi>y</mi><mrow><mn>1</mn><mo>:</mo><mi>t</mi></mrow></msub><mo>)</mo><mo>≈</mo><mi>N</mi><mo>(</mo><msubsup><mi>μ</mi><mi>t</mi><mi>i</mi></msubsup><mo>,</mo><msubsup><mi>Σ</mi><mi>t</mi><mi>i</mi></msubsup><mo>)</mo></mrow></math>" />
               </div>
             </article>
-            <h3 className="methodology-params__title">Optimized model parameters</h3>
-            <ul className="methodology-params" aria-label="Optimized model parameters">
-              <li><strong>Tau:</strong> {data.model_params.tau.toFixed(6)} <span>skill drift rate</span></li>
-              <li><strong>S:</strong> {data.model_params.s.toFixed(6)} <span>logistic scale</span></li>
-              <li><strong>Init var:</strong> {data.model_params.init_var.toFixed(6)} <span>initial skill uncertainty</span></li>
-              <li><strong>Train window:</strong> {trainWindow} <span>historical fitting data</span></li>
-              <li><strong>Parameter test window:</strong> {tuningWindow} <span>model selection data</span></li>
-              <li><strong>Prediction window:</strong> {predictionWindow} <span>post-selection evaluated matches</span></li>
-            </ul>
+            <aside className="methodology-params-panel">
+              <h3>Model parameters <span>Latest run: {generatedAt.toLocaleString()}</span></h3>
+              <ul className="methodology-params" aria-label="Model parameters">
+                <li><strong><MathInline label="tau sub d" mathml="<math><msub><mi>τ</mi><mi>d</mi></msub></math>" />:</strong> {data.model_params.tau.toFixed(6)}</li>
+                <li><strong><MathInline label="s sub d" mathml="<math><msub><mi>s</mi><mi>d</mi></msub></math>" />:</strong> {data.model_params.s.toFixed(6)}</li>
+                <li><strong>Initial variance <MathInline label="Sigma sub zero" mathml="<math><msub><mi>Σ</mi><mn>0</mn></msub></math>" />:</strong> {data.model_params.init_var.toFixed(6)}</li>
+                <li><strong>Initial mean <MathInline label="mu sub zero" mathml="<math><msub><mi>μ</mi><mn>0</mn></msub></math>" />:</strong> 0.000000</li>
+                <li><strong>Train:</strong> {trainWindow}</li>
+                <li><strong>Test:</strong> {tuningWindow}</li>
+              </ul>
+            </aside>
           </div>
         </section>
       </main>
@@ -204,6 +205,17 @@ function MathEquation({ label, mathml }: { label: string; mathml: string }) {
   );
 }
 
+function MathInline({ label, mathml }: { label: string; mathml: string }) {
+  return (
+    <span
+      className="math-inline"
+      role="math"
+      aria-label={label}
+      dangerouslySetInnerHTML={{ __html: mathml }}
+    />
+  );
+}
+
 function evaluatedTuningWindow(data: PredictionPayload): string {
   const start = data.data_windows?.test_match_start;
   const end = data.data_windows?.test_match_end;
@@ -212,15 +224,6 @@ function evaluatedTuningWindow(data: PredictionPayload): string {
     return `${data.data_windows.test_display_start} to ${data.data_windows.test_display_end}`;
   }
   return "unknown";
-}
-
-function evaluatedPredictionWindow(data: PredictionPayload): string {
-  const start = data.data_windows?.prediction_match_start;
-  const end = data.data_windows?.prediction_match_end;
-  if (start && end) return `${start} to ${end}`;
-  if (!data.matches.length) return "unknown";
-  const dates = data.matches.map((match) => match.date).sort();
-  return `${dates[0]} to ${dates[dates.length - 1]}`;
 }
 
 export default App;

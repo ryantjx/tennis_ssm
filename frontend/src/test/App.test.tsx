@@ -195,14 +195,16 @@ describe("App", () => {
     expect(screen.getByText("Player rankings")).toBeInTheDocument();
     expect(screen.getByText("Player Negative")).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Methodology" })).toBeInTheDocument();
-    expect(screen.getByText("Optimized model parameters")).toBeInTheDocument();
+    expect(screen.getByText("Model parameters")).toBeInTheDocument();
     expect(screen.getByText("2022-01-01 to 2024-12-31")).toBeInTheDocument();
     expect(screen.getByText("2025-01-01 to 2025-12-31")).toBeInTheDocument();
-    expect(screen.getByText("2026-01-04 to 2026-06-27")).toBeInTheDocument();
+    expect(screen.queryByText("2026-01-04 to 2026-06-27")).not.toBeInTheDocument();
+    expect(screen.getByText("0.000000")).toBeInTheDocument();
     expect(screen.queryByText(/Parameters: tau/)).not.toBeInTheDocument();
     expect(screen.queryByText(/Objective:/)).not.toBeInTheDocument();
     expect(screen.queryByText(/Market lines:/)).not.toBeInTheDocument();
     expect(screen.queryByText(/Future fixtures:/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Prediction window:/)).not.toBeInTheDocument();
     expect(screen.getByLabelText("Model equations")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "ryantjx/tennis_ssm" })).toHaveAttribute(
       "href",
@@ -243,7 +245,9 @@ describe("App", () => {
     expect(within(drawer).queryByText("Skill gap")).not.toBeInTheDocument();
     expect(within(drawer).queryByText("Match skill")).not.toBeInTheDocument();
     expect(within(drawer).getByRole("heading", { name: "Prediction" })).toBeInTheDocument();
-    expect(within(drawer).getByRole("heading", { name: "Outcome" })).toBeInTheDocument();
+    const outcomeSection = within(drawer).getByRole("region", { name: "Outcome" });
+    expect(within(outcomeSection).getByText("Prediction")).toBeInTheDocument();
+    expect(within(outcomeSection).queryByText("Result")).not.toBeInTheDocument();
     expect(within(drawer).getByText("Model vs Polymarket")).toBeInTheDocument();
     expect(within(drawer).getByRole("columnheader", { name: "Outcome" })).toBeInTheDocument();
     expect(within(drawer).getByRole("columnheader", { name: "Difference" })).toBeInTheDocument();

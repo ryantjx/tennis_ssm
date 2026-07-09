@@ -8,12 +8,12 @@ interface PredictionListRowProps {
 
 export function PredictionListRow({ match, onOpen }: PredictionListRowProps) {
   const highlightedPlayer = match.actual_winner ?? match.predicted_winner;
-  const status = match.match_status === "in_progress"
+  const status: string | null = match.match_status === "in_progress"
     ? "Live"
     : match.match_status === "suspended"
       ? "Suspended"
       : match.is_future
-        ? "Upcoming"
+        ? null
         : match.correct
           ? "Correct"
           : "Wrong";
@@ -45,8 +45,9 @@ export function PredictionListRow({ match, onOpen }: PredictionListRowProps) {
           <small>{formatSigned(match.player2_skill, 2)} ±{match.player2_skill_sd.toFixed(2)}</small>
         </span>
       </div>
-      <span className={`status-pill status-pill--${status.toLowerCase()}`}>{status}</span>
-      {match.market ? <span className="market-badge">Market</span> : null}
+      {status
+        ? <span className={`status-pill status-pill--${status.toLowerCase()}`}>{status}</span>
+        : <span aria-hidden="true" />}
       <span>{confidenceLabel(match.confidence)} {formatPercent(probabilityForPredictedWinner(match), 1)}</span>
     </article>
   );

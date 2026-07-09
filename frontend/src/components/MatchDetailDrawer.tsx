@@ -16,6 +16,7 @@ export function MatchDetailDrawer({ match, onClose }: MatchDetailDrawerProps) {
   if (!match) return null;
 
   const predictedProbability = probabilityForPredictedWinner(match);
+  const predictionResult = match.is_future ? "Upcoming" : match.correct ? "Correct" : "Wrong";
 
   return (
     <div className="drawer-backdrop" role="presentation" onClick={onClose}>
@@ -65,8 +66,8 @@ export function MatchDetailDrawer({ match, onClose }: MatchDetailDrawerProps) {
                 <dd>{match.actual_winner ?? "Not yet played"}</dd>
               </div>
               <div>
-                <dt>Result</dt>
-                <dd>{match.is_future ? "Upcoming" : match.correct ? "Correct" : "Wrong"}</dd>
+                <dt>Prediction</dt>
+                <dd className={`outcome-pill outcome-pill--${predictionResult.toLowerCase()}`}>{predictionResult}</dd>
               </div>
               <div>
                 <dt>Log score</dt>

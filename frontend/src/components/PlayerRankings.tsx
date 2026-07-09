@@ -24,9 +24,9 @@ export function PlayerRankings({ players }: PlayerRankingsProps) {
       <div className="ranking-chart">
         {players.map((player, index) => (
           <article className={`ranking-row ${player.skill < 0 ? "ranking-row--negative" : ""}`} key={player.name}>
+            <span className="ranking-row__rank">#{player.rank ?? index + 1}</span>
             <strong className="ranking-row__player">
               <span>{player.name}</span>
-              <small>#{player.rank ?? index + 1}</small>
             </strong>
             <SkillScale player={player} domain={domain} />
             <b>
