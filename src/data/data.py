@@ -5,6 +5,12 @@ Downloads historical match results from tennis-data.co.uk, cleans player names,
 builds player ID mappings, computes timestamps, and computes the previous match
 timestamp for each player (needed for the Wiener-process dynamics).
 
+This module remains the historical WTA training/backfill path. Future fixture
+ingestion lives in ``src.data.fixtures_womens`` and
+``src.data.fixtures_men`` because future rows have no winners. ATP fixture
+research should not be merged into this WTA model pipeline until a separate
+men's historical loader and model state are added.
+
 The structure follows abile's ``datasets/tennis.py`` (name consolidation, ID
 mapping, timestamp computation) but uses polars for data processing, matching
 the pattern in ``references/process_data.py`` (previous-match-timestamp via

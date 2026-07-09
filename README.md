@@ -47,16 +47,44 @@ The model is trained on WTA matches from 2023-2025 and evaluated on 2026 matches
 
 Trained parameters: τ=0.029, s=1.76, init_var=1.71
 
+### Prediction outputs
+
+The canonical model output is generated at `outputs/predictions.json`. The
+deployment workflow copies that file to `frontend/public/data/predictions.json`
+before building the frontend; the copied file is ignored because it is generated
+runtime data.
+
+The model first trains seed parameters on the historical training likelihood,
+then selects `tau`, `s`, and `init_var` by maximizing average log score on the
+2026 test set. The exported JSON records the training/test windows, selected
+parameters, optimization objective, trial metrics, final metrics, historical
+test predictions, player rankings, and matched WTA future fixture predictions.
+
+Future predictions are loaded from the WTA fixture API via
+`src/data/fixtures_womens.py` and filtered to players known by the trained model.
+Synthetic top-player matchups are disabled in the main workflow.
+
 ### Frontend
 
 Predictions are deployed to GitHub Pages at **https://ryantjx.github.io/tennis_ssm/**.
 
-The frontend is a single-page vanilla JS app in `frontend/` (inspired by the [cuthberto-carlos](https://github.com/state-space-models/cuthberto-carlos/tree/main/frontend) tournament frontend). It features:
-- **Header tabs** for switching between *Match Predictions* and *Player Rankings*
-- **Match cards** with win-probability bars, confidence tiers, and correct/upset badges
-- **Expandable details** for every prediction: predicted/actual winner, per-match log-score, and the model's skill estimates for both players at match time
-- **Date grouping**, search by player, "only incorrect" filter, and sorting by date, confidence, or log-score
-- **Player rankings** with skill ratings and uncertainty
+The frontend is a Vite React app in `frontend/` inspired by the
+[cuthberto-carlos](https://github.com/state-space-models/cuthberto-carlos/tree/main/frontend)
+interaction model, adapted for general tennis data. It features:
+- **Upcoming predictions** loaded from matched WTA future fixtures
+- **Completed forecast archive** with prediction quality and match detail drawer
+- **Committed results reference** at `frontend/public/data/results.json`
+- **Search, surface, correctness, and sort controls** across predictions
+- **Player rankings** with filtered skill ratings and uncertainty
+
+Local frontend commands:
+
+```bash
+cd frontend
+npm install
+npm test
+npm run build
+```
 
 ## Extensions
 

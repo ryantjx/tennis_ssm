@@ -2,5 +2,10 @@
 __pycache__/
 *.pyc
 outputs/
+local_data/
+frontend/dist/
+frontend/node_modules/
+frontend/public/data/predictions.json
+*_fixtures.csv
 *.npy
 *.json.bak
