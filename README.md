@@ -35,7 +35,7 @@ Data is collected http://www.tennis-data.co.uk/alldata.php.
 
 ## Results
 
-The model is trained on WTA matches from 2023-2025 and evaluated on 2026 matches.
+The model is trained on WTA matches from 2022-2024, selects parameters on 2025 matches, and evaluates the selected model on 2026 matches.
 
 | Metric | Value |
 |---|---|
@@ -56,9 +56,11 @@ runtime data.
 
 The model first trains seed parameters on the historical training likelihood,
 then selects `tau`, `s`, and `init_var` by maximizing average log score on the
-2026 test set. The exported JSON records the training/test windows, selected
-parameters, optimization objective, trial metrics, final metrics, historical
-test predictions, player rankings, and matched WTA future fixture predictions.
+2025 test set. The selected parameters are then used for 2026 onward prediction
+exports. The exported JSON records the training/test/prediction windows,
+selected parameters, optimization objective, trial metrics, final metrics,
+historical predictions, player rankings, and matched WTA future fixture
+predictions.
 
 Future predictions are loaded from the WTA fixture API via
 `src/data/fixtures_womens.py` and filtered to players known by the trained model.
@@ -74,8 +76,8 @@ interaction model, adapted for general tennis data. It features:
 - **Upcoming predictions** loaded from matched WTA future fixtures
 - **Completed forecast archive** with prediction quality and match detail drawer
 - **Committed results reference** at `frontend/public/data/results.json`
-- **Search, surface, correctness, and sort controls** across predictions
-- **Player rankings** with filtered skill ratings and uncertainty
+- **Search** across predictions and player rankings
+- **Player rankings** with all filtered skill ratings and uncertainty
 
 Local frontend commands:
 

@@ -1,5 +1,5 @@
 import type { MatchPrediction } from "../types";
-import { confidenceLabel, formatDate, formatPercent, probabilityForPredictedWinner } from "../utils";
+import { confidenceLabel, formatDate, formatPercent, formatSigned, probabilityForPredictedWinner } from "../utils";
 
 interface PredictionListRowProps {
   match: MatchPrediction;
@@ -35,9 +35,15 @@ export function PredictionListRow({ match, onOpen }: PredictionListRowProps) {
         <span>{match.surface} · {match.round}</span>
       </div>
       <div className="prediction-row__fixture">
-        <span className={highlightedPlayer === match.player1 ? "row-highlight" : ""}>{match.player1}</span>
+        <span className={highlightedPlayer === match.player1 ? "row-highlight" : ""}>
+          <b>{match.player1}{match.player1_rank ? <em>Rank #{match.player1_rank}</em> : null}</b>
+          <small>{formatSigned(match.player1_skill, 2)} ±{match.player1_skill_sd.toFixed(2)}</small>
+        </span>
         <strong>{formatPercent(match.p_player1_win, 0)} - {formatPercent(match.p_player2_win, 0)}</strong>
-        <span className={highlightedPlayer === match.player2 ? "row-highlight" : ""}>{match.player2}</span>
+        <span className={highlightedPlayer === match.player2 ? "row-highlight" : ""}>
+          <b>{match.player2}{match.player2_rank ? <em>Rank #{match.player2_rank}</em> : null}</b>
+          <small>{formatSigned(match.player2_skill, 2)} ±{match.player2_skill_sd.toFixed(2)}</small>
+        </span>
       </div>
       <span className={`status-pill status-pill--${status.toLowerCase()}`}>{status}</span>
       {match.market ? <span className="market-badge">Market</span> : null}

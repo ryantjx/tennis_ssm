@@ -1,11 +1,9 @@
 import type { CSSProperties } from "react";
 import type { MatchPrediction } from "../types";
 import {
-  confidenceLabel,
   formatDate,
   formatPercent,
   formatSigned,
-  probabilityForPredictedWinner,
 } from "../utils";
 import { MarketComparisonTable } from "./MarketComparisonTable";
 
@@ -15,7 +13,6 @@ interface PredictionCardProps {
 }
 
 export function PredictionCard({ match, onOpen }: PredictionCardProps) {
-  const predictedProbability = probabilityForPredictedWinner(match);
   const isFuture = !!match.is_future;
   const highlightedPlayer = match.actual_winner ?? match.predicted_winner;
   const status = match.match_status === "in_progress"
@@ -53,27 +50,57 @@ export function PredictionCard({ match, onOpen }: PredictionCardProps) {
         <span>{match.tournament}</span>
       </div>
       <div className="prediction-card__players">
-        <PlayerLine name={match.player1} probability={match.p_player1_win} isPick={highlightedPlayer === match.player1} />
-        <PlayerLine name={match.player2} probability={match.p_player2_win} isPick={highlightedPlayer === match.player2} />
+        <PlayerLine
+          name={match.player1}
+          rank={match.player1_rank}
+          probability={match.p_player1_win}
+          skill={match.player1_skill}
+          skillSd={match.player1_skill_sd}
+          isPick={highlightedPlayer === match.player1}
+        />
+        <PlayerLine
+          name={match.player2}
+          rank={match.player2_rank}
+          probability={match.p_player2_win}
+          skill={match.player2_skill}
+          skillSd={match.player2_skill_sd}
+          isPick={highlightedPlayer === match.player2}
+        />
       </div>
       {match.market ? <MarketComparisonTable match={match} compact /> : null}
-      <div className="prediction-card__footer">
-        <span>{confidenceLabel(match.confidence)} {formatPercent(predictedProbability, 1)}</span>
-        <span>{formatSigned(match.player1_skill - match.player2_skill)} skill gap</span>
-      </div>
     </article>
   );
 }
 
-function PlayerLine({ name, probability, isPick }: { name: string; probability: number; isPick: boolean }) {
+function PlayerLine({
+  name,
+  rank,
+  probability,
+  skill,
+  skillSd,
+  isPick,
+}: {
+  name: string;
+  rank?: number | null;
+  probability: number;
+  skill: number;
+  skillSd: number;
+  isPick: boolean;
+}) {
   return (
     <div
       className={`player-line ${isPick ? "player-line--pick" : ""}`}
       style={{ "--probability": `${Math.max(0, Math.min(1, probability)) * 100}%` } as CSSProperties}
     >
       <span className="player-line__fill" aria-hidden="true" />
-      <strong>{name}</strong>
-      <span>{formatPercent(probability, 1)}</span>
+      <span className="player-line__identity">
+        <strong>
+          <span>{name}</span>
+          {rank ? <em>Rank #{rank}</em> : null}
+        </strong>
+        <small>{formatSigned(skill, 2)} ±{skillSd.toFixed(2)}</small>
+      </span>
+      <b>{formatPercent(probability, 1)}</b>
     </div>
   );
 }

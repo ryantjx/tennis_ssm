@@ -5,12 +5,10 @@ import { MatchDetailDrawer } from "./components/MatchDetailDrawer";
 import { PlayerRankings } from "./components/PlayerRankings";
 import { UpcomingMatches } from "./components/UpcomingMatches";
 import type { MatchFilters, MatchPrediction, PredictionPayload, ResultsPayload } from "./types";
-import { applyMatchFilters, formatDate, formatPercent, surfaceOptions } from "./utils";
+import { applyMatchFilters, formatDate, formatPercent } from "./utils";
 
 const defaultFilters: MatchFilters = {
   query: "",
-  surface: "",
-  sort: "date-desc",
 };
 
 async function fetchJson<T>(path: string): Promise<T> {
@@ -49,7 +47,12 @@ function App() {
     () => applyMatchFilters(allMatches, filters),
     [allMatches, filters],
   );
-  const surfaces = useMemo(() => surfaceOptions(allMatches), [allMatches]);
+  const filteredPlayers = useMemo(() => {
+    const query = filters.query.trim().toLowerCase();
+    if (!data) return [];
+    if (!query) return data.top_players;
+    return data.top_players.filter((player) => player.name.toLowerCase().includes(query));
+  }, [data, filters.query]);
 
   if (error) {
     return (
@@ -73,7 +76,11 @@ function App() {
   const logDelta = data.metrics.avg_log_score - data.metrics.uniform_baseline;
   const upcoming = filteredMatches.filter((match) => match.is_future);
   const completed = filteredMatches.filter((match) => !match.is_future);
-  const matchedMarkets = data.market_status?.matched_model_matches ?? allMatches.filter((match) => match.market).length;
+  const predictionWindow = evaluatedPredictionWindow(data);
+  const trainWindow = data.data_windows?.train_display_start && data.data_windows?.train_display_end
+    ? `${data.data_windows.train_display_start} to ${data.data_windows.train_display_end}`
+    : `${data.data_windows?.train_start ?? "unknown"} to ${data.data_windows?.train_end ?? "unknown"}`;
+  const tuningWindow = evaluatedTuningWindow(data);
 
   return (
     <>
@@ -101,7 +108,7 @@ function App() {
             <span className="eyebrow">WTA Match Prediction Model</span>
             <h1 id="dashboard-title">Match forecasts and completed results</h1>
             <p>
-              Predictions are optimized against the 2026 test log score and future fixtures are sourced from the WTA schedule when players match the trained model.
+              Parameters are selected on 2025 test log score, then the selected model is used for 2026 onward predictions and future fixtures.
             </p>
           </div>
           <dl className="summary-card" aria-label="Overall model results">
@@ -122,7 +129,8 @@ function App() {
         <FilterControls
           filters={filters}
           onChange={setFilters}
-          surfaces={surfaces}
+          resultCount={filteredMatches.length}
+          totalCount={allMatches.length}
         />
 
         <UpcomingMatches matches={upcoming} onOpen={setSelectedMatch} fixtureStatus={data.fixture_status} />
@@ -132,7 +140,7 @@ function App() {
           onOpen={setSelectedMatch}
           resultWindow={results.data_window}
         />
-        <PlayerRankings players={data.top_players} />
+        <PlayerRankings players={filteredPlayers} />
         <section className="methodology-section" id="methodology" aria-labelledby="methodology-title">
           <div className="section-heading">
             <div>
@@ -142,59 +150,27 @@ function App() {
             <p>Latest run: {generatedAt.toLocaleString()}</p>
           </div>
           <div className="methodology-grid">
-            <article>
-              <h3>State-space model</h3>
+            <article className="methodology-brief">
+              <h3>Model brief</h3>
               <p>
-                The model is a Gaussian factorial state-space model with one latent skill per WTA player. Player skill follows a random walk over time, and match win probability is computed from the skill difference with a logistic observation model.
+                A Gaussian factorial state-space model tracks one latent skill per WTA player. Skills evolve through a random walk, and win probability comes from the skill difference through a logistic observation model. Filtering uses Gaussian moment updates over historical match outcomes:
               </p>
-            </article>
-            <article>
-              <h3>Training and objective</h3>
-              <p>
-                Historical WTA matches are filtered through the model, then smoothing parameters are selected by maximizing the 2026 test-set average log score. Future predictions use WTA fixtures only when both players resolve to trained model players.
-              </p>
-            </article>
-            <article>
-              <h3>Market comparison</h3>
-              <p>
-                Polymarket tennis moneylines are optional live inputs. When available, markets are matched by normalized singles player names and shown beside model-implied probabilities.
-              </p>
+              <div className="equation-list" aria-label="Model equations">
+                <MathEquation label="Initial skill prior" mathml="<math display='block'><mrow><mi>p</mi><mo>(</mo><msub><mi>x</mi><mn>0</mn></msub><mo>)</mo><mo>~</mo><mi>N</mi><mo>(</mo><msub><mi>μ</mi><mn>0</mn></msub><mo>,</mo><msub><mi>Σ</mi><mn>0</mn></msub><mo>)</mo></mrow></math>" />
+                <MathEquation label="Skill evolution" mathml="<math display='block'><mrow><mi>p</mi><mo>(</mo><msub><mi>x</mi><mi>t</mi></msub><mo>|</mo><msub><mi>x</mi><mrow><mi>t</mi><mo>-</mo><mn>1</mn></mrow></msub><mo>)</mo><mo>~</mo><mi>N</mi><mo>(</mo><msub><mi>τ</mi><mi>d</mi></msub><mo>Δ</mo><mi>t</mi><mo>,</mo><msub><mi>Q</mi><mi>k</mi></msub><mo>)</mo></mrow></math>" />
+                <MathEquation label="Match observation probability" mathml="<math display='block'><mrow><msub><mi>G</mi><mi>k</mi></msub><mo>(</mo><msub><mi>y</mi><mi>k</mi></msub><mo>|</mo><msup><mi>x</mi><mi>i</mi></msup><mo>,</mo><msup><mi>x</mi><mi>j</mi></msup><mo>)</mo><mo>=</mo><mi>σ</mi><mo>(</mo><mfrac><mrow><msup><mi>x</mi><mi>i</mi></msup><mo>-</mo><msup><mi>x</mi><mi>j</mi></msup></mrow><msub><mi>s</mi><mi>d</mi></msub></mfrac><mo>)</mo></mrow></math>" />
+                <MathEquation label="Gaussian filtered posterior" mathml="<math display='block'><mrow><mi>p</mi><mo>(</mo><msubsup><mi>x</mi><mi>t</mi><mi>i</mi></msubsup><mo>|</mo><msub><mi>y</mi><mrow><mn>1</mn><mo>:</mo><mi>t</mi></mrow></msub><mo>)</mo><mo>≈</mo><mi>N</mi><mo>(</mo><msubsup><mi>μ</mi><mi>t</mi><mi>i</mi></msubsup><mo>,</mo><msubsup><mi>Σ</mi><mi>t</mi><mi>i</mi></msubsup><mo>)</mo></mrow></math>" />
+              </div>
             </article>
             <h3 className="methodology-params__title">Optimized model parameters</h3>
-            <dl className="methodology-params" aria-label="Optimized model parameters">
-              <div>
-                <dt>Tau</dt>
-                <dd>{data.model_params.tau.toFixed(6)}</dd>
-              </div>
-              <div>
-                <dt>S</dt>
-                <dd>{data.model_params.s.toFixed(6)}</dd>
-              </div>
-              <div>
-                <dt>Init var</dt>
-                <dd>{data.model_params.init_var.toFixed(6)}</dd>
-              </div>
-              <div>
-                <dt>Objective</dt>
-                <dd>{data.optimization?.objective ?? "Test log score optimization"}</dd>
-              </div>
-              <div>
-                <dt>Train window</dt>
-                <dd>{data.data_windows?.train_start ?? "unknown"} to {data.data_windows?.train_end ?? "unknown"}</dd>
-              </div>
-              <div>
-                <dt>Test window</dt>
-                <dd>{data.data_windows?.test_start ?? "unknown"} to {data.data_windows?.test_end ?? "unknown"}</dd>
-              </div>
-              <div>
-                <dt>Market lines</dt>
-                <dd>{matchedMarkets}</dd>
-              </div>
-              <div>
-                <dt>Future fixtures</dt>
-                <dd>{data.future_matches.length}</dd>
-              </div>
-            </dl>
+            <ul className="methodology-params" aria-label="Optimized model parameters">
+              <li><strong>Tau:</strong> {data.model_params.tau.toFixed(6)} <span>skill drift rate</span></li>
+              <li><strong>S:</strong> {data.model_params.s.toFixed(6)} <span>logistic scale</span></li>
+              <li><strong>Init var:</strong> {data.model_params.init_var.toFixed(6)} <span>initial skill uncertainty</span></li>
+              <li><strong>Train window:</strong> {trainWindow} <span>historical fitting data</span></li>
+              <li><strong>Parameter test window:</strong> {tuningWindow} <span>model selection data</span></li>
+              <li><strong>Prediction window:</strong> {predictionWindow} <span>post-selection evaluated matches</span></li>
+            </ul>
           </div>
         </section>
       </main>
@@ -205,16 +181,46 @@ function App() {
           <span>Gaussian factorial state-space model for tennis match outcomes.</span>
         </div>
         <p>
-          Parameters: tau {data.model_params.tau.toFixed(4)}, s {data.model_params.s.toFixed(4)}, init var {data.model_params.init_var.toFixed(4)}.
+          Completed results source: {results.source}. Latest result window starts {results.data_window ? formatDate(results.data_window.start) : "unknown"}.
         </p>
         <p>
-          Completed results source: {results.source}. Latest result window starts {results.data_window ? formatDate(results.data_window.start) : "unknown"}.
+          Repository: <a href="https://github.com/ryantjx/tennis_ssm" target="_blank" rel="noreferrer">ryantjx/tennis_ssm</a>
         </p>
       </footer>
 
       <MatchDetailDrawer match={selectedMatch} onClose={() => setSelectedMatch(null)} />
     </>
   );
+}
+
+function MathEquation({ label, mathml }: { label: string; mathml: string }) {
+  return (
+    <div
+      className="math-equation"
+      role="math"
+      aria-label={label}
+      dangerouslySetInnerHTML={{ __html: mathml }}
+    />
+  );
+}
+
+function evaluatedTuningWindow(data: PredictionPayload): string {
+  const start = data.data_windows?.test_match_start;
+  const end = data.data_windows?.test_match_end;
+  if (start && end) return `${start} to ${end}`;
+  if (data.data_windows?.test_display_start && data.data_windows?.test_display_end) {
+    return `${data.data_windows.test_display_start} to ${data.data_windows.test_display_end}`;
+  }
+  return "unknown";
+}
+
+function evaluatedPredictionWindow(data: PredictionPayload): string {
+  const start = data.data_windows?.prediction_match_start;
+  const end = data.data_windows?.prediction_match_end;
+  if (start && end) return `${start} to ${end}`;
+  if (!data.matches.length) return "unknown";
+  const dates = data.matches.map((match) => match.date).sort();
+  return `${dates[0]} to ${dates[dates.length - 1]}`;
 }
 
 export default App;

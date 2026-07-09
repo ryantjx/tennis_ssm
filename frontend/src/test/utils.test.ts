@@ -45,8 +45,6 @@ describe("prediction utilities", () => {
 
     const filtered = applyMatchFilters(matches, {
       query: "city",
-      surface: "Hard",
-      sort: "date-desc",
     });
 
     expect(filtered).toHaveLength(1);

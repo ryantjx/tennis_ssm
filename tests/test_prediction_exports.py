@@ -87,8 +87,17 @@ class PredictionExportTest(unittest.TestCase):
                 "avg_log_score": -0.69,
                 "uniform_baseline": -0.6931,
             },
-            top_players=[],
-            matches=[],
+            top_players=[
+                {"rank": rank, "name": f"Player {rank}", "skill": 1 / rank, "variance": 0.1}
+                for rank in range(1, 53)
+            ],
+            matches=[
+                {"date": "2026-06-27"},
+            ],
+            test_window_matches=[
+                {"date": "2025-01-01"},
+                {"date": "2025-12-31"},
+            ],
             future_matches=[],
             fixture_status={"source": "wta_api"},
         )
@@ -99,6 +108,17 @@ class PredictionExportTest(unittest.TestCase):
         self.assertIn("future_matches", payload)
         self.assertIn("market_status", payload)
         self.assertEqual(payload["metrics"]["n_future_matches"], 0)
+        self.assertEqual(len(payload["top_players"]), 52)
+        self.assertEqual(payload["data_windows"]["train_display_start"], "2022-01-01")
+        self.assertEqual(payload["data_windows"]["train_display_end"], "2024-12-31")
+        self.assertEqual(payload["data_windows"]["test_display_start"], "2025-01-01")
+        self.assertEqual(payload["data_windows"]["test_display_end"], "2025-12-31")
+        self.assertEqual(payload["data_windows"]["test_match_start"], "2025-01-01")
+        self.assertEqual(payload["data_windows"]["test_match_end"], "2025-12-31")
+        self.assertEqual(payload["data_windows"]["prediction_display_start"], "2026-01-01")
+        self.assertEqual(payload["data_windows"]["prediction_display_end"], "2026-12-31")
+        self.assertEqual(payload["data_windows"]["prediction_match_start"], "2026-06-27")
+        self.assertEqual(payload["data_windows"]["prediction_match_end"], "2026-06-27")
 
     def test_polymarket_moneyline_matches_fixture_by_player_pair(self):
         events = [
@@ -191,6 +211,7 @@ class PredictionExportTest(unittest.TestCase):
         )
 
         self.assertEqual(payload["source"], "tennis-data.co.uk WTA historical results")
+        self.assertEqual(payload["data_window"], {"start": "2026-01-04", "end": "2026-01-04"})
         self.assertEqual(len(payload["results"]), 1)
         result = payload["results"][0]
         self.assertEqual(result["date"], "2026-01-04")

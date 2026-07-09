@@ -1,11 +1,25 @@
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { cleanup, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import App from "../App";
 import type { PredictionPayload, ResultsPayload } from "../types";
 
 const predictions: PredictionPayload = {
   generated_at: "2026-07-09T12:00:00Z",
+  data_windows: {
+    train_start: "2021-12-31",
+    train_end: "2024-12-31",
+    train_display_start: "2022-01-01",
+    train_display_end: "2024-12-31",
+    test_start: "2024-12-31",
+    test_end: "2025-12-31",
+    test_match_start: "2025-01-01",
+    test_match_end: "2025-12-31",
+    prediction_display_start: "2026-01-01",
+    prediction_display_end: "2026-12-31",
+    prediction_match_start: "2026-01-04",
+    prediction_match_end: "2026-06-27",
+  },
   model_params: { tau: 0.1, s: 1.0, init_var: 1.0 },
   metrics: {
     n_test_matches: 1,
@@ -20,7 +34,10 @@ const predictions: PredictionPayload = {
     loaded_moneylines: 1,
     matched_model_matches: 1,
   },
-  top_players: [{ rank: 1, name: "Player A", skill: 1.2, variance: 0.2 }],
+  top_players: [
+    { rank: 1, name: "Player A", skill: 1.2, variance: 0.2 },
+    { rank: 2, name: "Player Negative", skill: -0.8, variance: 0.3 },
+  ],
   matches: [
     {
       id: "m1",
@@ -156,11 +173,18 @@ describe("App", () => {
     }));
   });
 
+  afterEach(() => {
+    cleanup();
+    vi.unstubAllGlobals();
+  });
+
   it("renders upcoming predictions, completed results, and rankings", async () => {
     render(<App />);
 
     await waitFor(() => expect(screen.getByText("Upcoming predictions")).toBeInTheDocument());
     expect(screen.queryByText("Test matches")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Surface")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Sort")).not.toBeInTheDocument();
     expect(screen.getByText("Accuracy")).toBeInTheDocument();
     expect(screen.getByText("Log score")).toBeInTheDocument();
     expect(screen.getAllByText(/Future Open/).length).toBeGreaterThan(0);
@@ -169,13 +193,42 @@ describe("App", () => {
     expect(screen.queryByRole("columnheader", { name: "Player 1" })).not.toBeInTheDocument();
     expect(screen.queryByRole("columnheader", { name: "Player 2" })).not.toBeInTheDocument();
     expect(screen.getByText("Player rankings")).toBeInTheDocument();
+    expect(screen.getByText("Player Negative")).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Methodology" })).toBeInTheDocument();
     expect(screen.getByText("Optimized model parameters")).toBeInTheDocument();
+    expect(screen.getByText("2022-01-01 to 2024-12-31")).toBeInTheDocument();
+    expect(screen.getByText("2025-01-01 to 2025-12-31")).toBeInTheDocument();
+    expect(screen.getByText("2026-01-04 to 2026-06-27")).toBeInTheDocument();
+    expect(screen.queryByText(/Parameters: tau/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Objective:/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Market lines:/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Future fixtures:/)).not.toBeInTheDocument();
+    expect(screen.getByLabelText("Model equations")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "ryantjx/tennis_ssm" })).toHaveAttribute(
+      "href",
+      "https://github.com/ryantjx/tennis_ssm",
+    );
     expect(screen.getAllByText("Model vs Polymarket").length).toBeGreaterThan(0);
     expect(screen.getAllByRole("columnheader", { name: "Market" }).length).toBeGreaterThan(0);
   });
 
-  it("shows player ranks and skill levels in the match drawer", async () => {
+  it("filters matches and rankings with the global search", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await waitFor(() => expect(screen.getByText("Upcoming predictions")).toBeInTheDocument());
+    await user.type(screen.getByLabelText("Search"), "Future");
+    expect(screen.getByText("Future Open")).toBeInTheDocument();
+    expect(screen.queryByText("Test Open")).not.toBeInTheDocument();
+
+    await user.clear(screen.getByLabelText("Search"));
+    await user.type(screen.getByLabelText("Search"), "negative");
+    expect(screen.getByText("Player Negative")).toBeInTheDocument();
+    expect(screen.queryByText("Player A")).not.toBeInTheDocument();
+    expect(screen.queryByText("Future Open")).not.toBeInTheDocument();
+  });
+
+  it("shows player ranks without repeated skill blocks in the match drawer", async () => {
     const user = userEvent.setup();
     render(<App />);
 
@@ -186,8 +239,11 @@ describe("App", () => {
     expect(drawer).toBeInTheDocument();
     expect(within(drawer).getByText("Rank #12")).toBeInTheDocument();
     expect(within(drawer).getByText("Rank #18")).toBeInTheDocument();
-    expect(within(drawer).getAllByText("Skill").length).toBe(2);
-    expect(within(drawer).getAllByText("Match skill").length).toBe(2);
+    expect(within(drawer).queryByLabelText("Player ranks")).not.toBeInTheDocument();
+    expect(within(drawer).queryByText("Skill gap")).not.toBeInTheDocument();
+    expect(within(drawer).queryByText("Match skill")).not.toBeInTheDocument();
+    expect(within(drawer).getByRole("heading", { name: "Prediction" })).toBeInTheDocument();
+    expect(within(drawer).getByRole("heading", { name: "Outcome" })).toBeInTheDocument();
     expect(within(drawer).getByText("Model vs Polymarket")).toBeInTheDocument();
     expect(within(drawer).getByRole("columnheader", { name: "Outcome" })).toBeInTheDocument();
     expect(within(drawer).getByRole("columnheader", { name: "Difference" })).toBeInTheDocument();

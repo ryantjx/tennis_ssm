@@ -1,4 +1,4 @@
-import type { MatchFilters, MatchPrediction, SortMode } from "./types";
+import type { MatchFilters, MatchPrediction } from "./types";
 
 export function formatPercent(value: number, digits = 0): string {
   return `${(value * 100).toFixed(digits)}%`;
@@ -35,18 +35,12 @@ export function confidenceLabel(confidence: number): string {
   return "Close";
 }
 
-export function surfaceOptions(matches: MatchPrediction[]): string[] {
-  return Array.from(
-    new Set(matches.map((match) => match.surface).filter((surface) => surface && surface !== "Unknown")),
-  ).sort();
-}
-
 export function applyMatchFilters(
   matches: MatchPrediction[],
   filters: MatchFilters,
 ): MatchPrediction[] {
   const query = filters.query.trim().toLowerCase();
-  const filtered = matches.filter((match) => {
+  return matches.filter((match) => {
     if (query) {
       const haystack = [
         match.player1,
@@ -57,34 +51,6 @@ export function applyMatchFilters(
       ].join(" ").toLowerCase();
       if (!haystack.includes(query)) return false;
     }
-    if (filters.surface && match.surface !== filters.surface) return false;
     return true;
   });
-
-  return filtered.sort((left, right) => compareMatches(left, right, filters.sort));
-}
-
-export function compareMatches(left: MatchPrediction, right: MatchPrediction, sort: SortMode): number {
-  switch (sort) {
-    case "date-asc":
-      return left.timestamp - right.timestamp;
-    case "date-desc":
-      return right.timestamp - left.timestamp;
-    case "confidence-asc":
-      return left.confidence - right.confidence;
-    case "confidence-desc":
-      return right.confidence - left.confidence;
-    case "edge-desc":
-      return Math.abs(right.p_player1_win - 0.5) - Math.abs(left.p_player1_win - 0.5);
-    case "log-score-asc":
-      return scoreValue(left.log_score) - scoreValue(right.log_score);
-    case "log-score-desc":
-      return scoreValue(right.log_score) - scoreValue(left.log_score);
-    default:
-      return 0;
-  }
-}
-
-function scoreValue(value: number | null): number {
-  return value ?? -999;
 }

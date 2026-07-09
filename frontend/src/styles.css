@@ -282,8 +282,9 @@ main {
   margin: 0.25rem 0 0;
   color: var(--green-dark);
   font-family: Georgia, serif;
-  font-size: clamp(2.4rem, 5vw, 3.8rem);
+  font-size: clamp(2.25rem, 4vw, 3.45rem);
   line-height: 1;
+  white-space: nowrap;
 }
 
 .summary-card span {
@@ -298,9 +299,9 @@ main {
   z-index: 20;
   top: 72px;
   display: grid;
-  grid-template-columns: minmax(220px, 1fr) 170px 190px;
+  grid-template-columns: minmax(220px, 1fr) auto;
   gap: 0.9rem;
-  align-items: end;
+  align-items: center;
   margin-bottom: 2rem;
   padding: 1rem;
   border-radius: 8px;
@@ -325,6 +326,15 @@ main {
   color: var(--ink);
   background: white;
   padding: 0.6rem 0.7rem;
+}
+
+.filters__count,
+.ranking-tools p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.88rem;
+  font-weight: 750;
+  white-space: nowrap;
 }
 
 .section {
@@ -394,10 +404,11 @@ main {
 
 .prediction-card {
   display: grid;
-  gap: 1rem;
-  min-height: 260px;
+  gap: 0.75rem;
+  align-content: start;
+  min-height: 210px;
   border-radius: 8px;
-  padding: 1rem;
+  padding: 0.9rem;
   cursor: pointer;
   transition: border-color 160ms ease, transform 160ms ease;
 }
@@ -417,7 +428,7 @@ main {
 
 .prediction-card__meta {
   display: grid;
-  gap: 0.3rem;
+  gap: 0.22rem;
   color: var(--muted);
 }
 
@@ -430,7 +441,7 @@ main {
 
 .prediction-card__meta strong {
   color: var(--ink);
-  font-size: 1.05rem;
+  font-size: 1rem;
 }
 
 .prediction-card__location {
@@ -443,38 +454,78 @@ main {
 
 .prediction-card__players {
   display: grid;
-  gap: 0.55rem;
+  gap: 0.4rem;
 }
 
 .player-line {
   position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 0.6rem;
+  grid-template-columns: minmax(0, 1fr) minmax(64px, auto);
+  column-gap: 1.25rem;
   align-items: center;
   overflow: hidden;
-  padding: 0.65rem 0.75rem;
+  min-height: 52px;
+  padding: 0.5rem 0.7rem;
   border-radius: 6px;
   background: #f5f7f2;
 }
 
 .player-line__fill {
   position: absolute;
-  inset: 0 auto 0 0;
+  inset: auto auto 0 0;
   width: var(--probability);
+  height: 4px;
   background: rgba(23, 99, 59, 0.1);
   pointer-events: none;
 }
 
-.player-line strong {
+.player-line__identity {
   position: relative;
+  display: grid;
+  gap: 0.08rem;
+  min-width: 0;
+}
+
+.player-line strong {
+  display: flex;
+  gap: 0.45rem;
+  align-items: baseline;
+  min-width: 0;
+  overflow: hidden;
+  font-size: 0.94rem;
+}
+
+.player-line strong span {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.player-line > span:last-child {
+.player-line strong em,
+.prediction-row__fixture em,
+.drawer-summary dt em {
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-style: normal;
+  font-weight: 850;
+  white-space: nowrap;
+}
+
+.player-line small {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.player-line b {
   position: relative;
+  font-size: 0.95rem;
+  font-weight: 850;
+  text-align: right;
+  white-space: nowrap;
 }
 
 .player-line--pick {
@@ -483,17 +534,7 @@ main {
 }
 
 .player-line--pick .player-line__fill {
-  background: rgba(184, 217, 71, 0.48);
-}
-
-.prediction-card__footer {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.55rem;
-  align-items: center;
-  color: var(--muted);
-  font-size: 0.85rem;
-  font-weight: 750;
+  background: var(--green);
 }
 
 .status-pill {
@@ -533,10 +574,10 @@ main {
 
 .prediction-row {
   display: grid;
-  grid-template-columns: minmax(190px, 0.8fr) minmax(260px, 1.5fr) auto auto auto;
+  grid-template-columns: minmax(190px, 0.8fr) minmax(300px, 1.6fr) auto auto auto;
   gap: 1rem;
   align-items: center;
-  min-height: 86px;
+  min-height: 76px;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: rgba(255, 254, 249, 0.88);
@@ -571,12 +612,31 @@ main {
 .prediction-row__fixture {
   grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
+  gap: 0.7rem;
 }
 
 .prediction-row__fixture span {
+  display: grid;
+  gap: 0.08rem;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.prediction-row__fixture b {
+  display: flex;
+  gap: 0.45rem;
+  align-items: baseline;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.prediction-row__fixture small {
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 800;
 }
 
 .prediction-row__fixture span:last-child {
@@ -683,33 +743,43 @@ main {
 .ranking-chart {
   display: grid;
   gap: 0.45rem;
+  max-height: 760px;
+  overflow: auto;
+  padding-right: 0.2rem;
+}
+
+.ranking-tools {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 0.85rem;
 }
 
 .ranking-row {
   display: grid;
-  grid-template-columns: 34px minmax(130px, 0.55fr) minmax(260px, 1.8fr) 88px;
+  grid-template-columns: minmax(170px, 0.7fr) minmax(260px, 1.8fr) 88px;
   gap: 0.75rem;
   align-items: center;
   border-radius: 8px;
   padding: 0.52rem 0.75rem;
 }
 
-.ranking-row__rank {
-  display: grid;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  color: var(--green-dark);
-  background: var(--lime);
-  place-items: center;
-  font-size: 0.86rem;
-  font-weight: 900;
+.ranking-row__player {
+  display: flex;
+  gap: 0.45rem;
+  align-items: baseline;
+  min-width: 0;
 }
 
-.ranking-row strong {
+.ranking-row__player span {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.ranking-row__player small {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 850;
 }
 
 .ranking-row > b {
@@ -723,6 +793,14 @@ main {
   color: var(--muted);
   font-size: 0.72rem;
   font-weight: 800;
+}
+
+.ranking-row--negative > b {
+  color: #a33b2e;
+}
+
+.ranking-row--negative .skill-scale__bar {
+  background: #a33b2e;
 }
 
 .skill-scale {
@@ -748,24 +826,19 @@ main {
   position: relative;
   height: 12px;
   border-radius: 999px;
-  background:
-    linear-gradient(to right, transparent calc(20% - 1px), rgba(101, 112, 104, 0.18) calc(20% - 1px), rgba(101, 112, 104, 0.18) calc(20% + 1px), transparent calc(20% + 1px)),
-    linear-gradient(to right, transparent calc(40% - 1px), rgba(101, 112, 104, 0.18) calc(40% - 1px), rgba(101, 112, 104, 0.18) calc(40% + 1px), transparent calc(40% + 1px)),
-    linear-gradient(to right, transparent calc(60% - 1px), rgba(101, 112, 104, 0.18) calc(60% - 1px), rgba(101, 112, 104, 0.18) calc(60% + 1px), transparent calc(60% + 1px)),
-    linear-gradient(to right, transparent calc(80% - 1px), rgba(101, 112, 104, 0.18) calc(80% - 1px), rgba(101, 112, 104, 0.18) calc(80% + 1px), transparent calc(80% + 1px)),
-    #e7ece5;
+  background: #e7ece5;
 }
 
 .skill-scale__bar,
 .skill-scale__interval,
-.skill-scale__point {
+.skill-scale__point,
+.skill-scale__zero {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
 }
 
 .skill-scale__bar {
-  left: 0;
   height: 100%;
   border-radius: 999px;
   background: var(--green);
@@ -796,6 +869,13 @@ main {
   inset: -3px;
   border-radius: inherit;
   border: 1px solid rgba(18, 31, 24, 0.18);
+}
+
+.skill-scale__zero {
+  z-index: 1;
+  width: 2px;
+  height: 20px;
+  background: rgba(23, 32, 26, 0.38);
 }
 
 .skill-scale__interval + .skill-scale__bar {
@@ -840,7 +920,7 @@ main {
 }
 
 .match-drawer {
-  width: min(560px, 100vw);
+  width: min(620px, 100vw);
   height: 100vh;
   overflow: auto;
   background: var(--paper);
@@ -850,10 +930,14 @@ main {
 
 .drawer-close {
   float: right;
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
   border: 1px solid var(--line);
   border-radius: 999px;
   background: white;
-  padding: 0.45rem 0.8rem;
+  padding: 0;
   cursor: pointer;
   font-weight: 800;
 }
@@ -861,6 +945,7 @@ main {
 .match-drawer h2 {
   clear: both;
   margin-top: 1rem;
+  font-size: clamp(2.2rem, 7vw, 4rem);
 }
 
 .match-drawer p {
@@ -868,8 +953,9 @@ main {
 }
 
 .drawer-pick {
-  display: grid;
-  gap: 0.3rem;
+  display: flex;
+  gap: 0.65rem;
+  align-items: baseline;
   margin: 1.2rem 0;
   border-radius: 8px;
   background: var(--green-dark);
@@ -886,69 +972,76 @@ main {
 }
 
 .drawer-pick strong {
-  font-family: Georgia, serif;
-  font-size: 2.2rem;
-  font-weight: 500;
+  font-size: 1.2rem;
+  font-weight: 850;
 }
 
-.probability-detail,
-.detail-grid {
-  display: grid;
-  gap: 0.8rem;
+.drawer-pick b {
+  margin-left: auto;
+  white-space: nowrap;
 }
 
-.drawer-player-stats {
+.drawer-summary {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.75rem;
-  margin-top: 1rem;
 }
 
-.drawer-player-stat {
-  display: grid;
-  gap: 0.55rem;
+.drawer-summary section {
   border: 1px solid var(--line);
   border-radius: 8px;
-  background: rgba(255, 254, 249, 0.74);
   padding: 0.8rem;
 }
 
-.drawer-player-stat > strong {
-  color: var(--green-dark);
-  font-family: Georgia, serif;
-  font-size: 1.65rem;
-  font-weight: 500;
+.drawer-summary h3 {
+  margin-bottom: 0.65rem;
+  color: var(--muted);
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 850;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
 }
 
-.drawer-player-stat dl {
+.drawer-summary dl {
   display: grid;
   gap: 0.45rem;
   margin: 0;
 }
 
-.drawer-player-stat dl div {
-  display: flex;
-  justify-content: space-between;
-  gap: 0.75rem;
+.drawer-summary dl div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  column-gap: 1.25rem;
+  align-items: center;
 }
 
-.drawer-player-stat dt,
-.drawer-player-stat dd {
+.drawer-summary dt,
+.drawer-summary dd {
   margin: 0;
 }
 
-.drawer-player-stat dt {
-  color: var(--muted);
-  font-size: 0.72rem;
-  font-weight: 850;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-.drawer-player-stat dd {
-  color: var(--ink);
+.drawer-summary dd {
   font-weight: 850;
   text-align: right;
+}
+
+.drawer-summary dt {
+  display: grid;
+  gap: 0.08rem;
+}
+
+.drawer-summary dt span {
+  display: flex;
+  gap: 0.45rem;
+  align-items: baseline;
+  min-width: 0;
+}
+
+.drawer-summary dt small {
+  color: var(--muted);
+  font-size: 0.74rem;
+  font-weight: 800;
 }
 
 .drawer-section {
@@ -1097,16 +1190,19 @@ main {
 .detail-grid dd {
   margin: 0.25rem 0 0;
   font-weight: 800;
+  overflow-wrap: anywhere;
 }
 
 .methodology-section {
   display: grid;
   gap: 1rem;
+  max-width: 1280px;
+  margin: 3rem auto 0;
 }
 
 .methodology-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: 1fr;
   gap: 1rem;
   border-radius: 8px;
   padding: 1rem;
@@ -1118,6 +1214,31 @@ main {
   gap: 0.45rem;
   border-bottom: 1px solid var(--line);
   padding-bottom: 1rem;
+}
+
+.methodology-brief p {
+  max-width: 1120px;
+}
+
+.equation-list {
+  display: grid;
+  gap: 0.35rem;
+  max-width: 980px;
+}
+
+.math-equation {
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #f5f7f2;
+  padding: 0.55rem 0.65rem;
+  color: var(--green-dark);
+  font-size: 1.05rem;
+}
+
+.math-equation math {
+  display: block;
+  min-width: max-content;
 }
 
 .methodology-grid h3 {
@@ -1140,29 +1261,21 @@ main {
 .methodology-params {
   display: grid;
   grid-column: 1 / -1;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 0.75rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.55rem 1rem;
   margin: 0;
+  padding-left: 1.25rem;
 }
 
-.methodology-params div {
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  padding: 0.8rem;
-}
-
-.methodology-params dt {
-  color: var(--muted);
-  font-size: 0.72rem;
-  font-weight: 850;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
-}
-
-.methodology-params dd {
-  margin: 0.3rem 0 0;
+.methodology-params li {
   color: var(--ink);
   font-weight: 850;
+}
+
+.methodology-params span {
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 700;
 }
 
 .site-footer {
@@ -1264,12 +1377,12 @@ main {
   }
 
   .ranking-row {
-    grid-template-columns: 36px minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .skill-scale,
   .ranking-row > b {
-    grid-column: 2;
+    grid-column: 1;
   }
 
   .ranking-row > b {
@@ -1294,8 +1407,7 @@ main {
 
   .summary-card__stats,
   .filters,
-  .detail-grid,
-  .drawer-player-stats,
+  .drawer-summary,
   .methodology-params {
     grid-template-columns: 1fr;
   }
@@ -1305,6 +1417,10 @@ main {
   }
 
   .prediction-row__fixture {
+    grid-template-columns: 1fr;
+  }
+
+  .filters {
     grid-template-columns: 1fr;
   }
 }

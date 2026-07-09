@@ -158,17 +158,6 @@ export interface ResultsPayload {
   current_matches?: CompletedResult[];
 }
 
-export type SortMode =
-  | "date-asc"
-  | "date-desc"
-  | "confidence-desc"
-  | "confidence-asc"
-  | "edge-desc"
-  | "log-score-desc"
-  | "log-score-asc";
-
 export interface MatchFilters {
   query: string;
-  surface: string;
-  sort: SortMode;
 }

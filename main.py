@@ -28,11 +28,19 @@ from src.data.fixtures_womens import load_wta_fixtures
 from src.model.gaussianfactorial_tennis import GaussianFactorialTennis, train
 
 
-ORIGIN_DATE = "2022-12-31"
-TRAIN_START = "2022-12-31"
-TRAIN_END = "2026-01-01"
-TEST_START = "2025-12-31"
-TEST_END = "2027-01-01"
+ORIGIN_DATE = "2021-12-31"
+TRAIN_START = "2021-12-31"
+TRAIN_END = "2024-12-31"
+TEST_START = "2024-12-31"
+TEST_END = "2025-12-31"
+EVAL_START = "2025-12-31"
+EVAL_END = "2026-12-31"
+TRAIN_DISPLAY_START = "2022-01-01"
+TRAIN_DISPLAY_END = "2024-12-31"
+TEST_DISPLAY_START = "2025-01-01"
+TEST_DISPLAY_END = "2025-12-31"
+EVAL_DISPLAY_START = "2026-01-01"
+EVAL_DISPLAY_END = "2026-12-31"
 
 OUTPUT_DIR = Path("outputs")
 STATE_FILE = OUTPUT_DIR / "tennis_factorial_state.json"
@@ -51,7 +59,7 @@ def main() -> None:
     FRONTEND_DATA_DIR.mkdir(parents=True, exist_ok=True)
 
     print("=" * 70)
-    print("1. Loading WTA train and test data")
+    print("1. Loading WTA train, test, and evaluation data")
     print("=" * 70)
     train_data = load_wta(
         start_date=TRAIN_START,
@@ -63,8 +71,14 @@ def main() -> None:
         end_date=TEST_END,
         origin_date=ORIGIN_DATE,
     )
+    eval_data = load_wta(
+        start_date=EVAL_START,
+        end_date=EVAL_END,
+        origin_date=ORIGIN_DATE,
+    )
     print(f"  Training matches: {train_data.num_matches}")
     print(f"  Test matches:     {test_data.num_matches}")
+    print(f"  Evaluation matches: {eval_data.num_matches}")
     print()
 
     print("=" * 70)
@@ -83,7 +97,7 @@ def main() -> None:
     print()
 
     print("=" * 70)
-    print("3. Optimizing smoothing parameters against 2026 test log score")
+    print("3. Optimizing smoothing parameters against 2025 test log score")
     print("=" * 70)
     aligned = align_test_data_to_training_players(train_data, test_data)
     optimization = optimize_params_for_test_log_score(
@@ -125,30 +139,37 @@ def main() -> None:
     print()
 
     print("=" * 70)
-    print("5. Evaluating test predictions and loading WTA fixtures")
+    print("5. Evaluating 2026 predictions and loading WTA fixtures")
     print("=" * 70)
+    eval_aligned = align_test_data_to_training_players(train_data, eval_data)
+    total_players = max(aligned["num_players"], eval_aligned["num_players"])
+    final_state = pad_factorial_state(
+        final_state,
+        final_model.init_var,
+        total_players,
+    )
     predictions = predict_test_matches(
         model=final_model,
         state=final_state,
         current_time=current_time,
-        test_jax=aligned["test_jax"],
+        test_jax=eval_aligned["test_jax"],
     )
-    test_metrics = evaluate_predictions(predictions)
+    eval_metrics = evaluate_predictions(predictions)
     future_fixtures, fixture_status = load_known_wta_future_fixtures(
-        name_to_id=aligned["name_to_id"],
+        name_to_id=eval_aligned["name_to_id"],
     )
     future_matches_json = generate_future_predictions(
         loaded_model=final_model,
         loaded_state=final_state,
         current_time=current_time,
-        id_to_name=aligned["id_to_name"],
-        name_to_id=aligned["name_to_id"],
-        num_players=aligned["num_players"],
+        id_to_name=eval_aligned["id_to_name"],
+        name_to_id=eval_aligned["name_to_id"],
+        num_players=total_players,
         player_rankings_by_id=player_rankings_by_id,
         fixtures=future_fixtures,
         use_synthetic_fallback=False,
     )
-    print(f"  Test matches evaluated: {test_data.num_matches}")
+    print(f"  2026 matches evaluated: {eval_data.num_matches}")
     print(f"  Future fixture predictions: {len(future_matches_json)}")
     print()
 
@@ -156,12 +177,13 @@ def main() -> None:
     print("6. Exporting predictions and completed results")
     print("=" * 70)
     matches_json = build_match_predictions_json(
-        test_data=test_data,
-        test_jax=aligned["test_jax"],
+        test_data=eval_data,
+        test_jax=eval_aligned["test_jax"],
         predictions=predictions,
-        id_to_name=aligned["id_to_name"],
+        id_to_name=eval_aligned["id_to_name"],
         player_rankings_by_id=player_rankings_by_id,
     )
+    test_window_json = build_data_window_json(test_data)
     top_players_json = build_top_players_json(train_data, skill_means, skill_vars)
     polymarket_matches, market_status = load_polymarket_tennis_markets()
     market_status["matched_model_matches"] = apply_market_predictions(
@@ -172,9 +194,10 @@ def main() -> None:
     output_json = build_predictions_payload(
         trained_seed_params=seed_params,
         optimization=optimization,
-        final_metrics=test_metrics,
-        top_players=top_players_json[:50],
+        final_metrics=eval_metrics,
+        top_players=top_players_json,
         matches=matches_json,
+        test_window_matches=test_window_json,
         future_matches=future_matches_json,
         fixture_status=fixture_status,
         market_status=market_status,
@@ -184,7 +207,7 @@ def main() -> None:
     PREDICTIONS_FILE.write_text(json.dumps(output_json, indent=2) + "\n")
     shutil.copyfile(PREDICTIONS_FILE, FRONTEND_PREDICTIONS_FILE)
 
-    results_json = build_results_json(test_data, current_matches=future_matches_json)
+    results_json = build_results_json(eval_data, current_matches=future_matches_json)
     RESULTS_FILE.write_text(json.dumps(results_json, indent=2) + "\n")
 
     print(f"  Saved canonical predictions to {PREDICTIONS_FILE}")
@@ -339,8 +362,8 @@ def optimize_params_for_test_log_score(
 
     assert best_trial is not None
     return {
-        "objective": "maximize_2026_test_avg_log_score",
-        "selection_note": "Parameters are explicitly test-set optimized.",
+        "objective": "maximize_2025_test_avg_log_score",
+        "selection_note": "Parameters are selected on the 2025 test set and used for 2026 onward predictions.",
         "candidate_count": len(trials),
         "best_params": best_trial["params"],
         "best_metrics": best_trial["metrics"],
@@ -717,12 +740,27 @@ def build_top_players_json(
     return top_players_json
 
 
+def build_data_window_json(data: TennisData) -> list[dict[str, str]]:
+    return [{"date": row["Date"].isoformat()} for row in data.polars_data.iter_rows(named=True)]
+
+
+def evaluated_match_window(matches: list[dict[str, Any]], prefix: str) -> dict[str, str]:
+    dates = sorted(str(match["date"]) for match in matches if match.get("date"))
+    if not dates:
+        return {}
+    return {
+        f"{prefix}_start": dates[0],
+        f"{prefix}_end": dates[-1],
+    }
+
+
 def build_predictions_payload(
     trained_seed_params: dict[str, Any],
     optimization: dict[str, Any],
     final_metrics: dict[str, Any],
     top_players: list[dict[str, Any]],
     matches: list[dict[str, Any]],
+    test_window_matches: list[dict[str, Any]],
     future_matches: list[dict[str, Any]],
     fixture_status: dict[str, Any],
     market_status: dict[str, Any] | None = None,
@@ -737,8 +775,19 @@ def build_predictions_payload(
             "origin_date": ORIGIN_DATE,
             "train_start": TRAIN_START,
             "train_end": TRAIN_END,
+            "train_display_start": TRAIN_DISPLAY_START,
+            "train_display_end": TRAIN_DISPLAY_END,
             "test_start": TEST_START,
             "test_end": TEST_END,
+            "test_display_start": TEST_DISPLAY_START,
+            "test_display_end": TEST_DISPLAY_END,
+            "prediction_start": EVAL_START,
+            "prediction_end": EVAL_END,
+            "prediction_display_start": EVAL_DISPLAY_START,
+            "prediction_display_end": EVAL_DISPLAY_END,
+            "test_match_start": TEST_DISPLAY_START,
+            "test_match_end": TEST_DISPLAY_END,
+            **evaluated_match_window(matches, "prediction_match"),
         },
         "model_params": optimization["best_params"],
         "seed_model_params": {
@@ -798,12 +847,13 @@ def build_results_json(
                 "round": test_data.match_metadata.round[i],
             }
         )
+    result_dates = [result["date"] for result in results]
     return {
         "generated_at": dt.datetime.now(dt.timezone.utc).isoformat(),
         "source": "tennis-data.co.uk WTA historical results",
         "data_window": {
-            "start": TEST_START,
-            "end": TEST_END,
+            "start": min(result_dates) if result_dates else TEST_DISPLAY_START,
+            "end": max(result_dates) if result_dates else TEST_DISPLAY_END,
         },
         "results": results,
         "current_matches": [
