@@ -65,15 +65,31 @@ Data is collected from http://www.tennis-data.co.uk/alldata.php.
 The deployment model uses saved parameters from
 `outputs/tennis_factorial_state.json`, then reruns the filter over every completed WTA historical result available in the latest data pull. This keeps training and state updates restricted to observed match outcomes. Current or unplayed fixtures are never added to the results artifact and are not used as observations.
 
+### Performance Comparison
+
+| Model | Date | Parameters | Accuracy | Avg Log-Score |
+|-------|------|------------|----------|---------------|
+| Wiener Process | 2026-07-10 | τ=0.029, s=1.76, Σ₀=1.71 | 63.1% | -0.6378 |
+| OU Process (untrained) | 2026-07-10 | τ=0.0238, s=1.96, Σ₀=1.65 | 57.3% | -0.6778 |
+| **OU Process (trained)** | **2026-07-10** | **τ=0.000267, s=1.228, Σ₀=1.242** | **63.84%** | **-0.631** |
+
+**Key Findings:**
+- Training is essential for OU dynamics — untrained OU parameters performed poorly (57.3% vs 63.1%)
+- After training, OU achieves **63.84% accuracy**, slightly exceeding the Wiener baseline
+- Better log-score: **-0.631** vs -0.6378 (closer to 0 is better)
+- The small τ (0.000267) indicates slow mean-reversion — skills change gradually over time
+
+### Current Model Metrics
+
 | Metric | Value |
 |---|---|
 | Training matches | 7,486 |
 | Test matches | 1,422 |
-| Accuracy | 63.1% |
-| Avg log-score | -0.6378 |
+| Accuracy | 63.84% |
+| Avg log-score | -0.631 |
 | Uniform baseline | -0.6931 |
 
-Trained parameters: $\tau=0.029$, $s=1.76$ and $\Sigma_0=1.71$.
+**Trained parameters (OU):** τ=0.000267, s=1.228, Σ₀=1.242
 
 ### Predictions Output
 

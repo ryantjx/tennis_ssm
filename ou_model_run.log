@@ -1,0 +1,56 @@
+Could not determine dtype for column 32, falling back to string
+Could not determine dtype for column 33, falling back to string
+======================================================================
+1. Loading WTA historical data
+======================================================================
+  Loaded 2021: 2447 matches
+  Loaded 2022: 2369 matches
+  Loaded 2023: 2491 matches
+  Loaded 2024: 2490 matches
+  Loaded 2025: 2505 matches
+  Loaded 2026: 1422 matches
+  Historical matches: 11277
+  2025 validation matches: 2464
+  2026 completed matches: 1422
+
+======================================================================
+2. Loading saved model parameters
+======================================================================
+  Loaded parameters: tau=0.000267, s=1.227558, init_var=1.242405
+
+======================================================================
+3. Filtering historical matches with saved parameters
+======================================================================
+  Saved state to outputs/tennis_factorial_state.json
+  Top 10 players by filtered skill:
+    Sabalenka A                    skill=+3.073 var=0.181
+    Rybakina E                     skill=+2.409 var=0.167
+    Pegula J                       skill=+2.373 var=0.157
+    Swiatek I                      skill=+2.224 var=0.184
+    Svitolina E                    skill=+2.216 var=0.153
+    Andreeva M                     skill=+2.170 var=0.148
+    Gauff C                        skill=+2.166 var=0.167
+    Kostyuk M                      skill=+2.044 var=0.178
+    Muchova K                      skill=+2.016 var=0.161
+    Mboko V                        skill=+1.848 var=0.182
+
+======================================================================
+4. Loading WTA fixtures
+======================================================================
+  Loaded 8 WTA fixtures (8 matched, 0 skipped)
+  Latest historical timestamp: 1639
+  Future fixture predictions: 8
+
+======================================================================
+5. Exporting predictions and completed results
+======================================================================
+  Loaded 56 Polymarket tennis moneylines from 100 events
+  Matched Polymarket prices to 8 model matches
+  Saved canonical predictions to outputs/predictions.json
+  Saved latest prediction data to outputs/latest
+  Saved dated prediction data to outputs/daily/2026-07-10
+  Copied frontend runtime predictions to frontend/public/data/predictions.json
+  Saved committed completed results to frontend/public/data/results.json
+======================================================================
+Done
+======================================================================
