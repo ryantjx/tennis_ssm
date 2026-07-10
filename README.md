@@ -4,7 +4,7 @@
 
 Following Duffield, Power and Rimella (2024), the model for tennis can be defined as follows,
 
-$$p(x_0) \sim \mathcal{N}(\mu_0, \Sigma_0)$$
+$$p(x_0) \sim \mathcal{N}(0, \Sigma_0)$$
 
 $$p(x_t | x_{t-1}) \sim \mathcal{N}(\tau_d \cdot \Delta t, Q_k)$$
 
@@ -17,7 +17,7 @@ where
 - $\tau_d \in \mathbb{R}^+$ is a rate parameter that controls evolution of skill for player
 - $s_d \in \mathbb{R}^+$ is a scale parameter
 
-The parameters to be estimated are $\mu_0, \Sigma_0, \tau_d, s_d$.
+The parameters to be estimated are $\Sigma_0, \tau_d, s_d$.
 
 ## Algorithm
 
@@ -70,7 +70,7 @@ The deployment model uses saved parameters from
 | Avg log-score | -0.6378 |
 | Uniform baseline | -0.6931 |
 
-Trained parameters: $\tau=0.029$, $s=1.76$, $\mathrm{init\_var}=1.71$
+Trained parameters: $\tau=0.029$, $s=1.76$ and $\Sigma_0=1.71$.
 
 ### Predictions Output
 
