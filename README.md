@@ -2,29 +2,25 @@
 
 ## Model
 
-Following Duffield, Power and Rimella (2024), the model for tennis can be defined as follows,
+Following Duffield, Power and Rimella (2024), the model for tennis can be defined as follows:
 
-$$p(x_0) \sim \mathcal{N}(0, \Sigma_0)$$
+$$p(x_0) \sim \mathcal{N}(\mu_0, \Sigma_0)$$
 
 $$p(x_t | x_{t-1}) \sim \mathcal{N}(\mu_0 + \phi_k (x_{t-1} - \mu_0), Q_k)$$
 
-where 
-
-- $Q_k = \Sigma_0 - \phi_k \Sigma_0 \phi_k^T$
-- $\phi_k = \tau_d \cdot \Delta t$
+where $\phi_k = \exp(-\tau_d \cdot \Delta t)$ and $Q_k = \Sigma_0 - \phi_k \Sigma_0 \phi_k^T$.
 
 $$G_t (y_t \mid x^{(i)}_{t-1}, x^{(j)}_{t-1}) = \begin{cases} \sigma(\frac{x^{(i)} - x^{(j)}}{s_d}) & \text{if } y_t = x^{(i)} \\ 1 - \sigma(\frac{x^{(i)} - x^{(j)}}{s_d}) & \text{if } y_t = x^{(j)} \end{cases}$$
 
-where 
+where:
+- $y_t$ is the outcome of match $t$ between players $i$ and $j$
+- $\sigma(x) = (1 + e^{-x})^{-1}$ is the sigmoid function; larger $s_d$ flattens the win probability toward uniform (0.5)
+- $\tau_d \in \mathbb{R}^+$ is the mean-reversion rate
+- $s_d \in \mathbb{R}^+$ is the observation scale
 
-- $y_t$ is the outcome of match $t$ between players $i$ and $j$.
-- $\sigma(x) = \frac{1}{1 + e^{-x}}$ is the sigmoid function. As $\sigma(x) \to \infty$, $G_t$ converges to a uniform distribution over the two players.
-- $\tau_d \in \mathbb{R}^+$ is a rate parameter that controls evolution of skill for player
-- $s_d \in \mathbb{R}^+$ is a scale parameter
+We fix $\mu_0 = 0$ so skills are centered at zero. The parameters to estimate are $\Sigma_0, \tau_d, s_d \in \mathbb{R}^+$.
 
-We set $\mu_0 = 0$ as a point of reference such that the base skill for each player is centered at zero. The parameters to be estimated are $\Sigma_0 \in \mathbb{R}, \tau_d \in \mathbb{R}^+, s_d \in \mathbb{R}^+$.
-
-In this model, instead of using the wiener process in TrueSkill2 and Elo model, we instead use a OU process to model the evolution of player skills. If a player does not play for a long time, their skill level will revert to the long-run marginal distribution of $\mathcal{N}(\mu_0, \Sigma_0)$, which is a more realistic assumption than the wiener process.
+Unlike TrueSkill2 and Elo, which use Wiener processes (unbounded variance growth), this model uses an Ornstein-Uhlenbeck process where skills revert to $\mathcal{N}(\mu_0, \Sigma_0)$ during inactive periods.
 
 ## Algorithm
 
