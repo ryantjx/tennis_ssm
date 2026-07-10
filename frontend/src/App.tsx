@@ -5,10 +5,16 @@ import { MatchDetailDrawer } from "./components/MatchDetailDrawer";
 import { PlayerRankings } from "./components/PlayerRankings";
 import { UpcomingMatches } from "./components/UpcomingMatches";
 import type { MatchFilters, MatchPrediction, PredictionPayload, ResultsPayload } from "./types";
-import { applyMatchFilters, formatDate, formatPercent } from "./utils";
+import { applyMatchFilters, formatDate, formatPercent, matchId } from "./utils";
+import { usePolymarket } from "./usePolymarket";
 
 const defaultFilters: MatchFilters = {
   query: "",
+};
+
+const polymarketSource = {
+  dataUrl: "https://gamma-api.polymarket.com/events/keyset",
+  tagSlug: "tennis",
 };
 
 async function fetchJson<T>(path: string): Promise<T> {
@@ -21,7 +27,7 @@ function App() {
   const [data, setData] = useState<PredictionPayload | null>(null);
   const [results, setResults] = useState<ResultsPayload | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [selectedMatch, setSelectedMatch] = useState<MatchPrediction | null>(null);
+  const [selectedMatchId, setSelectedMatchId] = useState<string | null>(null);
   const [filters, setFilters] = useState<MatchFilters>(defaultFilters);
 
   useEffect(() => {
@@ -38,14 +44,26 @@ function App() {
       });
   }, []);
 
-  const allMatches = useMemo(() => {
+  const staticMatches = useMemo(() => {
     if (!data) return [];
     return [...(data.future_matches ?? []), ...(data.matches ?? [])];
   }, [data]);
+  const polymarket = usePolymarket(staticMatches, polymarketSource);
+  const allMatches = useMemo(
+    () => staticMatches.map((match) => ({
+      ...match,
+      market: polymarket.predictions[matchId(match)] ?? match.market,
+    })),
+    [polymarket.predictions, staticMatches],
+  );
 
   const filteredMatches = useMemo(
     () => applyMatchFilters(allMatches, filters),
     [allMatches, filters],
+  );
+  const selectedMatch = useMemo(
+    () => selectedMatchId ? allMatches.find((match) => matchId(match) === selectedMatchId) ?? null : null,
+    [allMatches, selectedMatchId],
   );
   const filteredPlayers = useMemo(() => {
     const query = filters.query.trim().toLowerCase();
@@ -133,11 +151,15 @@ function App() {
           totalCount={allMatches.length}
         />
 
-        <UpcomingMatches matches={upcoming} onOpen={setSelectedMatch} fixtureStatus={data.fixture_status} />
+        <UpcomingMatches
+          matches={upcoming}
+          onOpen={(match) => setSelectedMatchId(matchId(match))}
+          fixtureStatus={data.fixture_status}
+        />
         <CompletedResults
           matches={completed}
           results={results.results}
-          onOpen={setSelectedMatch}
+          onOpen={(match) => setSelectedMatchId(matchId(match))}
           resultWindow={results.data_window}
         />
         <PlayerRankings players={filteredPlayers} />
@@ -189,7 +211,7 @@ function App() {
         </p>
       </footer>
 
-      <MatchDetailDrawer match={selectedMatch} onClose={() => setSelectedMatch(null)} />
+      <MatchDetailDrawer match={selectedMatch} onClose={() => setSelectedMatchId(null)} />
     </>
   );
 }

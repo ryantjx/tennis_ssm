@@ -1,7 +1,8 @@
 .venv/
 __pycache__/
 *.pyc
-outputs/
+outputs/*
+!outputs/tennis_factorial_state.json
 local_data/
 frontend/dist/
 frontend/node_modules/

@@ -18,14 +18,14 @@ from pathlib import Path
 from typing import Any
 
 import jax
-from jax import numpy as jnp
+from jax import numpy as jnp, tree_util as jtu
 import polars as pl
 
 from src.data.data import TennisData, load_wta, most_recent_timestamp_by_player
-from src.data.data_types import TennisDynamicsOnlyData, WTATennisResults
+from src.data.data_types import TennisDynamicsOnlyData, TennisMatchMetadata, WTATennisResults
 from src.data.fixture_common import filter_known_fixtures
 from src.data.fixtures_womens import load_wta_fixtures
-from src.model.gaussianfactorial_tennis import GaussianFactorialTennis, train
+from src.model.gaussianfactorial_tennis import GaussianFactorialTennis, TennisMatchPrediction, train
 
 
 ORIGIN_DATE = "2021-12-31"
@@ -59,132 +59,96 @@ def main() -> None:
     FRONTEND_DATA_DIR.mkdir(parents=True, exist_ok=True)
 
     print("=" * 70)
-    print("1. Loading WTA train, test, and evaluation data")
+    print("1. Loading WTA historical data")
     print("=" * 70)
-    train_data = load_wta(
+    historical_data = load_wta(
         start_date=TRAIN_START,
-        end_date=TRAIN_END,
-        origin_date=ORIGIN_DATE,
-    )
-    test_data = load_wta(
-        start_date=TEST_START,
-        end_date=TEST_END,
-        origin_date=ORIGIN_DATE,
-    )
-    eval_data = load_wta(
-        start_date=EVAL_START,
         end_date=EVAL_END,
         origin_date=ORIGIN_DATE,
     )
-    print(f"  Training matches: {train_data.num_matches}")
-    print(f"  Test matches:     {test_data.num_matches}")
-    print(f"  Evaluation matches: {eval_data.num_matches}")
+    test_indices = match_indices_between(historical_data, TEST_START, TEST_END)
+    eval_indices = match_indices_between(historical_data, EVAL_START, EVAL_END)
+    test_data = slice_tennis_data(historical_data, test_indices)
+    eval_data = slice_tennis_data(historical_data, eval_indices)
+    print(f"  Historical matches: {historical_data.num_matches}")
+    print(f"  2025 validation matches: {test_data.num_matches}")
+    print(f"  2026 completed matches: {eval_data.num_matches}")
     print()
 
     print("=" * 70)
-    print("2. Training seed parameters on training likelihood")
+    print("2. Loading saved model parameters")
     print("=" * 70)
-    seed_params, train_history = train(
-        matches=train_data.jax_data,
-        num_players=train_data.num_players,
-        steps=100,
-        learning_rate=0.1,
-        log_every=10,
-        initial_tau=0.1,
-        initial_s=1.0,
-        initial_init_var=1.0,
-    )
-    print()
-
-    print("=" * 70)
-    print("3. Optimizing smoothing parameters against 2025 test log score")
-    print("=" * 70)
-    aligned = align_test_data_to_training_players(train_data, test_data)
-    optimization = optimize_params_for_test_log_score(
-        train_data=train_data,
-        test_jax=aligned["test_jax"],
-        seed_params=seed_params,
-        total_players=aligned["num_players"],
-    )
-    best_params = optimization["best_params"]
+    best_params = load_saved_model_params(STATE_FILE)
     print(
-        "  Selected parameters: "
+        "  Loaded parameters: "
         f"tau={best_params['tau']:.6f}, "
         f"s={best_params['s']:.6f}, "
         f"init_var={best_params['init_var']:.6f}"
     )
-    print(
-        "  Test objective: "
-        f"avg_log_score={optimization['best_metrics']['avg_log_score']:.4f}, "
-        f"accuracy={optimization['best_metrics']['accuracy']:.1%}"
-    )
     print()
 
     print("=" * 70)
-    print("4. Filtering and saving final test-optimized state")
+    print("3. Filtering historical matches with saved parameters")
     print("=" * 70)
-    final_model, final_state, current_time, skill_means, skill_vars = fit_and_sync_model(
-        train_data=train_data,
-        params=best_params,
+    final_model = GaussianFactorialTennis(
+        init_mean=0.0,
+        init_var=best_params["init_var"],
+        tau=best_params["tau"],
+        s=best_params["s"],
+        num_players=historical_data.num_players,
     )
-    final_state = pad_factorial_state(
-        final_state,
-        final_model.init_var,
-        aligned["num_players"],
+    filtered_state, historical_predictions = filter_and_predict_matches(
+        model=final_model,
+        matches=historical_data.jax_data,
+    )
+    final_state, current_time, skill_means, skill_vars = synchronize_state_to_latest(
+        model=final_model,
+        state=filtered_state,
+        data=historical_data,
     )
     final_model.save_state(final_state, str(STATE_FILE))
     print(f"  Saved state to {STATE_FILE}")
-    print_top_players(train_data, skill_means, skill_vars)
-    player_rankings_by_id = build_player_rankings_by_id(train_data, skill_means, skill_vars)
+    print_top_players(historical_data, skill_means, skill_vars)
+    player_rankings_by_id = build_player_rankings_by_id(historical_data, skill_means, skill_vars)
+    test_predictions = slice_predictions(historical_predictions, test_indices)
+    predictions = slice_predictions(historical_predictions, eval_indices)
+    eval_metrics = evaluate_predictions(test_predictions)
+    optimization = saved_parameter_metadata(best_params, eval_metrics)
     print()
 
     print("=" * 70)
-    print("5. Evaluating 2026 predictions and loading WTA fixtures")
+    print("4. Loading WTA fixtures")
     print("=" * 70)
-    eval_aligned = align_test_data_to_training_players(train_data, eval_data)
-    total_players = max(aligned["num_players"], eval_aligned["num_players"])
-    final_state = pad_factorial_state(
-        final_state,
-        final_model.init_var,
-        total_players,
-    )
-    predictions = predict_test_matches(
-        model=final_model,
-        state=final_state,
-        current_time=current_time,
-        test_jax=eval_aligned["test_jax"],
-    )
-    eval_metrics = evaluate_predictions(predictions)
     future_fixtures, fixture_status = load_known_wta_future_fixtures(
-        name_to_id=eval_aligned["name_to_id"],
+        name_to_id=historical_data.name_to_id,
     )
     future_matches_json = generate_future_predictions(
         loaded_model=final_model,
         loaded_state=final_state,
         current_time=current_time,
-        id_to_name=eval_aligned["id_to_name"],
-        name_to_id=eval_aligned["name_to_id"],
-        num_players=total_players,
+        id_to_name=historical_data.id_to_name,
+        name_to_id=historical_data.name_to_id,
+        num_players=historical_data.num_players,
         player_rankings_by_id=player_rankings_by_id,
         fixtures=future_fixtures,
         use_synthetic_fallback=False,
     )
-    print(f"  2026 matches evaluated: {eval_data.num_matches}")
+    print(f"  Latest historical timestamp: {current_time}")
     print(f"  Future fixture predictions: {len(future_matches_json)}")
     print()
 
     print("=" * 70)
-    print("6. Exporting predictions and completed results")
+    print("5. Exporting predictions and completed results")
     print("=" * 70)
     matches_json = build_match_predictions_json(
         test_data=eval_data,
-        test_jax=eval_aligned["test_jax"],
+        test_jax=eval_data.jax_data,
         predictions=predictions,
-        id_to_name=eval_aligned["id_to_name"],
+        id_to_name=historical_data.id_to_name,
         player_rankings_by_id=player_rankings_by_id,
     )
     test_window_json = build_data_window_json(test_data)
-    top_players_json = build_top_players_json(train_data, skill_means, skill_vars)
+    top_players_json = build_top_players_json(historical_data, skill_means, skill_vars)
     polymarket_matches, market_status = load_polymarket_tennis_markets()
     market_status["matched_model_matches"] = apply_market_predictions(
         [*future_matches_json, *matches_json],
@@ -192,7 +156,7 @@ def main() -> None:
     )
     print(f"  Matched Polymarket prices to {market_status['matched_model_matches']} model matches")
     output_json = build_predictions_payload(
-        trained_seed_params=seed_params,
+        trained_seed_params=best_params,
         optimization=optimization,
         final_metrics=eval_metrics,
         top_players=top_players_json,
@@ -245,6 +209,170 @@ def fit_and_sync_model(
     )
     sync_state = model.synchronize(final_state, sync_data)
     return model, sync_state, current_time, skill_means, skill_vars
+
+
+def load_saved_model_params(state_file: Path) -> dict[str, float]:
+    if not state_file.exists():
+        raise FileNotFoundError(
+            f"Saved model state not found at {state_file}. "
+            "Run parameter training once before deploying."
+        )
+    payload = json.loads(state_file.read_text())
+    params = payload.get("params")
+    if not isinstance(params, dict):
+        raise ValueError(f"Saved model state at {state_file} is missing params")
+    required = {"tau", "s", "init_var"}
+    missing = required - set(params)
+    if missing:
+        raise ValueError(f"Saved model params missing keys: {sorted(missing)}")
+    return {name: float(params[name]) for name in sorted(required)}
+
+
+def saved_parameter_metadata(
+    params: dict[str, float],
+    validation_metrics: dict[str, Any],
+) -> dict[str, Any]:
+    return {
+        "objective": "use_saved_parameters_from_state_file",
+        "selection_note": (
+            f"Deployment uses tau, s, and init_var from {STATE_FILE}; "
+            "the filter is rerun over all completed WTA matches before "
+            "future fixture predictions are generated."
+        ),
+        "candidate_count": 0,
+        "best_params": params,
+        "best_metrics": validation_metrics,
+        "trials": [],
+    }
+
+
+def match_indices_between(data: TennisData, start_date: str, end_date: str) -> list[int]:
+    start_dt = pl.lit(start_date).str.strptime(pl.Date, format="%Y-%m-%d")
+    end_dt = pl.lit(end_date).str.strptime(pl.Date, format="%Y-%m-%d")
+    return (
+        data.polars_data
+        .filter((pl.col("Date") > start_dt) & (pl.col("Date") <= end_dt))
+        .select(pl.col("match_index"))
+        .to_series()
+        .to_list()
+    )
+
+
+def slice_tennis_data(data: TennisData, indices: list[int]) -> TennisData:
+    index_array = jnp.array(indices)
+    index_set = set(indices)
+    frame = data.polars_data.filter(pl.col("match_index").is_in(index_set))
+    metadata_indices = frame.select(pl.col("match_index")).to_series().to_list()
+    match_metadata = TennisMatchMetadata(
+        tournament=[data.match_metadata.tournament[i] for i in metadata_indices],
+        location=[data.match_metadata.location[i] for i in metadata_indices],
+        tier=[data.match_metadata.tier[i] for i in metadata_indices],
+        surface=[data.match_metadata.surface[i] for i in metadata_indices],
+        round=[data.match_metadata.round[i] for i in metadata_indices],
+    )
+    return TennisData(
+        jax_data=jtu.tree_map(lambda x: x[index_array], data.jax_data),
+        polars_data=frame,
+        id_to_name=data.id_to_name,
+        name_to_id=data.name_to_id,
+        num_players=data.num_players,
+        num_matches=len(indices),
+        match_metadata=match_metadata,
+    )
+
+
+def slice_predictions(predictions: Any, indices: list[int]) -> Any:
+    index_array = jnp.array(indices)
+    return jtu.tree_map(lambda x: x[index_array], predictions)
+
+
+def filter_and_predict_matches(
+    model: GaussianFactorialTennis,
+    matches: WTATennisResults,
+) -> tuple[Any, Any]:
+    from jax.lax import scan as lax_scan
+
+    def predict_from_state(factorial_state: Any, match_data: WTATennisResults) -> Any:
+        dynamics_data = TennisDynamicsOnlyData(
+            player_id=jnp.array([match_data.player1_id, match_data.player2_id]),
+            timestamp=jnp.array([match_data.timestamp, match_data.timestamp]),
+            timestamp_previous=jnp.array(
+                [
+                    match_data.player1_timestamp_previous,
+                    match_data.player2_timestamp_previous,
+                ]
+            ),
+        )
+        factorial_state_two = jax.vmap(
+            model.factorializer.extract, in_axes=(None, 0)
+        )(factorial_state, dynamics_data.player_id)
+        state_prep = jax.vmap(model.single_player_filter.filter_prepare)(dynamics_data)
+        propagated = jax.vmap(model.single_player_filter.filter_combine)(
+            factorial_state_two, state_prep
+        )
+
+        mu_1 = propagated.mean[0, 0]
+        mu_2 = propagated.mean[1, 0]
+        var_1 = jnp.square(propagated.chol_cov[0, 0, 0])
+        var_2 = jnp.square(propagated.chol_cov[1, 0, 0])
+        skill_diff_mean = mu_1 - mu_2
+        skill_diff_var = var_1 + var_2
+        skill_diff_std = jnp.sqrt(skill_diff_var)
+        p_player1_win = jax.nn.sigmoid(
+            skill_diff_mean / jnp.sqrt(model.s**2 + skill_diff_var)
+        )
+        return TennisMatchPrediction(
+            p_player1_win=p_player1_win,
+            p_player2_win=1.0 - p_player1_win,
+            skill_diff_mean=skill_diff_mean,
+            skill_diff_std=skill_diff_std,
+            player1_mean=propagated.mean[0:1],
+            player2_mean=propagated.mean[1:2],
+            player1_var=var_1.reshape(1),
+            player2_var=var_2.reshape(1),
+        )
+
+    def filter_step(factorial_state: Any, match_data: WTATennisResults) -> Any:
+        factorial_inds = model.factorializer.get_factorial_indices(match_data)
+        factorial_inds = jnp.asarray(factorial_inds)
+        local_state = model.factorializer.extract_and_join(factorial_state, match_data)
+        prep_state = model.filter_obj.filter_prepare(match_data)
+        filtered_joint_state = model.filter_obj.filter_combine(local_state, prep_state)
+        local_factorial_filtered_state = model.factorializer.marginalize(
+            filtered_joint_state, len(factorial_inds)
+        )
+        updated_state = model.factorializer.insert(
+            local_factorial_filtered_state, factorial_state, factorial_inds
+        )
+        return updated_state._replace(model_inputs=None)
+
+    def body(factorial_state: Any, match_data: WTATennisResults) -> tuple[Any, Any]:
+        prediction = predict_from_state(factorial_state, match_data)
+        return filter_step(factorial_state, match_data), prediction
+
+    initial_state = model.initial_state()
+    return lax_scan(body, initial_state, matches)
+
+
+def synchronize_state_to_latest(
+    model: GaussianFactorialTennis,
+    state: Any,
+    data: TennisData,
+) -> tuple[Any, int, jnp.ndarray, jnp.ndarray]:
+    most_recent_ts = most_recent_timestamp_by_player(
+        data.polars_data,
+        data.num_players,
+    )
+    current_time = int(jnp.max(most_recent_ts))
+    sync_data = TennisDynamicsOnlyData(
+        player_id=jnp.arange(data.num_players),
+        timestamp=jnp.broadcast_to(jnp.array(current_time), (data.num_players,)),
+        timestamp_previous=most_recent_ts,
+    )
+    sync_state = model.synchronize(state, sync_data)
+    skill_means = sync_state.mean[:, 0]
+    skill_vars = jnp.square(sync_state.chol_cov[:, 0, 0])
+    return sync_state, current_time, skill_means, skill_vars
 
 
 def align_test_data_to_training_players(

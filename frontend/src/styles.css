@@ -844,6 +844,7 @@ main {
 .skill-scale__bar,
 .skill-scale__interval,
 .skill-scale__point,
+.skill-scale__tick,
 .skill-scale__zero {
   position: absolute;
   top: 50%;
@@ -883,8 +884,16 @@ main {
   border: 1px solid rgba(18, 31, 24, 0.18);
 }
 
-.skill-scale__zero {
+.skill-scale__tick {
   z-index: 1;
+  width: 1px;
+  height: 16px;
+  background: rgba(23, 32, 26, 0.22);
+  transform: translate(-50%, -50%);
+}
+
+.skill-scale__zero {
+  z-index: 2;
   width: 2px;
   height: 20px;
   background: rgba(23, 32, 26, 0.38);
@@ -894,11 +903,11 @@ main {
   z-index: 0;
 }
 
-.skill-scale__axis span:last-child {
+.skill-scale__axis-label--end {
   transform: translateX(-100%);
 }
 
-.skill-scale__axis span:first-child {
+.skill-scale__axis-label--start {
   transform: translateX(-50%);
 }
 

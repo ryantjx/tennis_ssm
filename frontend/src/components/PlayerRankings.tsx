@@ -50,7 +50,7 @@ function SkillScale({ player, domain }: { player: PlayerRanking; domain: number 
   const end = toPercent(intervalEnd, domain);
   const fillLeft = Math.min(point, zero);
   const fillWidth = Math.max(1, Math.abs(point - zero));
-  const ticks = [-domain, -domain / 2, 0, domain / 2, domain];
+  const ticks = integerTicks(domain);
 
   return (
     <div
@@ -59,12 +59,20 @@ function SkillScale({ player, domain }: { player: PlayerRanking; domain: number 
     >
       <div className="skill-scale__axis" aria-hidden="true">
         {ticks.map((tick) => (
-          <span key={tick} style={{ left: `${toPercent(tick, domain)}%` }}>
-            {tick === 0 ? "0" : formatSigned(tick, 1)}
+          <span className={axisTickClassName(tick, domain)} key={tick} style={{ left: `${toPercent(tick, domain)}%` }}>
+            {tick === 0 ? "0" : formatSigned(tick, 0)}
           </span>
         ))}
       </div>
       <div className="skill-scale__track">
+        {ticks.map((tick) => (
+          <span
+            aria-hidden="true"
+            className="skill-scale__tick"
+            key={tick}
+            style={{ left: `${toPercent(tick, domain)}%` }}
+          />
+        ))}
         <span className="skill-scale__zero" style={{ left: `${zero}%` }} />
         <span className="skill-scale__interval" style={{ left: `${start}%`, width: `${Math.max(1, end - start)}%` }} />
         <span className="skill-scale__bar" style={{ left: `${fillLeft}%`, width: `${fillWidth}%` }} />
@@ -72,6 +80,18 @@ function SkillScale({ player, domain }: { player: PlayerRanking; domain: number 
       </div>
     </div>
   );
+}
+
+function axisTickClassName(tick: number, domain: number): string | undefined {
+  if (tick <= -domain) return "skill-scale__axis-label--start";
+  if (tick >= domain) return "skill-scale__axis-label--end";
+  return undefined;
+}
+
+function integerTicks(domain: number): number[] {
+  const firstTick = Math.ceil(-domain);
+  const lastTick = Math.floor(domain);
+  return Array.from({ length: lastTick - firstTick + 1 }, (_, index) => firstTick + index);
 }
 
 function skillDomain(players: PlayerRanking[]): number {

@@ -54,13 +54,14 @@ deployment workflow copies that file to `frontend/public/data/predictions.json`
 before building the frontend; the copied file is ignored because it is generated
 runtime data.
 
-The model first trains seed parameters on the historical training likelihood,
-then selects `tau`, `s`, and `init_var` by maximizing average log score on the
-2025 test set. The selected parameters are then used for 2026 onward prediction
-exports. The exported JSON records the training/test/prediction windows,
-selected parameters, optimization objective, trial metrics, final metrics,
-historical predictions, player rankings, and matched WTA future fixture
-predictions.
+The deployment path reads `tau`, `s`, and `init_var` from
+`outputs/tennis_factorial_state.json`, then reruns the filter over all completed
+WTA matches from the model origin through the latest available results. The
+latest filtered state is synchronized to the newest completed match timestamp
+before future fixture predictions are generated. The exported JSON records the
+training/test/prediction windows, saved parameters, validation metrics,
+historical predictions, player rankings from the latest filtered state, and
+matched WTA future fixture predictions.
 
 Future predictions are loaded from the WTA fixture API via
 `src/data/fixtures_womens.py` and filtered to players known by the trained model.
