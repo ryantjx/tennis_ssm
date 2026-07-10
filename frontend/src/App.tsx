@@ -183,14 +183,17 @@ function App() {
             <article className="methodology-brief">
               <h3>Model brief</h3>
               <p>
-                A Gaussian factorial state-space model tracks one latent skill per WTA player. Skills evolve through a random walk, and win probability comes from the skill difference through a logistic observation model. Filtering uses Gaussian moment updates over historical match outcomes:
+                A Gaussian factorial state-space model tracks one latent skill per WTA player. Skills evolve through an Ornstein-Uhlenbeck process with mean reversion, and win probability comes from the skill difference through a logistic observation model. Filtering uses Gaussian moment updates over historical match outcomes:
               </p>
               <div className="equation-list" aria-label="Model equations">
                 <MathEquation label="Initial skill prior" mathml="<math display='block'><mrow><mi>p</mi><mo>(</mo><msub><mi>x</mi><mn>0</mn></msub><mo>)</mo><mo>~</mo><mi>N</mi><mo>(</mo><msub><mi>μ</mi><mn>0</mn></msub><mo>,</mo><msub><mi>Σ</mi><mn>0</mn></msub><mo>)</mo></mrow></math>" />
-                <MathEquation label="Skill evolution" mathml="<math display='block'><mrow><mi>p</mi><mo>(</mo><msub><mi>x</mi><mi>t</mi></msub><mo>|</mo><msub><mi>x</mi><mrow><mi>t</mi><mo>-</mo><mn>1</mn></mrow></msub><mo>)</mo><mo>~</mo><mi>N</mi><mo>(</mo><msub><mi>τ</mi><mi>d</mi></msub><mo>Δ</mo><mi>t</mi><mo>,</mo><msub><mi>Q</mi><mi>k</mi></msub><mo>)</mo></mrow></math>" />
+                <MathEquation label="Skill evolution (OU process)" mathml="<math display='block'><mrow><mi>p</mi><mo>(</mo><msub><mi>x</mi><mi>t</mi></msub><mo>|</mo><msub><mi>x</mi><mrow><mi>t</mi><mo>-</mo><mn>1</mn></mrow></msub><mo>)</mo><mo>~</mo><mi>N</mi><mo>(</mo><msub><mi>μ</mi><mn>0</mn></msub><mo>+</mo><msub><mi>φ</mi><mi>k</mi></msub><mo>(</mo><msub><mi>x</mi><mrow><mi>t</mi><mo>-</mo><mn>1</mn></mrow></msub><mo>-</mo><msub><mi>μ</mi><mn>0</mn></msub><mo>)</mo><mo>,</mo><msub><mi>Q</mi><mi>k</mi></msub><mo>)</mo></mrow></math>" />
                 <MathEquation label="Match observation probability" mathml="<math display='block'><mrow><msub><mi>G</mi><mi>k</mi></msub><mo>(</mo><msub><mi>y</mi><mi>k</mi></msub><mo>|</mo><msup><mi>x</mi><mi>i</mi></msup><mo>,</mo><msup><mi>x</mi><mi>j</mi></msup><mo>)</mo><mo>=</mo><mi>σ</mi><mo>(</mo><mfrac><mrow><msup><mi>x</mi><mi>i</mi></msup><mo>-</mo><msup><mi>x</mi><mi>j</mi></msup></mrow><msub><mi>s</mi><mi>d</mi></msub></mfrac><mo>)</mo></mrow></math>" />
                 <MathEquation label="Gaussian filtered posterior" mathml="<math display='block'><mrow><mi>p</mi><mo>(</mo><msubsup><mi>x</mi><mi>t</mi><mi>i</mi></msubsup><mo>|</mo><msub><mi>y</mi><mrow><mn>1</mn><mo>:</mo><mi>t</mi></mrow></msub><mo>)</mo><mo>≈</mo><mi>N</mi><mo>(</mo><msubsup><mi>μ</mi><mi>t</mi><mi>i</mi></msubsup><mo>,</mo><msubsup><mi>Σ</mi><mi>t</mi><mi>i</mi></msubsup><mo>)</mo></mrow></math>" />
               </div>
+              <p className="methodology-note">
+                Unlike random walk models, the OU process includes mean reversion: skills gradually return to the prior mean $\mu_0$ during inactive periods. The reversion rate $\phi_k = \exp(-\tau_d \cdot \Delta t)$ and process noise $Q_k = \Sigma_0 - \phi_k \Sigma_0 \phi_k^T$ control how quickly skills stabilize.
+              </p>
             </article>
             <aside className="methodology-params-panel">
               <h3>Model parameters <span>Latest run: {generatedAt.toLocaleString()}</span></h3>

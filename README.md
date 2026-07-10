@@ -77,11 +77,11 @@ where variance grows linearly with time and skills undergo a random walk without
 $$p(x_t \mid x_{t-1}) \sim \mathcal{N}(\mu_0 + \phi_k (x_{t-1} - \mu_0), Q_k)$$
 where $\phi_k = \exp(-\tau_d \cdot \Delta t)$ and $Q_k = \Sigma_0 - \phi_k \Sigma_0 \phi_k^T$.
 
-| Model | Date | $\tau$ | $s$ | $\Sigma_0$ | Accuracy | Avg Log-Score |
-|-------|------|---------|-----|------------|----------|---------------|
-| Wiener Process | 2026-07-10 | 0.029 | 1.76 | 1.71 | 63.1% | -0.6378 |
-| OU Process (untrained) | 2026-07-10 | 0.0238 | 1.96 | 1.65 | 57.3% | -0.6778 |
-| **OU Process (trained)** | **2026-07-10** | **0.000267** | **1.228** | **1.242** | **63.84%** | **-0.631** |
+| Model | Date | Timestamp | $\tau$ | $s$ | $\Sigma_0$ | Accuracy | Avg Log-Score |
+|-------|------|-----------|---------|-----|------------|----------|---------------|
+| Wiener Process | 2026-07-10 | 2026-07-10T10:00:00Z | 0.029 | 1.76 | 1.71 | 63.1% | -0.6378 |
+| OU Process (untrained) | 2026-07-10 | 2026-07-10T10:00:00Z | 0.0238 | 1.96 | 1.65 | 57.3% | -0.6778 |
+| **OU Process (trained)** | **2026-07-10** | **2026-07-10T11:09:52Z** | **0.000267** | **1.228** | **1.242** | **63.84%** | **-0.631** |
 
 **Key Findings:**
 - Training is essential for OU dynamics — untrained OU parameters performed poorly (57.3% vs 63.1%)
