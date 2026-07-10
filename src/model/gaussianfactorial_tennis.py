@@ -382,6 +382,120 @@ class GaussianFactorialTennis:
         )
 
     # ------------------------------------------------------------------
+    # Class methods for training
+    # ------------------------------------------------------------------
+
+    @classmethod
+    def train_from_data(
+        cls,
+        data,
+        steps: int = 300,
+        learning_rate: float = 0.05,
+        log_every: int = 20,
+        initial_tau: float = 0.01,
+        initial_s: float = 1.5,
+        initial_init_var: float = 1.0,
+        save_path: str = "outputs/tennis_factorial_state.json",
+    ) -> "GaussianFactorialTennis":
+        """Train a new model from data and return initialized instance.
+
+        This class method provides a convenient training workflow:
+        1. Trains parameters via log-likelihood maximization
+        2. Saves parameters to state file
+        3. Returns initialized model ready for filtering/prediction
+
+        Args:
+            data: TennisData object with jax_data, num_players, etc.
+            steps: Number of gradient descent steps.
+            learning_rate: Adam learning rate.
+            log_every: Print progress every N steps.
+            initial_tau: Initial mean-reversion rate.
+            initial_s: Initial observation scale.
+            initial_init_var: Initial variance.
+            save_path: Path to save trained parameters.
+
+        Returns:
+            Initialized GaussianFactorialTennis model with trained parameters.
+        """
+        from src.data.data import load_wta
+
+        # Train parameters
+        result = train_model(
+            data=data,
+            steps=steps,
+            learning_rate=learning_rate,
+            log_every=log_every,
+            initial_tau=initial_tau,
+            initial_s=initial_s,
+            initial_init_var=initial_init_var,
+            save_path=save_path,
+        )
+
+        params = result["params"]
+
+        # Create and return model instance
+        return cls(
+            init_mean=0.0,
+            init_var=params["init_var"],
+            tau=params["tau"],
+            s=params["s"],
+            num_players=data.num_players,
+        )
+
+    @classmethod
+    def train_from_file(
+        cls,
+        start_date: str = "2021-12-31",
+        end_date: str = "2024-12-31",
+        origin_date: str = "2021-12-31",
+        steps: int = 300,
+        learning_rate: float = 0.05,
+        log_every: int = 20,
+        initial_tau: float = 0.01,
+        initial_s: float = 1.5,
+        initial_init_var: float = 1.0,
+        save_path: str = "outputs/tennis_factorial_state.json",
+    ) -> "GaussianFactorialTennis":
+        """Load data from files, train model, and return initialized instance.
+
+        Convenience method that combines data loading and training.
+
+        Args:
+            start_date: Start date for training data (ISO format).
+            end_date: End date for training data (ISO format).
+            origin_date: Origin date for timestamp calculations.
+            steps: Number of gradient descent steps.
+            learning_rate: Adam learning rate.
+            log_every: Print progress every N steps.
+            initial_tau: Initial mean-reversion rate.
+            initial_s: Initial observation scale.
+            initial_init_var: Initial variance.
+            save_path: Path to save trained parameters.
+
+        Returns:
+            Initialized GaussianFactorialTennis model with trained parameters.
+        """
+        from src.data.data import load_wta
+
+        print("Loading training data...")
+        data = load_wta(
+            start_date=start_date,
+            end_date=end_date,
+            origin_date=origin_date,
+        )
+
+        return cls.train_from_data(
+            data=data,
+            steps=steps,
+            learning_rate=learning_rate,
+            log_every=log_every,
+            initial_tau=initial_tau,
+            initial_s=initial_s,
+            initial_init_var=initial_init_var,
+            save_path=save_path,
+        )
+
+    # ------------------------------------------------------------------
     # Initial state
     # ------------------------------------------------------------------
 
@@ -895,3 +1009,96 @@ def train(
 
     final_params = _constrain_params(raw_params)
     return final_params, history
+
+
+# ---------------------------------------------------------------------------
+# Training workflow (incorporated from train_ou_model.py)
+# ---------------------------------------------------------------------------
+
+
+def train_model(
+    data,
+    steps: int = 300,
+    learning_rate: float = 0.05,
+    log_every: int = 20,
+    initial_tau: float = 0.01,
+    initial_s: float = 1.5,
+    initial_init_var: float = 1.0,
+    save_path: str = "outputs/tennis_factorial_state.json",
+) -> dict:
+    """Train OU model parameters and save to state file.
+
+    This function encapsulates the training workflow from train_ou_model.py,
+    loading data, training parameters via log-likelihood maximization,
+    and saving results.
+
+    Args:
+        data: TennisData object with jax_data, num_players, etc.
+        steps: Number of gradient descent steps.
+        learning_rate: Adam learning rate.
+        log_every: Print progress every N steps.
+        initial_tau: Initial mean-reversion rate (smaller = slower reversion).
+        initial_s: Initial observation scale.
+        initial_init_var: Initial variance.
+        save_path: Path to save trained parameters.
+
+    Returns:
+        Dictionary with trained parameters and training history.
+    """
+    import json
+    from pathlib import Path
+
+    print(f"Training matches: {data.num_matches}")
+    print(f"Number of players: {data.num_players}")
+
+    # Train with OU dynamics
+    print("\n" + "=" * 70)
+    print("Training OU model parameters")
+    print("=" * 70)
+
+    best_params, history = train(
+        matches=data.jax_data,
+        num_players=data.num_players,
+        steps=steps,
+        learning_rate=learning_rate,
+        log_every=log_every,
+        init_mean=0.0,
+        initial_tau=initial_tau,
+        initial_s=initial_s,
+        initial_init_var=initial_init_var,
+    )
+
+    print("\n" + "=" * 70)
+    print("Final trained parameters:")
+    print(f"  tau (mean-reversion rate): {float(best_params['tau']):.6f}")
+    print(f"  s (observation scale): {float(best_params['s']):.6f}")
+    print(f"  init_var: {float(best_params['init_var']):.6f}")
+    print("=" * 70)
+
+    # Save to state file
+    state_file = Path(save_path)
+    state_file.parent.mkdir(parents=True, exist_ok=True)
+
+    with open(state_file, "w") as f:
+        json.dump(
+            {
+                "params": {
+                    "tau": float(best_params["tau"]),
+                    "s": float(best_params["s"]),
+                    "init_var": float(best_params["init_var"]),
+                    "init_mean": 0.0,
+                    "num_players": data.num_players,
+                },
+                "training_history": history[-10:],  # Last 10 steps
+            },
+            f,
+            indent=2,
+        )
+
+    print(f"\nSaved trained parameters to {state_file}")
+
+    return {
+        "params": best_params,
+        "history": history,
+        "save_path": str(state_file),
+    }

@@ -67,11 +67,21 @@ The deployment model uses saved parameters from
 
 ### Performance Comparison
 
-| Model | Date | Parameters | Accuracy | Avg Log-Score |
-|-------|------|------------|----------|---------------|
-| Wiener Process | 2026-07-10 | τ=0.029, s=1.76, Σ₀=1.71 | 63.1% | -0.6378 |
-| OU Process (untrained) | 2026-07-10 | τ=0.0238, s=1.96, Σ₀=1.65 | 57.3% | -0.6778 |
-| **OU Process (trained)** | **2026-07-10** | **τ=0.000267, s=1.228, Σ₀=1.242** | **63.84%** | **-0.631** |
+We performed a comparison of the Wiener process (Random Walk) and the OU process for the transition distribution that models the evolution of player skills.
+
+**Wiener Process:**
+$$p(x_t \mid x_{t-1}) \sim \mathcal{N}(x_{t-1}, \tau^2 \Delta t)$$
+where variance grows linearly with time and skills undergo a random walk without mean reversion.
+
+**Ornstein-Uhlenbeck Process:**
+$$p(x_t \mid x_{t-1}) \sim \mathcal{N}(\mu_0 + \phi_k (x_{t-1} - \mu_0), Q_k)$$
+where $\phi_k = \exp(-\tau_d \cdot \Delta t)$ and $Q_k = \Sigma_0 - \phi_k \Sigma_0 \phi_k^T$.
+
+| Model | Date | $\tau$ | $s$ | $\Sigma_0$ | Accuracy | Avg Log-Score |
+|-------|------|---------|-----|------------|----------|---------------|
+| Wiener Process | 2026-07-10 | 0.029 | 1.76 | 1.71 | 63.1% | -0.6378 |
+| OU Process (untrained) | 2026-07-10 | 0.0238 | 1.96 | 1.65 | 57.3% | -0.6778 |
+| **OU Process (trained)** | **2026-07-10** | **0.000267** | **1.228** | **1.242** | **63.84%** | **-0.631** |
 
 **Key Findings:**
 - Training is essential for OU dynamics — untrained OU parameters performed poorly (57.3% vs 63.1%)
@@ -82,14 +92,13 @@ The deployment model uses saved parameters from
 ### Current Model Metrics
 
 | Metric | Value |
-|---|---|
+|-------|-------|
 | Training matches | 7,486 |
 | Test matches | 1,422 |
 | Accuracy | 63.84% |
 | Avg log-score | -0.631 |
 | Uniform baseline | -0.6931 |
-
-**Trained parameters (OU):** τ=0.000267, s=1.228, Σ₀=1.242
+**Trained parameters (OU):** $\tau=0.000267$, $s=1.228$, $\Sigma_0=1.242$
 
 ### Predictions Output
 

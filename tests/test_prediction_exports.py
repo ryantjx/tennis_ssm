@@ -180,8 +180,8 @@ class PredictionExportTest(unittest.TestCase):
         self.assertEqual(payload["data_windows"]["test_match_end"], "2025-12-31")
         self.assertEqual(payload["data_windows"]["prediction_display_start"], "2026-01-01")
         self.assertEqual(payload["data_windows"]["prediction_display_end"], "2026-12-31")
-        self.assertEqual(payload["data_windows"]["prediction_match_start"], "2026-06-27")
-        self.assertEqual(payload["data_windows"]["prediction_match_end"], "2026-06-27")
+        self.assertEqual(payload["data_windows"]["upcoming_match_start"], "2026-06-27")
+        self.assertEqual(payload["data_windows"]["upcoming_match_end"], "2026-06-27")
 
     def test_polymarket_moneyline_matches_fixture_by_player_pair(self):
         events = [

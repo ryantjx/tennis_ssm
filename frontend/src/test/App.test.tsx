@@ -17,8 +17,8 @@ const predictions: PredictionPayload = {
     test_match_end: "2025-12-31",
     prediction_display_start: "2026-01-01",
     prediction_display_end: "2026-12-31",
-    prediction_match_start: "2026-01-04",
-    prediction_match_end: "2026-06-27",
+    upcoming_match_start: "2026-01-04",
+    upcoming_match_end: "2026-06-27",
   },
   model_params: { tau: 0.1, s: 1.0, init_var: 1.0 },
   metrics: {

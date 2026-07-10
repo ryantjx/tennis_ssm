@@ -173,6 +173,7 @@ def main() -> None:
         future_matches=future_matches_json,
         fixture_status=fixture_status,
         market_status=market_status,
+        model_state_as_of=current_time,
     )
     validate_predictions_payload(output_json)
 
@@ -584,8 +585,10 @@ def evaluate_predictions(predictions: Any) -> dict[str, float | int]:
 
 
 def load_known_wta_future_fixtures(name_to_id: dict[str, int]) -> tuple[pl.DataFrame, dict[str, Any]]:
+    # Load all available future fixtures (extended window for upcoming tournaments)
+    # The model filters all available data and predicts any upcoming fixtures
     fixture_start = dt.date.today()
-    fixture_end = fixture_start + dt.timedelta(days=7)
+    fixture_end = fixture_start + dt.timedelta(days=180)  # 6 months ahead
     try:
         loaded_fixtures = load_wta_fixtures(
             start_date=fixture_start.isoformat(),
@@ -890,6 +893,10 @@ def evaluated_match_window(matches: list[dict[str, Any]], prefix: str) -> dict[s
     dates = sorted(str(match["date"]) for match in matches if match.get("date"))
     if not dates:
         return {}
+    # For upcoming matches, only return start date (no end date constraint)
+    # The model filters all available data and predicts any upcoming fixtures
+    if prefix == "upcoming_match":
+        return {f"{prefix}_start": dates[0]}
     return {
         f"{prefix}_start": dates[0],
         f"{prefix}_end": dates[-1],
@@ -906,6 +913,7 @@ def build_predictions_payload(
     future_matches: list[dict[str, Any]],
     fixture_status: dict[str, Any],
     market_status: dict[str, Any] | None = None,
+    model_state_as_of: float | None = None,
 ) -> dict[str, Any]:
     metrics = {
         **final_metrics,
@@ -913,6 +921,7 @@ def build_predictions_payload(
     }
     return {
         "generated_at": dt.datetime.now(dt.timezone.utc).isoformat(),
+        "model_state_as_of": model_state_as_of,
         "data_windows": {
             "origin_date": ORIGIN_DATE,
             "train_start": TRAIN_START,
@@ -929,7 +938,7 @@ def build_predictions_payload(
             "prediction_display_end": EVAL_DISPLAY_END,
             "test_match_start": TEST_DISPLAY_START,
             "test_match_end": TEST_DISPLAY_END,
-            **evaluated_match_window(matches, "prediction_match"),
+            **evaluated_match_window(future_matches, "upcoming_match"),
         },
         "model_params": optimization["best_params"],
         "seed_model_params": {
