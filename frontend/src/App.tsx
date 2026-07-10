@@ -1,11 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { CompletedResults } from "./components/CompletedResults";
 import { FilterControls } from "./components/FilterControls";
 import { MatchDetailDrawer } from "./components/MatchDetailDrawer";
 import { PlayerRankings } from "./components/PlayerRankings";
 import { UpcomingMatches } from "./components/UpcomingMatches";
 import type { MatchFilters, MatchPrediction, PredictionPayload, ResultsPayload } from "./types";
-import { applyMatchFilters, formatDate, formatPercent, matchId } from "./utils";
+import { applyMatchFilters, formatDate, formatPercent, matchKey } from "./utils";
 import { usePolymarket } from "./usePolymarket";
 
 const defaultFilters: MatchFilters = {
@@ -17,8 +17,17 @@ const polymarketSource = {
   tagSlug: "tennis",
 };
 
-async function fetchJson<T>(path: string): Promise<T> {
-  const response = await fetch(`${import.meta.env.BASE_URL}${path}`);
+const rawOutputBaseUrl = "https://raw.githubusercontent.com/ryantjx/tennis_ssm/main/outputs/latest";
+
+function dataUrl(filename: string): string {
+  return import.meta.env.PROD
+    ? `${rawOutputBaseUrl}/${filename}`
+    : `${import.meta.env.BASE_URL}data/${filename}`;
+}
+
+async function fetchJson<T>(url: string): Promise<T> {
+  const separator = url.includes("?") ? "&" : "?";
+  const response = await fetch(`${url}${separator}t=${Date.now()}`, { cache: "no-store" });
   if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
   return response.json() as Promise<T>;
 }
@@ -27,13 +36,13 @@ function App() {
   const [data, setData] = useState<PredictionPayload | null>(null);
   const [results, setResults] = useState<ResultsPayload | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [selectedMatchId, setSelectedMatchId] = useState<string | null>(null);
+  const [selectedMatchKey, setSelectedMatchKey] = useState<string | null>(null);
   const [filters, setFilters] = useState<MatchFilters>(defaultFilters);
 
   useEffect(() => {
     Promise.all([
-      fetchJson<PredictionPayload>("data/predictions.json"),
-      fetchJson<ResultsPayload>("data/results.json"),
+      fetchJson<PredictionPayload>(dataUrl("predictions.json")),
+      fetchJson<ResultsPayload>(dataUrl("results.json")),
     ])
       .then(([predictionPayload, resultPayload]) => {
         setData(predictionPayload);
@@ -52,7 +61,7 @@ function App() {
   const allMatches = useMemo(
     () => staticMatches.map((match) => ({
       ...match,
-      market: polymarket.predictions[matchId(match)] ?? match.market,
+      market: polymarket.predictions[matchKey(match)] ?? match.market,
     })),
     [polymarket.predictions, staticMatches],
   );
@@ -62,9 +71,13 @@ function App() {
     [allMatches, filters],
   );
   const selectedMatch = useMemo(
-    () => selectedMatchId ? allMatches.find((match) => matchId(match) === selectedMatchId) ?? null : null,
-    [allMatches, selectedMatchId],
+    () => selectedMatchKey ? allMatches.find((match) => matchKey(match) === selectedMatchKey) ?? null : null,
+    [allMatches, selectedMatchKey],
   );
+  const openMatch = useCallback((match: MatchPrediction) => {
+    setSelectedMatchKey(matchKey(match));
+  }, []);
+  const closeMatch = useCallback(() => setSelectedMatchKey(null), []);
   const filteredPlayers = useMemo(() => {
     const query = filters.query.trim().toLowerCase();
     if (!data) return [];
@@ -92,6 +105,7 @@ function App() {
 
   const generatedAt = new Date(data.generated_at);
   const logDelta = data.metrics.avg_log_score - data.metrics.uniform_baseline;
+  const correctPredictions = Math.round(data.metrics.accuracy * data.metrics.n_test_matches);
   const upcoming = filteredMatches.filter((match) => match.is_future);
   const completed = filteredMatches.filter((match) => !match.is_future);
   const trainWindow = data.data_windows?.train_display_start && data.data_windows?.train_display_end
@@ -106,26 +120,21 @@ function App() {
           <span className="site-brand__mark" aria-hidden="true" />
           <span>WTA Match Prediction Model</span>
         </a>
-        <nav aria-label="Primary navigation">
-          <a href="#upcoming">Upcoming</a>
-          <a href="#completed">Results</a>
-          <a href="#rankings">Rankings</a>
-          <a href="#methodology">Methodology</a>
-        </nav>
+        <PrimaryNav className="site-nav desktop-nav" label="Primary navigation" />
         <div className="header-snapshot">
           <span>Latest model run</span>
           <strong>{generatedAt.toLocaleDateString()}</strong>
           <small>{generatedAt.toLocaleTimeString()}</small>
         </div>
       </header>
+      <PrimaryNav className="site-nav mobile-nav" label="Mobile primary navigation" />
 
       <main id="top">
         <section className="dashboard" aria-labelledby="dashboard-title">
           <div className="dashboard__copy">
-            <span className="eyebrow">WTA Match Prediction Model</span>
-            <h1 id="dashboard-title">Match forecasts and completed results</h1>
+            <h1 id="dashboard-title">WTA Match Prediction State-Space Model</h1>
             <p>
-              Parameters are selected on 2025 test log score, then the selected model is used for 2026 onward predictions and future fixtures.
+              A Gaussian factorial state-space model estimates WTA player skill over time and converts skill differences into match win probabilities. More details are available in the <a href="https://github.com/ryantjx/tennis_ssm" target="_blank" rel="noreferrer">ryantjx/tennis_ssm</a> repository.
             </p>
           </div>
           <dl className="summary-card" aria-label="Overall model results">
@@ -133,6 +142,7 @@ function App() {
               <div>
                 <dt>Accuracy</dt>
                 <dd>{formatPercent(data.metrics.accuracy, 1)}</dd>
+                <span>{correctPredictions} / {data.metrics.n_test_matches} correct predictions</span>
                 <span>Correct picks across evaluated test and post-selection results</span>
               </div>
               <div>
@@ -153,13 +163,12 @@ function App() {
 
         <UpcomingMatches
           matches={upcoming}
-          onOpen={(match) => setSelectedMatchId(matchId(match))}
+          onOpen={openMatch}
           fixtureStatus={data.fixture_status}
         />
         <CompletedResults
           matches={completed}
-          results={results.results}
-          onOpen={(match) => setSelectedMatchId(matchId(match))}
+          onOpen={openMatch}
           resultWindow={results.data_window}
         />
         <PlayerRankings players={filteredPlayers} />
@@ -211,8 +220,19 @@ function App() {
         </p>
       </footer>
 
-      <MatchDetailDrawer match={selectedMatch} onClose={() => setSelectedMatchId(null)} />
+      <MatchDetailDrawer match={selectedMatch} onClose={closeMatch} />
     </>
+  );
+}
+
+function PrimaryNav({ className, label }: { className: string; label: string }) {
+  return (
+    <nav className={className} aria-label={label}>
+      <a href="#upcoming">Upcoming</a>
+      <a href="#completed">Results</a>
+      <a href="#rankings">Rankings</a>
+      <a href="#methodology">Methodology</a>
+    </nav>
   );
 }
 

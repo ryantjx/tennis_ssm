@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import type { MarketPrediction, MatchPrediction } from "./types";
-import { matchId } from "./utils";
+import { matchKey } from "./utils";
 
 export type PolymarketStatus = "loading" | "current" | "fallback";
 
@@ -271,7 +271,7 @@ export function predictionsForMatches(matches: MatchPrediction[], events: unknow
     const marketOutcome1Key = canonicalPlayer(market.outcome1);
     const player1Price = player1Key === marketOutcome1Key ? market.price1 : market.price2;
     const player2Price = player1Key === marketOutcome1Key ? market.price2 : market.price1;
-    return [[matchId(match), {
+    return [[matchKey(match), {
       ...market,
       player1_market_name: player1Key === marketOutcome1Key ? market.outcome1 : market.outcome2,
       player2_market_name: player1Key === marketOutcome1Key ? market.outcome2 : market.outcome1,
@@ -286,7 +286,7 @@ export function predictionsForMatches(matches: MatchPrediction[], events: unknow
 
 function fallbackPredictions(matches: MatchPrediction[]): Record<string, MarketPrediction> {
   return Object.fromEntries(matches.flatMap((match) =>
-    match.market && !match.actual_winner ? [[matchId(match), match.market] as const] : [],
+    match.market && !match.actual_winner ? [[matchKey(match), match.market] as const] : [],
   ));
 }
 

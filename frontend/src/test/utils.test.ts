@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { applyMatchFilters, confidenceLabel, formatPercent } from "../utils";
+import { applyMatchFilters, confidenceLabel, formatPercent, matchKey } from "../utils";
 import type { MatchPrediction } from "../types";
 
 const baseMatch: MatchPrediction = {
@@ -49,5 +49,23 @@ describe("prediction utilities", () => {
 
     expect(filtered).toHaveLength(1);
     expect(filtered[0].id).toBe("m2");
+  });
+
+  it("builds distinct keys for repeated source-local IDs", () => {
+    const first = {
+      ...baseMatch,
+      id: "future-LS004",
+      source: "wta_api",
+      source_match_id: "LS004",
+      tournament: "First Open",
+    };
+    const second = {
+      ...first,
+      tournament: "Second Open",
+      player1: "Player C",
+      player2: "Player D",
+    };
+
+    expect(matchKey(first)).not.toBe(matchKey(second));
   });
 });

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { MatchPrediction, PredictionPayload } from "../types";
+import { matchKey } from "../utils";
 import { PredictionCard } from "./PredictionCard";
 import { PredictionListRow } from "./PredictionListRow";
 
@@ -28,8 +29,8 @@ export function UpcomingMatches({ matches, fixtureStatus, onOpen }: UpcomingMatc
         <div className={view === "cards" ? "match-grid" : "match-list"}>
           {matches.map((match) =>
             view === "cards"
-              ? <PredictionCard key={match.id ?? `${match.date}-${match.player1}-${match.player2}`} match={match} onOpen={onOpen} />
-              : <PredictionListRow key={match.id ?? `${match.date}-${match.player1}-${match.player2}`} match={match} onOpen={onOpen} />
+              ? <PredictionCard key={matchKey(match)} match={match} onOpen={onOpen} />
+              : <PredictionListRow key={matchKey(match)} match={match} onOpen={onOpen} />
           )}
         </div>
       ) : (

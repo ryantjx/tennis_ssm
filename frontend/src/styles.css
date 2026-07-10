@@ -146,12 +146,16 @@ h3 {
   transform: rotate(168deg);
 }
 
-.site-header nav {
+.site-nav {
   display: flex;
   gap: 1.35rem;
 }
 
-.site-header nav a {
+.mobile-nav {
+  display: none;
+}
+
+.site-nav a {
   position: relative;
   color: #465047;
   font-size: 0.9rem;
@@ -159,7 +163,7 @@ h3 {
   text-decoration: none;
 }
 
-.site-header nav a::after {
+.site-nav a::after {
   position: absolute;
   right: 0;
   bottom: -0.45rem;
@@ -171,8 +175,8 @@ h3 {
   transition: transform 160ms ease;
 }
 
-.site-header nav a:hover::after,
-.site-header nav a:focus-visible::after {
+.site-nav a:hover::after,
+.site-nav a:focus-visible::after {
   transform: scaleX(1);
 }
 
@@ -757,6 +761,20 @@ main {
   display: flex;
   justify-content: flex-end;
   margin-bottom: 0.85rem;
+}
+
+.list-progress {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  margin-top: 0.85rem;
+}
+
+.list-progress p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.88rem;
+  font-weight: 750;
 }
 
 .ranking-row {
@@ -1376,16 +1394,45 @@ main {
 }
 
 @media (max-width: 960px) {
+  html {
+    scroll-padding-top: 60px;
+  }
+
   .site-header {
-    grid-template-columns: 1fr;
+    position: static;
+    grid-template-columns: minmax(0, 1fr) auto;
     gap: 0.75rem;
     padding-block: 0.85rem;
   }
 
-  .site-header nav,
   .header-snapshot {
-    justify-self: start;
-    text-align: left;
+    justify-self: end;
+    text-align: right;
+  }
+
+  .desktop-nav {
+    display: none;
+  }
+
+  .mobile-nav {
+    position: sticky;
+    z-index: 45;
+    top: 0;
+    display: flex;
+    min-height: 48px;
+    align-items: center;
+    justify-content: center;
+    border-bottom: 1px solid rgba(23, 32, 26, 0.12);
+    background: rgba(246, 247, 242, 0.96);
+    padding: 0 4vw;
+    backdrop-filter: blur(18px);
+  }
+
+  .mobile-nav a {
+    display: grid;
+    min-height: 44px;
+    flex: 1;
+    place-items: center;
   }
 
   .dashboard {
@@ -1461,10 +1508,26 @@ main {
     padding-inline: 1rem;
   }
 
-  .site-header nav {
+  .mobile-nav {
     width: 100%;
     justify-content: space-between;
+    gap: 0;
+    padding-inline: 0.5rem;
+  }
+
+  .site-brand {
     gap: 0.5rem;
+    font-size: 0.9rem;
+  }
+
+  .site-brand__mark {
+    width: 34px;
+    height: 34px;
+  }
+
+  .header-snapshot span,
+  .header-snapshot small {
+    display: none;
   }
 
   .summary-card__stats,

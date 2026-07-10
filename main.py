@@ -45,6 +45,10 @@ EVAL_DISPLAY_END = "2026-12-31"
 OUTPUT_DIR = Path("outputs")
 STATE_FILE = OUTPUT_DIR / "tennis_factorial_state.json"
 PREDICTIONS_FILE = OUTPUT_DIR / "predictions.json"
+LATEST_OUTPUT_DIR = OUTPUT_DIR / "latest"
+DAILY_OUTPUT_DIR = OUTPUT_DIR / "daily"
+LATEST_PREDICTIONS_FILE = LATEST_OUTPUT_DIR / "predictions.json"
+LATEST_RESULTS_FILE = LATEST_OUTPUT_DIR / "results.json"
 FRONTEND_DATA_DIR = Path("frontend/public/data")
 FRONTEND_PREDICTIONS_FILE = FRONTEND_DATA_DIR / "predictions.json"
 RESULTS_FILE = FRONTEND_DATA_DIR / "results.json"
@@ -56,7 +60,11 @@ POLYMARKET_TAG_SLUG = "tennis"
 
 def main() -> None:
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+    LATEST_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     FRONTEND_DATA_DIR.mkdir(parents=True, exist_ok=True)
+    run_date = dt.datetime.now(dt.timezone.utc).date().isoformat()
+    daily_output_dir = DAILY_OUTPUT_DIR / run_date
+    daily_output_dir.mkdir(parents=True, exist_ok=True)
 
     print("=" * 70)
     print("1. Loading WTA historical data")
@@ -169,12 +177,18 @@ def main() -> None:
     validate_predictions_payload(output_json)
 
     PREDICTIONS_FILE.write_text(json.dumps(output_json, indent=2) + "\n")
+    LATEST_PREDICTIONS_FILE.write_text(json.dumps(output_json, indent=2) + "\n")
+    (daily_output_dir / "predictions.json").write_text(json.dumps(output_json, indent=2) + "\n")
     shutil.copyfile(PREDICTIONS_FILE, FRONTEND_PREDICTIONS_FILE)
 
-    results_json = build_results_json(eval_data, current_matches=future_matches_json)
+    results_json = build_results_json(eval_data)
     RESULTS_FILE.write_text(json.dumps(results_json, indent=2) + "\n")
+    LATEST_RESULTS_FILE.write_text(json.dumps(results_json, indent=2) + "\n")
+    (daily_output_dir / "results.json").write_text(json.dumps(results_json, indent=2) + "\n")
 
     print(f"  Saved canonical predictions to {PREDICTIONS_FILE}")
+    print(f"  Saved latest prediction data to {LATEST_OUTPUT_DIR}")
+    print(f"  Saved dated prediction data to {daily_output_dir}")
     print(f"  Copied frontend runtime predictions to {FRONTEND_PREDICTIONS_FILE}")
     print(f"  Saved committed completed results to {RESULTS_FILE}")
     print("=" * 70)
@@ -951,12 +965,19 @@ def validate_predictions_payload(payload: dict[str, Any]) -> None:
         raise TypeError("Prediction payload matches must be a list")
     if not isinstance(payload["future_matches"], list):
         raise TypeError("Prediction payload future_matches must be a list")
+    future_ids = [match.get("id") for match in payload["future_matches"]]
+    if any(not match_id for match_id in future_ids):
+        raise ValueError("Prediction payload future matches must have IDs")
+    duplicate_future_ids = sorted(
+        match_id for match_id in set(future_ids) if future_ids.count(match_id) > 1
+    )
+    if duplicate_future_ids:
+        raise ValueError(
+            f"Prediction payload future match IDs must be unique: {duplicate_future_ids}"
+        )
 
 
-def build_results_json(
-    test_data: TennisData,
-    current_matches: list[dict[str, Any]] | None = None,
-) -> dict[str, Any]:
+def build_results_json(test_data: TennisData) -> dict[str, Any]:
     results = []
     for i, row in enumerate(test_data.polars_data.iter_rows(named=True)):
         results.append(
@@ -984,42 +1005,6 @@ def build_results_json(
             "end": max(result_dates) if result_dates else TEST_DISPLAY_END,
         },
         "results": results,
-        "current_matches": [
-            current_match_result(match)
-            for match in (current_matches or [])
-        ],
-    }
-
-
-def current_match_result(match: dict[str, Any]) -> dict[str, Any]:
-    return {
-        "id": match.get("id") or f"current-{match.get('source_match_id', '')}",
-        "date": match["date"],
-        "player1": match["player1"],
-        "player2": match["player2"],
-        "winner": None,
-        "loser": None,
-        "actual_winner": None,
-        "predicted_winner": match.get("predicted_winner"),
-        "p_player1_win": match.get("p_player1_win"),
-        "p_player2_win": match.get("p_player2_win"),
-        "confidence": match.get("confidence"),
-        "player1_rank": match.get("player1_rank"),
-        "player2_rank": match.get("player2_rank"),
-        "player1_latest_skill": match.get("player1_latest_skill"),
-        "player2_latest_skill": match.get("player2_latest_skill"),
-        "player1_latest_variance": match.get("player1_latest_variance"),
-        "player2_latest_variance": match.get("player2_latest_variance"),
-        "market": match.get("market"),
-        "match_status": match.get("match_status", "upcoming"),
-        "match_state": match.get("match_state", ""),
-        "tournament": match.get("tournament", "Unknown"),
-        "location": match.get("location", "Unknown"),
-        "tier": match.get("tier", "Unknown"),
-        "surface": match.get("surface", "Unknown"),
-        "round": match.get("round", "Unknown"),
-        "source": match.get("source", "wta_api"),
-        "source_match_id": match.get("source_match_id", ""),
     }
 
 
@@ -1145,7 +1130,7 @@ def generate_fixture_predictions(
         match_status = fixture_match_status(match_state)
         future_matches_json.append(
             {
-                "id": f"future-{fixture.get('source_match_id') or idx}",
+                "id": fixture_prediction_id(fixture, idx, p1_id, p2_id),
                 "date": fixture["date"],
                 "timestamp": fixture_timestamp,
                 "player1": p1_name,
@@ -1174,12 +1159,35 @@ def generate_fixture_predictions(
                 "round": fixture.get("round") or "Unknown",
                 "source": fixture.get("source") or "wta_api",
                 "source_match_id": fixture.get("source_match_id") or "",
+                "source_tournament_id": fixture.get("source_tournament_id") or "",
                 "match_state": match_state,
                 "match_status": match_status,
                 "is_future": True,
             }
         )
     return future_matches_json
+
+
+def fixture_prediction_id(
+    fixture: dict[str, Any],
+    index: int,
+    player1_id: int,
+    player2_id: int,
+) -> str:
+    """Build a stable fixture ID even when a source reuses draw-local match IDs."""
+
+    def component(value: Any, fallback: str) -> str:
+        normalized = str(value or fallback).strip()
+        return normalized.replace(":", "_")
+
+    source = component(fixture.get("source"), "wta_api")
+    date = component(fixture.get("date"), str(fixture.get("timestamp") or "unknown-date"))
+    tournament = component(
+        fixture.get("source_tournament_id"),
+        str(fixture.get("tournament") or "unknown-tournament"),
+    )
+    source_match = component(fixture.get("source_match_id"), str(index))
+    return f"future:{source}:{date}:{tournament}:{source_match}:{player1_id}:{player2_id}"
 
 
 def fixture_match_status(match_state: str) -> str:

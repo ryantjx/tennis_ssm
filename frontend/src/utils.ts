@@ -18,8 +18,21 @@ export function formatDate(date: string): string {
   }).format(new Date(`${date}T12:00:00Z`));
 }
 
-export function matchId(match: MatchPrediction): string {
-  return match.id ?? `${match.date}-${match.player1}-${match.player2}`;
+export function matchKey(match: MatchPrediction): string {
+  return [
+    match.id,
+    match.date,
+    match.source,
+    match.source_tournament_id,
+    match.source_match_id,
+    match.tournament,
+    match.player1,
+    match.player2,
+  ].map(identityPart).join("::");
+}
+
+function identityPart(value: string | undefined): string {
+  return (value ?? "").normalize("NFKC").trim().toLowerCase().replace(/\s+/g, " ");
 }
 
 export function probabilityForPredictedWinner(match: MatchPrediction): number {

@@ -6,6 +6,7 @@ import {
   predictionsForMatches,
   usePolymarket,
 } from "../usePolymarket";
+import { matchKey } from "../utils";
 
 function match(overrides: Partial<MatchPrediction> = {}): MatchPrediction {
   return {
@@ -80,13 +81,54 @@ describe("Polymarket tennis matching", () => {
   it("orients market prices to the model player order", () => {
     const predictions = predictionsForMatches([match()], [moneylineEvent()]);
 
-    expect(predictions["future-wimbledon-final"]).toMatchObject({
+    expect(predictions[matchKey(match())]).toMatchObject({
       player1_market_name: "Karolina Muchova",
       player2_market_name: "Linda Noskova",
       player1_price: 0.59,
       player2_price: 0.41,
       matched_by: "live_canonical_player_pair",
     });
+  });
+
+  it("keeps markets separate when source-local match IDs repeat", () => {
+    const first = match({
+      id: "future-LS004",
+      source: "wta_api",
+      source_match_id: "LS004",
+      source_tournament_id: "100",
+    });
+    const second = match({
+      id: "future-LS004",
+      player1: "Player C",
+      player2: "Player D",
+      predicted_winner: "Player C",
+      tournament: "Second Open",
+      source: "wta_api",
+      source_match_id: "LS004",
+      source_tournament_id: "200",
+    });
+    const secondEvent = {
+      id: "event-2",
+      title: "Second Open WTA: Player C vs Player D",
+      slug: "wta-player-c-player-d-2026-07-11",
+      eventDate: "2026-07-11T13:00:00Z",
+      markets: [{
+        id: "market-2",
+        question: "Second Open WTA: Player C vs Player D",
+        slug: "moneyline",
+        sportsMarketType: "moneyline",
+        outcomes: JSON.stringify(["Player C", "Player D"]),
+        outcomePrices: JSON.stringify(["0.7", "0.3"]),
+        active: true,
+        closed: false,
+      }],
+    };
+
+    const predictions = predictionsForMatches([first, second], [moneylineEvent(), secondEvent]);
+
+    expect(matchKey(first)).not.toBe(matchKey(second));
+    expect(predictions[matchKey(first)].event_id).toBe("event-1");
+    expect(predictions[matchKey(second)].event_id).toBe("event-2");
   });
 
   it("falls back to deployment-time markets when the live request fails", async () => {
@@ -106,6 +148,6 @@ describe("Polymarket tennis matching", () => {
     const { result } = renderHook(() => usePolymarket(matches, source));
 
     await waitFor(() => expect(result.current.status).toBe("fallback"));
-    expect(result.current.predictions["future-wimbledon-final"]).toEqual(fallback);
+    expect(result.current.predictions[matchKey(matches[0])]).toEqual(fallback);
   });
 });

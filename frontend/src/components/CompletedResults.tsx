@@ -1,13 +1,12 @@
-import { useState } from "react";
-import type { CompletedResult, MatchPrediction } from "../types";
-import { formatDate } from "../utils";
+import { useMemo, useState } from "react";
+import type { MatchPrediction } from "../types";
+import { formatDate, matchKey } from "../utils";
 import { PredictionCard } from "./PredictionCard";
 import { PredictionListRow } from "./PredictionListRow";
 import { ViewToggle } from "./UpcomingMatches";
 
 interface CompletedResultsProps {
   matches: MatchPrediction[];
-  results: CompletedResult[];
   resultWindow?: {
     start: string;
     end: string;
@@ -17,6 +16,11 @@ interface CompletedResultsProps {
 
 export function CompletedResults({ matches, resultWindow, onOpen }: CompletedResultsProps) {
   const [view, setView] = useState<"cards" | "list">("list");
+  const sortedMatches = useMemo(
+    () => [...matches].sort((left, right) =>
+      right.timestamp - left.timestamp || matchKey(right).localeCompare(matchKey(left))),
+    [matches],
+  );
 
   return (
     <section className="section" id="completed" aria-labelledby="completed-title">
@@ -37,15 +41,20 @@ export function CompletedResults({ matches, resultWindow, onOpen }: CompletedRes
 
       {matches.length ? (
         <div className={view === "cards" ? "match-grid completed-scroll" : "match-list completed-scroll"}>
-          {matches.map((match) =>
+          {sortedMatches.map((match) =>
             view === "cards"
-              ? <PredictionCard key={match.id ?? `${match.date}-${match.player1}-${match.player2}`} match={match} onOpen={onOpen} />
-              : <PredictionListRow key={match.id ?? `${match.date}-${match.player1}-${match.player2}`} match={match} onOpen={onOpen} />
+              ? <PredictionCard key={matchKey(match)} match={match} onOpen={onOpen} />
+              : <PredictionListRow key={matchKey(match)} match={match} onOpen={onOpen} />
           )}
         </div>
       ) : (
         <div className="empty-state"><strong>No completed forecast rows match the filters.</strong></div>
       )}
+      {matches.length ? (
+        <div className="list-progress">
+          <p aria-live="polite">Showing {sortedMatches.length} of {matches.length} matches</p>
+        </div>
+      ) : null}
     </section>
   );
 }
