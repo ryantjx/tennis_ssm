@@ -3,9 +3,10 @@ name: Deploy Predictions to GitHub Pages
 on:
   push:
     branches: [main]
+    paths:
+      - "frontend/**"
+      - ".github/workflows/deploy.yml"
   workflow_dispatch:
-  schedule:
-    - cron: "0 */3 * * *"
 
 permissions:
   contents: read
@@ -21,24 +22,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.13"
-
-      - name: Install uv
-        run: pip install uv
-
-      - name: Create venv and install dependencies
-        run: |
-          uv venv .venv
-          uv pip install -r requirements.txt
-
-      - name: Run model and generate predictions
-        run: |
-          source .venv/bin/activate
-          python main.py
 
       - name: Install frontend dependencies
         working-directory: frontend

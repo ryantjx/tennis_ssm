@@ -17,8 +17,17 @@ const polymarketSource = {
   tagSlug: "tennis",
 };
 
-async function fetchJson<T>(path: string): Promise<T> {
-  const response = await fetch(`${import.meta.env.BASE_URL}${path}`);
+const rawOutputBaseUrl = "https://raw.githubusercontent.com/ryantjx/tennis_ssm/main/outputs/latest";
+
+function dataUrl(filename: string): string {
+  return import.meta.env.PROD
+    ? `${rawOutputBaseUrl}/${filename}`
+    : `${import.meta.env.BASE_URL}data/${filename}`;
+}
+
+async function fetchJson<T>(url: string): Promise<T> {
+  const separator = url.includes("?") ? "&" : "?";
+  const response = await fetch(`${url}${separator}t=${Date.now()}`, { cache: "no-store" });
   if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
   return response.json() as Promise<T>;
 }
@@ -32,8 +41,8 @@ function App() {
 
   useEffect(() => {
     Promise.all([
-      fetchJson<PredictionPayload>("data/predictions.json"),
-      fetchJson<ResultsPayload>("data/results.json"),
+      fetchJson<PredictionPayload>(dataUrl("predictions.json")),
+      fetchJson<ResultsPayload>(dataUrl("results.json")),
     ])
       .then(([predictionPayload, resultPayload]) => {
         setData(predictionPayload);

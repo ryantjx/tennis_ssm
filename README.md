@@ -63,6 +63,13 @@ training/test/prediction windows, saved parameters, validation metrics,
 historical predictions, player rankings from the latest filtered state, and
 matched WTA future fixture predictions.
 
+Daily generation writes the newest deployable data to
+`outputs/latest/predictions.json` and `outputs/latest/results.json`, and stores a
+dated snapshot under `outputs/daily/YYYY-MM-DD/`. GitHub Pages deploys the React
+app shell separately; in production the app fetches the latest JSON directly
+from `outputs/latest` on the `main` branch, so daily prediction updates do not
+require a Pages redeploy.
+
 Future predictions are loaded from the WTA fixture API via
 `src/data/fixtures_womens.py` and filtered to players known by the trained model.
 Synthetic top-player matchups are disabled in the main workflow.

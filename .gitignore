@@ -3,6 +3,10 @@ __pycache__/
 *.pyc
 outputs/*
 !outputs/tennis_factorial_state.json
+!outputs/latest/
+!outputs/latest/**
+!outputs/daily/
+!outputs/daily/**
 local_data/
 frontend/dist/
 frontend/node_modules/

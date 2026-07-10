@@ -45,6 +45,10 @@ EVAL_DISPLAY_END = "2026-12-31"
 OUTPUT_DIR = Path("outputs")
 STATE_FILE = OUTPUT_DIR / "tennis_factorial_state.json"
 PREDICTIONS_FILE = OUTPUT_DIR / "predictions.json"
+LATEST_OUTPUT_DIR = OUTPUT_DIR / "latest"
+DAILY_OUTPUT_DIR = OUTPUT_DIR / "daily"
+LATEST_PREDICTIONS_FILE = LATEST_OUTPUT_DIR / "predictions.json"
+LATEST_RESULTS_FILE = LATEST_OUTPUT_DIR / "results.json"
 FRONTEND_DATA_DIR = Path("frontend/public/data")
 FRONTEND_PREDICTIONS_FILE = FRONTEND_DATA_DIR / "predictions.json"
 RESULTS_FILE = FRONTEND_DATA_DIR / "results.json"
@@ -56,7 +60,11 @@ POLYMARKET_TAG_SLUG = "tennis"
 
 def main() -> None:
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+    LATEST_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     FRONTEND_DATA_DIR.mkdir(parents=True, exist_ok=True)
+    run_date = dt.datetime.now(dt.timezone.utc).date().isoformat()
+    daily_output_dir = DAILY_OUTPUT_DIR / run_date
+    daily_output_dir.mkdir(parents=True, exist_ok=True)
 
     print("=" * 70)
     print("1. Loading WTA historical data")
@@ -169,12 +177,18 @@ def main() -> None:
     validate_predictions_payload(output_json)
 
     PREDICTIONS_FILE.write_text(json.dumps(output_json, indent=2) + "\n")
+    LATEST_PREDICTIONS_FILE.write_text(json.dumps(output_json, indent=2) + "\n")
+    (daily_output_dir / "predictions.json").write_text(json.dumps(output_json, indent=2) + "\n")
     shutil.copyfile(PREDICTIONS_FILE, FRONTEND_PREDICTIONS_FILE)
 
     results_json = build_results_json(eval_data, current_matches=future_matches_json)
     RESULTS_FILE.write_text(json.dumps(results_json, indent=2) + "\n")
+    LATEST_RESULTS_FILE.write_text(json.dumps(results_json, indent=2) + "\n")
+    (daily_output_dir / "results.json").write_text(json.dumps(results_json, indent=2) + "\n")
 
     print(f"  Saved canonical predictions to {PREDICTIONS_FILE}")
+    print(f"  Saved latest prediction data to {LATEST_OUTPUT_DIR}")
+    print(f"  Saved dated prediction data to {daily_output_dir}")
     print(f"  Copied frontend runtime predictions to {FRONTEND_PREDICTIONS_FILE}")
     print(f"  Saved committed completed results to {RESULTS_FILE}")
     print("=" * 70)
