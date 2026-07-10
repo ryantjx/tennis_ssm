@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import type { MatchPrediction } from "../types";
 import {
   formatDate,
@@ -13,6 +14,55 @@ interface MatchDetailDrawerProps {
 }
 
 export function MatchDetailDrawer({ match, onClose }: MatchDetailDrawerProps) {
+  const drawerRef = useRef<HTMLElement>(null);
+  const closeRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (!match) return;
+
+    const previouslyFocused = document.activeElement instanceof HTMLElement
+      ? document.activeElement
+      : null;
+    const previousBodyOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    closeRef.current?.focus();
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        onClose();
+        return;
+      }
+      if (event.key !== "Tab" || !drawerRef.current) return;
+
+      const focusable = Array.from(drawerRef.current.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      ));
+      if (!focusable.length) {
+        event.preventDefault();
+        return;
+      }
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && (document.activeElement === first || !drawerRef.current.contains(document.activeElement))) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && (document.activeElement === last || !drawerRef.current.contains(document.activeElement))) {
+        event.preventDefault();
+        first.focus();
+      }
+    }
+
+    const drawer = drawerRef.current;
+    drawer?.addEventListener("keydown", handleKeyDown);
+    return () => {
+      drawer?.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = previousBodyOverflow;
+      previouslyFocused?.focus();
+    };
+  }, [match, onClose]);
+
   if (!match) return null;
 
   const predictedProbability = probabilityForPredictedWinner(match);
@@ -21,13 +71,14 @@ export function MatchDetailDrawer({ match, onClose }: MatchDetailDrawerProps) {
   return (
     <div className="drawer-backdrop" role="presentation" onClick={onClose}>
       <aside
+        ref={drawerRef}
         className="match-drawer"
         role="dialog"
         aria-modal="true"
         aria-labelledby="drawer-title"
         onClick={(event) => event.stopPropagation()}
       >
-        <button className="drawer-close" type="button" onClick={onClose} aria-label="Close match details">X</button>
+        <button ref={closeRef} className="drawer-close" type="button" onClick={onClose} aria-label="Close match details">×</button>
         <span className="eyebrow">{match.tournament} · {match.surface}</span>
         <h2 id="drawer-title">{match.player1} vs {match.player2}</h2>
         <p>{formatDate(match.date)} · {match.location} · {match.round}</p>

@@ -19,7 +19,7 @@ export function PlayerRankings({ players }: PlayerRankingsProps) {
         <p>Posterior skill estimates after the historical training window.</p>
       </div>
       <div className="ranking-tools">
-        <p>{players.length} players shown</p>
+        <p aria-live="polite">Showing {players.length} of {players.length} players</p>
       </div>
       <div className="ranking-chart">
         {players.map((player, index) => (

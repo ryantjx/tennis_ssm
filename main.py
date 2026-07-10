@@ -965,6 +965,16 @@ def validate_predictions_payload(payload: dict[str, Any]) -> None:
         raise TypeError("Prediction payload matches must be a list")
     if not isinstance(payload["future_matches"], list):
         raise TypeError("Prediction payload future_matches must be a list")
+    future_ids = [match.get("id") for match in payload["future_matches"]]
+    if any(not match_id for match_id in future_ids):
+        raise ValueError("Prediction payload future matches must have IDs")
+    duplicate_future_ids = sorted(
+        match_id for match_id in set(future_ids) if future_ids.count(match_id) > 1
+    )
+    if duplicate_future_ids:
+        raise ValueError(
+            f"Prediction payload future match IDs must be unique: {duplicate_future_ids}"
+        )
 
 
 def build_results_json(test_data: TennisData) -> dict[str, Any]:
@@ -1120,7 +1130,7 @@ def generate_fixture_predictions(
         match_status = fixture_match_status(match_state)
         future_matches_json.append(
             {
-                "id": f"future-{fixture.get('source_match_id') or idx}",
+                "id": fixture_prediction_id(fixture, idx, p1_id, p2_id),
                 "date": fixture["date"],
                 "timestamp": fixture_timestamp,
                 "player1": p1_name,
@@ -1149,12 +1159,35 @@ def generate_fixture_predictions(
                 "round": fixture.get("round") or "Unknown",
                 "source": fixture.get("source") or "wta_api",
                 "source_match_id": fixture.get("source_match_id") or "",
+                "source_tournament_id": fixture.get("source_tournament_id") or "",
                 "match_state": match_state,
                 "match_status": match_status,
                 "is_future": True,
             }
         )
     return future_matches_json
+
+
+def fixture_prediction_id(
+    fixture: dict[str, Any],
+    index: int,
+    player1_id: int,
+    player2_id: int,
+) -> str:
+    """Build a stable fixture ID even when a source reuses draw-local match IDs."""
+
+    def component(value: Any, fallback: str) -> str:
+        normalized = str(value or fallback).strip()
+        return normalized.replace(":", "_")
+
+    source = component(fixture.get("source"), "wta_api")
+    date = component(fixture.get("date"), str(fixture.get("timestamp") or "unknown-date"))
+    tournament = component(
+        fixture.get("source_tournament_id"),
+        str(fixture.get("tournament") or "unknown-tournament"),
+    )
+    source_match = component(fixture.get("source_match_id"), str(index))
+    return f"future:{source}:{date}:{tournament}:{source_match}:{player1_id}:{player2_id}"
 
 
 def fixture_match_status(match_state: str) -> str:

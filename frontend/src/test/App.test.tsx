@@ -1,4 +1,4 @@
-import { cleanup, render, screen, waitFor, within } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import App from "../App";
@@ -151,7 +151,11 @@ describe("App", () => {
     expect(screen.queryByText("Test matches")).not.toBeInTheDocument();
     expect(screen.queryByLabelText("Surface")).not.toBeInTheDocument();
     expect(screen.queryByLabelText("Sort")).not.toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "WTA Match Prediction State-Space Model" })).toBeInTheDocument();
+    expect(screen.getAllByText("WTA Match Prediction State-Space Model")).toHaveLength(1);
+    expect(screen.getByText(/A Gaussian factorial state-space model estimates WTA player skill/)).toBeInTheDocument();
     expect(screen.getByText("Accuracy")).toBeInTheDocument();
+    expect(screen.getByText("1 / 1 correct predictions")).toBeInTheDocument();
     expect(screen.getByText("Log score")).toBeInTheDocument();
     expect(screen.getAllByText(/Future Open/).length).toBeGreaterThan(0);
     expect(screen.queryByText("Current WTA matches")).not.toBeInTheDocument();
@@ -172,7 +176,7 @@ describe("App", () => {
     expect(screen.queryByText(/Future fixtures:/)).not.toBeInTheDocument();
     expect(screen.queryByText(/Prediction window:/)).not.toBeInTheDocument();
     expect(screen.getByLabelText("Model equations")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "ryantjx/tennis_ssm" })).toHaveAttribute(
+    expect(screen.getAllByRole("link", { name: "ryantjx/tennis_ssm" })[0]).toHaveAttribute(
       "href",
       "https://github.com/ryantjx/tennis_ssm",
     );
@@ -201,10 +205,19 @@ describe("App", () => {
     render(<App />);
 
     await waitFor(() => expect(screen.getByText("Upcoming predictions")).toBeInTheDocument());
-    await user.click(screen.getAllByLabelText("Player C versus Player D")[0]);
+    const trigger = screen.getAllByLabelText("Player C versus Player D")[0];
+    await user.click(trigger);
 
     const drawer = screen.getByRole("dialog", { name: /Player C vs Player D/ });
     expect(drawer).toBeInTheDocument();
+    const closeButton = within(drawer).getByRole("button", { name: "Close match details" });
+    const marketLink = within(drawer).getByRole("link", { name: "View market ↗" });
+    expect(closeButton).toHaveFocus();
+    expect(document.body).toHaveStyle({ overflow: "hidden" });
+    await user.tab({ shift: true });
+    expect(marketLink).toHaveFocus();
+    fireEvent.keyDown(marketLink, { key: "Tab" });
+    expect(closeButton).toHaveFocus();
     expect(within(drawer).getByText("Rank #12")).toBeInTheDocument();
     expect(within(drawer).getByText("Rank #18")).toBeInTheDocument();
     expect(within(drawer).queryByLabelText("Player ranks")).not.toBeInTheDocument();
@@ -217,5 +230,52 @@ describe("App", () => {
     expect(within(drawer).getByText("Model vs Polymarket")).toBeInTheDocument();
     expect(within(drawer).getByRole("columnheader", { name: "Outcome" })).toBeInTheDocument();
     expect(within(drawer).getByRole("columnheader", { name: "Difference" })).toBeInTheDocument();
+
+    await user.keyboard("{Escape}");
+    expect(screen.queryByRole("dialog", { name: /Player C vs Player D/ })).not.toBeInTheDocument();
+    expect(document.body).not.toHaveStyle({ overflow: "hidden" });
+    expect(trigger).toHaveFocus();
+  });
+
+  it("renders all completed forecasts and rankings", async () => {
+    const user = userEvent.setup();
+    const largePredictions: PredictionPayload = {
+      ...predictions,
+      matches: Array.from({ length: 105 }, (_, index) => ({
+        ...predictions.matches[0],
+        id: `archive-${index}`,
+        timestamp: 1100 + index,
+        tournament: `Archive ${index}`,
+      })),
+      top_players: Array.from({ length: 105 }, (_, index) => ({
+        rank: index + 1,
+        name: `Ranked Player ${index + 1}`,
+        skill: 2 - index / 50,
+        variance: 0.2,
+      })),
+    };
+    vi.stubGlobal("fetch", vi.fn((url: string) => Promise.resolve({
+      ok: true,
+      json: () => Promise.resolve(url.includes("results") ? results : largePredictions),
+    })));
+
+    render(<App />);
+    await waitFor(() => expect(screen.getByText("Upcoming predictions")).toBeInTheDocument());
+
+    const completedSection = screen.getByRole("region", { name: "Completed results" });
+    const rankingsSection = screen.getByRole("region", { name: "Player rankings" });
+    expect(within(completedSection).getAllByRole("article")).toHaveLength(105);
+    expect(within(rankingsSection).getAllByRole("article")).toHaveLength(105);
+    expect(within(completedSection).getByText("Showing 105 of 105 matches")).toBeInTheDocument();
+    expect(within(rankingsSection).getByText("Showing 105 of 105 players")).toBeInTheDocument();
+    expect(within(completedSection).getByText("Archive 104")).toBeInTheDocument();
+    expect(within(completedSection).getByText("Archive 0")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Show 100 more" })).not.toBeInTheDocument();
+
+    const search = screen.getByLabelText("Search");
+    await user.type(search, "Archive 104");
+    await waitFor(() => expect(within(completedSection).getAllByRole("article")).toHaveLength(1));
+    await user.clear(search);
+    await waitFor(() => expect(within(completedSection).getAllByRole("article")).toHaveLength(105));
   });
 });

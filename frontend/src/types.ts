@@ -54,6 +54,7 @@ export interface MatchPrediction {
   round: string;
   source?: string;
   source_match_id?: string;
+  source_tournament_id?: string;
   match_state?: string;
   match_status?: "upcoming" | "in_progress" | "suspended" | string;
   is_future?: boolean;

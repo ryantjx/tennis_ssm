@@ -42,6 +42,7 @@ class PredictionExportTest(unittest.TestCase):
                     "round": "Semifinals",
                     "source": "wta_api",
                     "source_match_id": "match-1",
+                    "source_tournament_id": "tournament-1",
                     "match_state": "P",
                 }
             ]
@@ -61,8 +62,12 @@ class PredictionExportTest(unittest.TestCase):
 
         self.assertEqual(len(exported), 1)
         row = exported[0]
-        self.assertEqual(row["id"], "future-match-1")
+        self.assertEqual(
+            row["id"],
+            "future:wta_api:2026-07-09:tournament-1:match-1:0:1",
+        )
         self.assertEqual(row["source"], "wta_api")
+        self.assertEqual(row["source_tournament_id"], "tournament-1")
         self.assertEqual(row["tournament"], "Test Open")
         self.assertEqual(row["match_status"], "in_progress")
         self.assertEqual(row["player1_rank"], 4)
@@ -70,6 +75,64 @@ class PredictionExportTest(unittest.TestCase):
         self.assertTrue(row["is_future"])
         self.assertIsNone(row["actual_winner"])
         self.assertAlmostEqual(row["p_player1_win"] + row["p_player2_win"], 1.0, places=4)
+
+    def test_fixture_prediction_ids_include_tournament_context(self):
+        model = GaussianFactorialTennis(
+            init_mean=0.0,
+            init_var=1.0,
+            tau=0.1,
+            s=1.0,
+            num_players=2,
+        )
+        state = model.initial_state()
+        shared = {
+            "date": "2026-07-09",
+            "timestamp": 1286,
+            "player1_id": 0,
+            "player2_id": 1,
+            "player1_full_name": "Player One",
+            "player2_full_name": "Player Two",
+            "location": "London",
+            "tier": "WTA500",
+            "surface": "Grass",
+            "round": "Semifinals",
+            "source": "wta_api",
+            "source_match_id": "LS004",
+            "match_state": "U",
+        }
+        fixtures = pl.DataFrame(
+            [
+                {**shared, "tournament": "First Open", "source_tournament_id": "100"},
+                {**shared, "tournament": "Second Open", "source_tournament_id": "200"},
+            ]
+        )
+
+        exported = generate_fixture_predictions(
+            loaded_model=model,
+            loaded_state=state,
+            current_time=1285,
+            fixtures=fixtures,
+            id_to_name={0: "Player One", 1: "Player Two"},
+        )
+
+        self.assertEqual(len({row["id"] for row in exported}), 2)
+        self.assertIn(":100:LS004:", exported[0]["id"])
+        self.assertIn(":200:LS004:", exported[1]["id"])
+
+    def test_prediction_payload_rejects_duplicate_future_ids(self):
+        payload = {
+            "generated_at": "2026-07-09T12:00:00Z",
+            "data_windows": {},
+            "model_params": {},
+            "optimization": {},
+            "metrics": {},
+            "top_players": [],
+            "matches": [],
+            "future_matches": [{"id": "duplicate"}, {"id": "duplicate"}],
+        }
+
+        with self.assertRaisesRegex(ValueError, "future match IDs must be unique"):
+            validate_predictions_payload(payload)
 
     def test_prediction_payload_contract_requires_core_arrays(self):
         payload = build_predictions_payload(

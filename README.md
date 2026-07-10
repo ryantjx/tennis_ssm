@@ -33,9 +33,14 @@ $$p(x^{(i)}_t, x^{(j)}_t | y_{1:t}) \propto p(x^{(i)}_t \mid y_{1:t}) p(x^{(j)}_
 
 Data is collected http://www.tennis-data.co.uk/alldata.php.
 
-## Results
+## Results and Predictions
 
-The model is trained on WTA matches from 2022-2024, selects parameters on 2025 matches, and evaluates the selected model on 2026 matches.
+The deployment model uses saved parameters from
+`outputs/tennis_factorial_state.json`, then reruns the filter over every
+completed WTA historical result available in the latest data pull. This keeps
+training and state updates restricted to observed match outcomes. Current or
+unplayed fixtures are never added to the results artifact and are not used as
+observations.
 
 | Metric | Value |
 |---|---|
@@ -47,54 +52,32 @@ The model is trained on WTA matches from 2022-2024, selects parameters on 2025 m
 
 Trained parameters: τ=0.029, s=1.76, init_var=1.71
 
-### Prediction outputs
+### Predictions Output
 
-The canonical model output is generated at `outputs/predictions.json`. The
-deployment workflow copies that file to `frontend/public/data/predictions.json`
-before building the frontend; the copied file is ignored because it is generated
-runtime data.
+`predictions.json` contains model forecasts. It includes a completed 2026
+forecast archive plus `future_matches` for unplayed fixtures loaded from the WTA
+fixture API. Future fixtures are predictions only; they do not update player
+skills until their completed results later appear in the historical results
+source.
 
-The deployment path reads `tau`, `s`, and `init_var` from
-`outputs/tennis_factorial_state.json`, then reruns the filter over all completed
-WTA matches from the model origin through the latest available results. The
-latest filtered state is synchronized to the newest completed match timestamp
-before future fixture predictions are generated. The exported JSON records the
-training/test/prediction windows, saved parameters, validation metrics,
-historical predictions, player rankings from the latest filtered state, and
-matched WTA future fixture predictions.
-
-Daily generation writes the newest deployable data to
-`outputs/latest/predictions.json` and `outputs/latest/results.json`, and stores a
-dated snapshot under `outputs/daily/YYYY-MM-DD/`. GitHub Pages deploys the React
-app shell separately; in production the app fetches the latest JSON directly
-from `outputs/latest` on the `main` branch, so daily prediction updates do not
-require a Pages redeploy.
+Before future predictions are generated, the latest filtered state is
+synchronized to the newest completed match timestamp. Player rankings and future
+fixture predictions therefore reflect all completed historical observations
+available at generation time.
 
 Future predictions are loaded from the WTA fixture API via
 `src/data/fixtures_womens.py` and filtered to players known by the trained model.
 Synthetic top-player matchups are disabled in the main workflow.
 
-### Frontend
+Daily generation writes the newest deployable data to:
 
-Predictions are deployed to GitHub Pages at **https://ryantjx.github.io/tennis_ssm/**.
+- `outputs/latest/predictions.json`
+- `outputs/latest/results.json`
 
-The frontend is a Vite React app in `frontend/` inspired by the
-[cuthberto-carlos](https://github.com/state-space-models/cuthberto-carlos/tree/main/frontend)
-interaction model, adapted for general tennis data. It features:
-- **Upcoming predictions** loaded from matched WTA future fixtures
-- **Completed forecast archive** with prediction quality and match detail drawer
-- **Committed results reference** at `frontend/public/data/results.json`
-- **Search** across predictions and player rankings
-- **Player rankings** with all filtered skill ratings and uncertainty
+It also stores dated snapshots under:
 
-Local frontend commands:
-
-```bash
-cd frontend
-npm install
-npm test
-npm run build
-```
+- `outputs/daily/YYYY-MM-DD/predictions.json`
+- `outputs/daily/YYYY-MM-DD/results.json`
 
 ## Extensions
 
