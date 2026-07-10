@@ -1,15 +1,19 @@
 """
 Gaussian Factorial model for Tennis — 1D scalar skill with sigmoid observation.
 
-This module implements the model described in the README:
+This module implements the model described in the README (Duffield, Power and Rimella 2024):
 
     p(x_0)         ~ N(mu_0, Sigma_0)
-    p(x_t | x_{t-1}) ~ N(x_{t-1}, tau_d^2 * Delta_t)       (Wiener process)
-    P(y_k = win_i)  = sigmoid((x_i - x_j) / s_d)            (logistic observation)
+    p(x_t | x_{t-1}) ~ N(mu_0 + phi_k * (x_{t-1} - mu_0), Q_k)   (OU process)
+    P(y_k = win_i)  = sigmoid((x_i - x_j) / s_d)                  (logistic observation)
 
-Each player has a single latent skill that evolves via a Wiener process (random
-walk with variance proportional to elapsed time). Match outcomes are observed
-through a sigmoid (logistic) link on the skill difference.
+where:
+    phi_k = exp(-tau_d * Delta_t)
+    Q_k   = Sigma_0 - phi_k * Sigma_0 * phi_k
+
+Each player has a single latent skill that evolves via an Ornstein-Uhlenbeck (OU)
+process with mean reversion toward mu_0. Match outcomes are observed through a
+sigmoid (logistic) link on the skill difference.
 
 Inference uses ``cuthbert``'s moments filter with a factorial state: each player
 is an independent factor. The moments filter approximates the non-linear
@@ -150,22 +154,34 @@ def _process_timestamp(t: ArrayLike, num_joined_factors: int) -> Array:
 def get_dynamics_params(
     state: LinearizedKalmanFilterState,
     model_inputs: WTATennisResults | TennisDynamicsOnlyData,
+    init_mean: ArrayLike,
+    init_var: ArrayLike,
     tau: ArrayLike,
 ) -> tuple[MeanAndCholCovFunc, Array]:
-    """Wiener-process dynamics for 1D player skills.
+    """Ornstein-Uhlenbeck dynamics for 1D player skills with mean reversion.
 
-    The state evolves as a random walk: x_t = x_{t-1} + N(0, tau^2 * dt),
-    where dt is the elapsed time (days) since the player's previous match.
+    The state evolves according to OU process:
+        x_t | x_{t-1} ~ N(mu_0 + phi_k * (x_{t-1} - mu_0), Q_k)
+
+    where:
+        phi_k = exp(-tau * Delta_t)
+        Q_k   = Sigma_0 - phi_k * Sigma_0 * phi_k
+
+    This ensures the long-run marginal distribution is N(init_mean, init_var).
 
     Args:
         state: Current filter state.
         model_inputs: Match or dynamics-only data.
-        tau: Dynamics rate parameter (standard deviation per unit time).
+        init_mean: Long-run mean of the OU dynamics (scalar).
+        init_var: Long-run variance of the OU dynamics (scalar).
+        tau: Mean-reversion rate parameter (positive, controls speed of reversion).
 
     Returns:
         Tuple of (dynamics mean-and-chol-cov function, linearization point).
     """
     num_joined_factors = state.mean.shape[0]  # 1D state, no division needed
+    init_mean = jnp.asarray(init_mean)
+    init_var = jnp.asarray(init_var)
     tau = jnp.asarray(tau)
 
     if isinstance(model_inputs, WTATennisResults):
@@ -186,15 +202,20 @@ def get_dynamics_params(
     timestamp_previous = _process_timestamp(timestamp_previous, num_joined_factors)
 
     elapsed_days = jnp.maximum(timestamp - timestamp_previous, 0)
-    # Wiener process: variance = tau^2 * dt per factor
-    # The joint chol_cov is a diagonal matrix of shape (d, d) where d = num_joined_factors
-    stds = tau * jnp.sqrt(elapsed_days)  # shape (num_joined_factors,)
-    chol_cov = jnp.diag(stds)  # shape (num_joined_factors, num_joined_factors)
+
+    # OU process: phi = exp(-tau * dt)
+    phi = jnp.exp(-tau * elapsed_days)  # shape (num_joined_factors,)
+
+    # Stationary covariance: Q = Sigma_0 - phi * Sigma_0 * phi
+    # For scalar variance: Q = init_var * (1 - phi^2)
+    transition_var = init_var * (1.0 - phi**2)  # shape (num_joined_factors,)
+    chol_cov = jnp.diag(jnp.sqrt(transition_var))  # shape (num_joined_factors, num_joined_factors)
 
     def dynamics_mean_and_chol_cov(x_prev: ArrayLike) -> tuple[Array, Array]:
         x_prev = jnp.asarray(x_prev)
-        # Random walk: mean = x_prev (no drift)
-        return x_prev, chol_cov
+        # Mean reverts toward init_mean: E[x_t] = init_mean + phi * (x_{t-1} - init_mean)
+        mean = init_mean + phi * (x_prev - init_mean)
+        return mean, chol_cov
 
     linearization_point = jnp.zeros(num_joined_factors)
 
@@ -278,22 +299,27 @@ class GaussianFactorialTennis:
     Wraps ``cuthbert``'s moments filter, factorializer, and smoother into a
     single class that handles building, filtering, smoothing, and predicting.
 
-    Each player is a *factor* with a 1D latent skill evolving via a Wiener
-    process (random walk with variance ``tau^2 * dt``). Match outcomes are
-    observed through a sigmoid (logistic) link on the skill difference.
+    Each player is a *factor* with a 1D latent skill evolving via an
+    Ornstein-Uhlenbeck (OU) process with mean reversion toward ``init_mean``.
+    Match outcomes are observed through a sigmoid (logistic) link on the skill
+    difference.
+
+    The OU dynamics ensure the long-run marginal distribution is
+    N(init_mean, init_var), with mean-reversion rate ``tau`` controlling how
+    quickly skills revert to the long-run mean after shocks.
 
     Args:
-        init_mean: Scalar initial mean of player skills.
-        init_var: Scalar initial variance of player skills.
-        tau: Dynamics rate (standard deviation per day). Controls how quickly
-            skills drift over time.
+        init_mean: Scalar initial/long-run mean of player skills.
+        init_var: Scalar initial/long-run variance of player skills.
+        tau: Mean-reversion rate (positive). Controls how quickly skills revert
+            to init_mean. Higher values = faster reversion.
         s: Scale parameter for the sigmoid observation. Controls how much
             skill difference influences win probability.
         num_players: Total number of players (factors) in the model.
 
     Example:
         >>> model = GaussianFactorialTennis(
-        ...     init_mean=0.0, init_var=1.0, tau=0.1, s=1.0, num_players=500,
+        ...     init_mean=0.0, init_var=1.0, tau=0.01, s=1.0, num_players=500,
         ... )
         >>> filter_states = model.filter(matches_batch)
         >>> pred = model.predict_match(player1_idx, player2_idx, filter_states)
@@ -323,6 +349,8 @@ class GaussianFactorialTennis:
             ),
             get_dynamics_params=partial(
                 get_dynamics_params,
+                init_mean=self.init_mean,
+                init_var=self.init_var,
                 tau=self.tau,
             ),
             get_observation_params=partial(
@@ -346,6 +374,8 @@ class GaussianFactorialTennis:
             ),
             get_dynamics_params=partial(
                 get_dynamics_params,
+                init_mean=self.init_mean,
+                init_var=self.init_var,
                 tau=self.tau,
             ),
             get_observation_params=get_observation_params_noop,
@@ -355,6 +385,8 @@ class GaussianFactorialTennis:
         self.smoother_obj = moments.build_smoother(
             get_dynamics_params=partial(
                 get_dynamics_params,
+                init_mean=self.init_mean,
+                init_var=self.init_var,
                 tau=self.tau,
             ),
         )
@@ -551,7 +583,7 @@ class GaussianFactorialTennis:
         each player.
 
         This extracts each player's factor, propagates it forward through the
-        Wiener dynamics with no observation, and re-inserts it.
+        OU dynamics with no observation, and re-inserts it.
 
         Args:
             factorial_state: Current factorial state (may have different
@@ -594,7 +626,7 @@ class GaussianFactorialTennis:
 
         This follows the cuthberto-carlos ``propagate_and_predict`` pattern:
         1. Extract the two players' factors from the factorial state
-        2. Propagate each forward through the Wiener dynamics to the match time
+        2. Propagate each forward through the OU dynamics to the match time
         3. Predict the win probability from the propagated skill distributions
 
         Args:
@@ -819,6 +851,8 @@ def train(
             ),
             get_dynamics_params=partial(
                 get_dynamics_params,
+                init_mean=init_mean_arr,
+                init_var=params["init_var"],
                 tau=params["tau"],
             ),
             get_observation_params=partial(

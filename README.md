@@ -6,7 +6,12 @@ Following Duffield, Power and Rimella (2024), the model for tennis can be define
 
 $$p(x_0) \sim \mathcal{N}(0, \Sigma_0)$$
 
-$$p(x_t | x_{t-1}) \sim \mathcal{N}(\tau_d \cdot \Delta t, Q_k)$$
+$$p(x_t | x_{t-1}) \sim \mathcal{N}(\mu_0 + \phi_k (x_{t-1} - \mu_0), Q_k)$$
+
+where 
+
+- $Q_k = \Sigma_0 - \phi_k \Sigma_0 \phi_k^T$
+- $\phi_k = \tau_d \cdot \Delta t$
 
 $$G_t (y_t \mid x^{(i)}_{t-1}, x^{(j)}_{t-1}) = \begin{cases} \sigma(\frac{x^{(i)} - x^{(j)}}{s_d}) & \text{if } y_t = x^{(i)} \\ 1 - \sigma(\frac{x^{(i)} - x^{(j)}}{s_d}) & \text{if } y_t = x^{(j)} \end{cases}$$
 
@@ -17,7 +22,9 @@ where
 - $\tau_d \in \mathbb{R}^+$ is a rate parameter that controls evolution of skill for player
 - $s_d \in \mathbb{R}^+$ is a scale parameter
 
-The parameters to be estimated are $\Sigma_0, \tau_d, s_d$.
+We set $\mu_0 = 0$ as a point of reference such that the base skill for each player is centered at zero. The parameters to be estimated are $\Sigma_0 \in \mathbb{R}, \tau_d \in \mathbb{R}^+, s_d \in \mathbb{R}^+$.
+
+In this model, instead of using the wiener process in TrueSkill2 and Elo model, we instead use a OU process to model the evolution of player skills. If a player does not play for a long time, their skill level will revert to the long-run marginal distribution of $\mathcal{N}(\mu_0, \Sigma_0)$, which is a more realistic assumption than the wiener process.
 
 ## Algorithm
 
@@ -33,9 +40,9 @@ The Gaussian Moments filter proceeds in two steps:
 
 **1. Prediction:** Between matches, player skills evolve according to the state transition model:
 
-  $$\mu_{t|t-1}^{(i)} = \tau_d \cdot \Delta t \cdot \mu_{t-1}^{(i)}$$
+  $$\mu_{t|t-1}^{(i)} = \mu_0 + \phi_k (\mu_{t-1}^{(i)} - \mu_0)$$
 
-  $$\Sigma_{t|t-1}^{(i)} = \tau_d^2 \cdot \Delta t \cdot \Sigma_{t-1}^{(i)} + Q_k$$
+  $$\Sigma_{t|t-1}^{(i)} = \phi_k \Sigma_{t-1}^{(i)} \phi_k^T + Q_k$$
 
 **2. Update:** After observing a match outcome, the exact posterior is non-Gaussian due to the sigmoid likelihood. The Gaussian Moments filter approximates this posterior by matching its first two moments (mean and covariance), yielding the standard Kalman filter update equations:
 
