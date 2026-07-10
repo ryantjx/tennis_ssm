@@ -155,7 +155,6 @@ export interface ResultsPayload {
     end: string;
   };
   results: CompletedResult[];
-  current_matches?: CompletedResult[];
 }
 
 export interface MatchFilters {

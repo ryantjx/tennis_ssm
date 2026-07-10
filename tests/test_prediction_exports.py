@@ -185,30 +185,7 @@ class PredictionExportTest(unittest.TestCase):
             ),
         )
 
-        payload = build_results_json(
-            data,
-            current_matches=[
-                {
-                    "id": "future-match-1",
-                    "date": "2026-07-09",
-                    "player1": "Player One",
-                    "player2": "Player Two",
-                    "predicted_winner": "Player One",
-                    "p_player1_win": 0.6,
-                    "p_player2_win": 0.4,
-                    "confidence": 0.6,
-                    "match_status": "in_progress",
-                    "match_state": "P",
-                    "tournament": "Test Open",
-                    "location": "London",
-                    "tier": "WTA500",
-                    "surface": "Grass",
-                    "round": "Semifinals",
-                    "source": "wta_api",
-                    "source_match_id": "match-1",
-                }
-            ],
-        )
+        payload = build_results_json(data)
 
         self.assertEqual(payload["source"], "tennis-data.co.uk WTA historical results")
         self.assertEqual(payload["data_window"], {"start": "2026-01-04", "end": "2026-01-04"})
@@ -218,8 +195,7 @@ class PredictionExportTest(unittest.TestCase):
         self.assertEqual(result["winner"], "Winner A")
         self.assertEqual(result["loser"], "Loser B")
         self.assertEqual(result["surface"], "Hard")
-        self.assertEqual(len(payload["current_matches"]), 1)
-        self.assertEqual(payload["current_matches"][0]["match_status"], "in_progress")
+        self.assertNotIn("current_matches", payload)
 
 
 if __name__ == "__main__":

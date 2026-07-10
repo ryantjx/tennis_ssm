@@ -181,7 +181,7 @@ def main() -> None:
     (daily_output_dir / "predictions.json").write_text(json.dumps(output_json, indent=2) + "\n")
     shutil.copyfile(PREDICTIONS_FILE, FRONTEND_PREDICTIONS_FILE)
 
-    results_json = build_results_json(eval_data, current_matches=future_matches_json)
+    results_json = build_results_json(eval_data)
     RESULTS_FILE.write_text(json.dumps(results_json, indent=2) + "\n")
     LATEST_RESULTS_FILE.write_text(json.dumps(results_json, indent=2) + "\n")
     (daily_output_dir / "results.json").write_text(json.dumps(results_json, indent=2) + "\n")
@@ -967,10 +967,7 @@ def validate_predictions_payload(payload: dict[str, Any]) -> None:
         raise TypeError("Prediction payload future_matches must be a list")
 
 
-def build_results_json(
-    test_data: TennisData,
-    current_matches: list[dict[str, Any]] | None = None,
-) -> dict[str, Any]:
+def build_results_json(test_data: TennisData) -> dict[str, Any]:
     results = []
     for i, row in enumerate(test_data.polars_data.iter_rows(named=True)):
         results.append(
@@ -998,42 +995,6 @@ def build_results_json(
             "end": max(result_dates) if result_dates else TEST_DISPLAY_END,
         },
         "results": results,
-        "current_matches": [
-            current_match_result(match)
-            for match in (current_matches or [])
-        ],
-    }
-
-
-def current_match_result(match: dict[str, Any]) -> dict[str, Any]:
-    return {
-        "id": match.get("id") or f"current-{match.get('source_match_id', '')}",
-        "date": match["date"],
-        "player1": match["player1"],
-        "player2": match["player2"],
-        "winner": None,
-        "loser": None,
-        "actual_winner": None,
-        "predicted_winner": match.get("predicted_winner"),
-        "p_player1_win": match.get("p_player1_win"),
-        "p_player2_win": match.get("p_player2_win"),
-        "confidence": match.get("confidence"),
-        "player1_rank": match.get("player1_rank"),
-        "player2_rank": match.get("player2_rank"),
-        "player1_latest_skill": match.get("player1_latest_skill"),
-        "player2_latest_skill": match.get("player2_latest_skill"),
-        "player1_latest_variance": match.get("player1_latest_variance"),
-        "player2_latest_variance": match.get("player2_latest_variance"),
-        "market": match.get("market"),
-        "match_status": match.get("match_status", "upcoming"),
-        "match_state": match.get("match_state", ""),
-        "tournament": match.get("tournament", "Unknown"),
-        "location": match.get("location", "Unknown"),
-        "tier": match.get("tier", "Unknown"),
-        "surface": match.get("surface", "Unknown"),
-        "round": match.get("round", "Unknown"),
-        "source": match.get("source", "wta_api"),
-        "source_match_id": match.get("source_match_id", ""),
     }
 
 
