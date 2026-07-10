@@ -418,7 +418,8 @@ class GaussianFactorialTennis:
         self,
         matches: WTATennisResults,
         initial_state: LinearizedKalmanFilterState | None = None,
-    ) -> LinearizedKalmanFilterState:
+        return_all_states: bool = False,
+    ) -> LinearizedKalmanFilterState | tuple[LinearizedKalmanFilterState, list[LinearizedKalmanFilterState]]:
         """Run the factorial moments filter over a batch of matches.
 
         Uses ``cuthbert.factorial.filter`` which automatically handles
@@ -432,9 +433,11 @@ class GaussianFactorialTennis:
                 dimension of length T.
             initial_state: Starting factorial state. If None, the filter
                 initializes from the prior.
+            return_all_states: If True, return list of all intermediate states
+                for smoothing.
 
         Returns:
-            Final factorial state after processing all matches.
+            Final factorial state, or (final_state, all_states) if return_all_states.
         """
         from cuthbert.factorial import filter as factorial_filter
 
@@ -454,37 +457,118 @@ class GaussianFactorialTennis:
             )
             # Returns (init_factorial_state, local_states, final_factorial_state)
             _, _, final_factorial_state = result
+            
+            if return_all_states:
+                # Re-run to collect all states
+                return self._filter_collect_states(model_inputs, None)
+            return final_factorial_state
         else:
-            # Use provided initial state — run the scan manually
-            # (same pattern as cuthberto-carlos update_moments_filtering.py)
-            from jax import tree_util as tree
-            from jax.lax import scan as lax_scan
+            return self._filter_collect_states(model_inputs, initial_state, return_all_states)
 
-            prep_model_inputs = tree.tree_map(lambda x: x[1:], model_inputs)
+    def _filter_collect_states(
+        self,
+        model_inputs: WTATennisResults,
+        initial_state: LinearizedKalmanFilterState | None = None,
+        return_all_states: bool = True,
+    ) -> LinearizedKalmanFilterState | tuple[LinearizedKalmanFilterState, list[LinearizedKalmanFilterState]]:
+        """Internal: filter with optional state collection."""
+        from jax import tree_util as tree
+        from jax.lax import scan as lax_scan
 
-            def body_local(prev_factorial_state, prep_inp):
-                factorial_inds = self.factorializer.get_factorial_indices(prep_inp)
-                factorial_inds = jnp.asarray(factorial_inds)
-                local_state = self.factorializer.extract_and_join(
-                    prev_factorial_state, prep_inp
-                )
-                prep_state = self.filter_obj.filter_prepare(prep_inp)
-                filtered_joint_state = self.filter_obj.filter_combine(
-                    local_state, prep_state
-                )
-                local_factorial_filtered_state = self.factorializer.marginalize(
-                    filtered_joint_state, len(factorial_inds)
-                )
-                factorial_state = self.factorializer.insert(
-                    local_factorial_filtered_state, prev_factorial_state, factorial_inds
-                )
-                return factorial_state, None
+        prep_model_inputs = tree.tree_map(lambda x: x[1:], model_inputs)
+        
+        if initial_state is None:
+            initial_state = self.initial_state()
 
-            final_factorial_state, _ = lax_scan(
-                body_local, initial_state, prep_model_inputs
+        all_states = [initial_state] if return_all_states else None
+
+        def body_local(prev_factorial_state, prep_inp):
+            factorial_inds = self.factorializer.get_factorial_indices(prep_inp)
+            factorial_inds = jnp.asarray(factorial_inds)
+            local_state = self.factorializer.extract_and_join(
+                prev_factorial_state, prep_inp
             )
+            prep_state = self.filter_obj.filter_prepare(prep_inp)
+            filtered_joint_state = self.filter_obj.filter_combine(
+                local_state, prep_state
+            )
+            local_factorial_filtered_state = self.factorializer.marginalize(
+                filtered_joint_state, len(factorial_inds)
+            )
+            factorial_state = self.factorializer.insert(
+                local_factorial_filtered_state, prev_factorial_state, factorial_inds
+            )
+            return factorial_state._replace(model_inputs=None), factorial_state._replace(model_inputs=None)
 
+        final_factorial_state, states = lax_scan(
+            body_local, initial_state, prep_model_inputs
+        )
+
+        if return_all_states:
+            # states is a stacked structure - convert to list
+            state_list = [initial_state]
+            for i in range(len(prep_model_inputs.match_index)):
+                state_list.append(
+                    jtu.tree_map(lambda x: x[i], states)
+                )
+            return final_factorial_state, state_list
+        
         return final_factorial_state
+
+    # ------------------------------------------------------------------
+    # Smoothing (backward pass using stored filter states)
+    # ------------------------------------------------------------------
+
+    def smooth(
+        self,
+        filter_states: list[LinearizedKalmanFilterState],
+        matches: WTATennisResults,
+    ) -> list[LinearizedKalmanFilterState]:
+        """Run the backward smoother over filtered states.
+
+        Uses the Rauch-Tung-Striebel (RTS) smoother to compute posterior
+        distributions given all observations. This improves skill estimates
+        by incorporating future match information.
+
+        Args:
+            filter_states: List of filtered states from forward pass.
+            matches: The match data (for dynamics timestamps).
+
+        Returns:
+            List of smoothed states (same length as filter_states).
+        """
+        from cuthbert.gaussian import smoother as gaussian_smoother
+
+        # Prepend dummy input to match filter convention
+        model_inputs = jtu.tree_map(
+            lambda x: jnp.concatenate([jnp.zeros_like(x[:1]), x], axis=0),
+            matches,
+        )
+
+        smoothed_states = []
+        next_smoothed_state = None
+
+        # Backward pass: iterate in reverse
+        for t in range(len(filter_states) - 1, -1, -1):
+            filter_state = filter_states[t]
+
+            if t == len(filter_states) - 1:
+                # Last state: smoothed = filtered
+                smoothed_state = filter_state
+            else:
+                # RTS smoother step
+                smoothed_state = gaussian_smoother.smooth_step(
+                    filter_state,
+                    next_smoothed_state,
+                    self.smoother_obj,
+                    model_inputs[t],
+                )
+
+            smoothed_states.append(smoothed_state)
+            next_smoothed_state = smoothed_state
+
+        # Reverse to get chronological order
+        return list(reversed(smoothed_states))
 
     # ------------------------------------------------------------------
     # Save / Load state and parameters
