@@ -191,9 +191,6 @@ function App() {
                 <MathEquation label="Match observation probability" mathml="<math display='block'><mrow><msub><mi>G</mi><mi>k</mi></msub><mo>(</mo><msub><mi>y</mi><mi>k</mi></msub><mo>|</mo><msup><mi>x</mi><mi>i</mi></msup><mo>,</mo><msup><mi>x</mi><mi>j</mi></msup><mo>)</mo><mo>=</mo><mi>σ</mi><mo>(</mo><mfrac><mrow><msup><mi>x</mi><mi>i</mi></msup><mo>-</mo><msup><mi>x</mi><mi>j</mi></msup></mrow><msub><mi>s</mi><mi>d</mi></msub></mfrac><mo>)</mo></mrow></math>" />
                 <MathEquation label="Gaussian filtered posterior" mathml="<math display='block'><mrow><mi>p</mi><mo>(</mo><msubsup><mi>x</mi><mi>t</mi><mi>i</mi></msubsup><mo>|</mo><msub><mi>y</mi><mrow><mn>1</mn><mo>:</mo><mi>t</mi></mrow></msub><mo>)</mo><mo>≈</mo><mi>N</mi><mo>(</mo><msubsup><mi>μ</mi><mi>t</mi><mi>i</mi></msubsup><mo>,</mo><msubsup><mi>Σ</mi><mi>t</mi><mi>i</mi></msubsup><mo>)</mo></mrow></math>" />
               </div>
-              <p className="methodology-note">
-                Unlike random walk models, the OU process includes mean reversion: skills gradually return to the prior mean $\mu_0$ during inactive periods. The reversion rate $\phi_k = \exp(-\tau_d \cdot \Delta t)$ and process noise $Q_k = \Sigma_0 - \phi_k \Sigma_0 \phi_k^T$ control how quickly skills stabilize.
-              </p>
             </article>
             <aside className="methodology-params-panel">
               <h3>Model parameters <span>Latest run: {generatedAt.toLocaleString()}</span></h3>
