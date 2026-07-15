@@ -51,6 +51,7 @@ function moneylineEvent() {
         sportsMarketType: "moneyline",
         outcomes: JSON.stringify(["Linda Noskova", "Karolina Muchova"]),
         outcomePrices: JSON.stringify(["0.41", "0.59"]),
+        clobTokenIds: JSON.stringify(["token-noskova", "token-muchova"]),
         active: true,
         closed: false,
         updatedAt: "2026-07-10T12:05:00Z",
@@ -86,8 +87,57 @@ describe("Polymarket tennis matching", () => {
       player2_market_name: "Linda Noskova",
       player1_price: 0.59,
       player2_price: 0.41,
-      matched_by: "live_canonical_player_pair",
+      matched_by: "live_gamma_canonical_player_pair",
     });
+  });
+
+  it("uses current CLOB midpoints instead of Gamma snapshot prices", () => {
+    const predictions = predictionsForMatches(
+      [match()],
+      [moneylineEvent()],
+      { "token-noskova": 0.38, "token-muchova": 0.62 },
+    );
+
+    expect(predictions[matchKey(match())]).toMatchObject({
+      player1_price: 0.62,
+      player2_price: 0.38,
+      matched_by: "live_clob_canonical_player_pair",
+    });
+  });
+
+  it("loads only the WTA series and hydrates matched markets from CLOB", async () => {
+    const fetchMock = vi.fn((input: string | URL | Request) => {
+      const url = String(input);
+      if (url.includes("gamma-api.polymarket.com")) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({ events: [moneylineEvent()], next_cursor: null }),
+        });
+      }
+      if (url.includes("clob.polymarket.com/midpoints")) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({ "token-noskova": "0.37", "token-muchova": "0.63" }),
+        });
+      }
+      return Promise.reject(new Error(`unexpected URL ${url}`));
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    const source = {
+      dataUrl: "https://gamma-api.polymarket.com/events/keyset",
+      seriesId: "10366",
+      clobUrl: "https://clob.polymarket.com",
+    };
+    const matches = [match()];
+
+    const { result } = renderHook(() => usePolymarket(matches, source));
+
+    await waitFor(() => expect(result.current.predictions[matchKey(match())]?.matched_by)
+      .toBe("live_clob_canonical_player_pair"));
+    expect(result.current.predictions[matchKey(match())].player1_price).toBe(0.63);
+    const gammaUrl = String(fetchMock.mock.calls[0][0]);
+    expect(new URL(gammaUrl).searchParams.get("series_id")).toBe("10366");
+    expect(new URL(gammaUrl).searchParams.has("tag_slug")).toBe(false);
   });
 
   it("keeps markets separate when source-local match IDs repeat", () => {

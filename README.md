@@ -63,7 +63,12 @@ Data is collected from http://www.tennis-data.co.uk/alldata.php.
 ## Results
 
 The deployment model uses saved parameters from
-`outputs/tennis_factorial_state.json`, then reruns the filter over every completed WTA historical result available in the latest data pull. This keeps training and state updates restricted to observed match outcomes. Current or unplayed fixtures are never added to the results artifact and are not used as observations.
+`outputs/tennis_factorial_state.json`, merges the historical spreadsheet with
+new final singles results from the WTA API, and then reruns the filter over
+every completed observation before predicting fixtures. This keeps state
+updates restricted to observed match outcomes while avoiding the historical
+spreadsheet's in-tournament publication lag. Current or unplayed fixtures are
+never added to the results artifact and are not used as observations.
 
 ### Performance Comparison
 

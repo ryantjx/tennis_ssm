@@ -2,6 +2,9 @@ import datetime as dt
 import unittest
 from unittest.mock import patch
 
+import polars as pl
+
+from src.data.data import append_completed_results, build_tennis_data
 from src.data.fixture_common import filter_known_fixtures
 from src.data.fixtures_men import (
     atp_player_keys,
@@ -10,6 +13,7 @@ from src.data.fixtures_men import (
     normalize_atp_match_rows,
 )
 from src.data.fixtures_womens import (
+    normalize_wta_completed_result_rows,
     normalize_wta_match_rows,
     wta_player_keys,
 )
@@ -215,6 +219,75 @@ SAMPLE_ATP_MATCHES = [
 
 
 class FixtureNormalizationTest(unittest.TestCase):
+    def test_appends_only_unseen_completed_results_before_rebuilding_model_data(self):
+        columns = {
+            "Date": [dt.date(2026, 7, 11)],
+            "Winner": ["Player A"],
+            "Loser": ["Player B"],
+            "Tournament": ["Existing Open"],
+            "Location": ["London"],
+            "Tier": ["WTA 250"],
+            "Surface": ["Grass"],
+            "Round": ["Final"],
+        }
+        historical = build_tennis_data(pl.DataFrame(columns), origin_date="2021-12-31")
+        updates = pl.DataFrame(
+            {
+                key: [values[0], values[0]] for key, values in columns.items()
+            }
+        ).with_columns(
+            pl.Series("Date", [dt.date(2026, 7, 11), dt.date(2026, 7, 13)]),
+            pl.Series("Winner", ["Player A", "Player C"]),
+            pl.Series("Loser", ["Player B", "Player A"]),
+        )
+
+        updated, appended = append_completed_results(
+            historical,
+            updates,
+            origin_date="2021-12-31",
+        )
+
+        self.assertEqual(appended, 1)
+        self.assertEqual(updated.num_matches, 2)
+        self.assertEqual(updated.polars_data["Date"].max(), dt.date(2026, 7, 13))
+        self.assertIn("Player C", updated.name_to_id)
+
+    def test_normalizes_completed_wta_singles_result_with_winner_orientation(self):
+        completed = normalize_wta_completed_result_rows(
+            [
+                {
+                    "MatchID": "LS017",
+                    "DrawMatchType": "S",
+                    "MatchState": "F",
+                    "MatchTimeStamp": "2026-07-13T11:52:12+00:00",
+                    "RoundID": "1",
+                    "PlayerNameFirstA": "Alina",
+                    "PlayerNameLastA": "Charaeva",
+                    "PlayerNameFirstB": "Victoria",
+                    "PlayerNameLastB": "Jimenez Kasintseva",
+                    "Winner": "2",
+                }
+            ],
+            {
+                "year": 2026,
+                "city": "IASI",
+                "surface": "Clay",
+                "tournamentGroup": {
+                    "id": 2063,
+                    "name": "IASI",
+                    "level": "WTA 250",
+                },
+            },
+        )
+
+        self.assertEqual(completed.height, 1)
+        row = completed.row(0, named=True)
+        self.assertEqual(row["Date"], dt.date(2026, 7, 13))
+        self.assertEqual(row["Winner"], "Jimenez Kasintseva V")
+        self.assertEqual(row["Loser"], "Charaeva A")
+        self.assertEqual(row["Tournament"], "IASI")
+        self.assertEqual(row["Surface"], "Clay")
+
     def test_normalizes_upcoming_wta_singles(self):
         fixtures = normalize_wta_match_rows(
             SAMPLE_MATCHES,

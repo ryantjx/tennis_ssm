@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse
 import datetime as dt
 import json
+import time
 import urllib.parse
 import urllib.request
 from typing import Any
@@ -27,6 +28,16 @@ from src.data.fixture_common import (
 
 WTA_API_BASE = "https://api.wtatennis.com/tennis"
 WTA_ACCOUNT_HEADER = {"account": "wta"}
+COMPLETED_RESULT_COLUMNS = [
+    "Date",
+    "Winner",
+    "Loser",
+    "Tournament",
+    "Location",
+    "Tier",
+    "Surface",
+    "Round",
+]
 
 ROUND_LABELS = {
     "F": "Final",
@@ -82,6 +93,111 @@ def load_wta_fixtures(
     if not frames:
         return empty_fixture_frame()
     return pl.concat(frames, how="diagonal_relaxed").sort(["date", "source_match_id"])
+
+
+def load_wta_completed_results(
+    start_date: str,
+    end_date: str,
+) -> pl.DataFrame:
+    """Load completed WTA singles results for a recent date window."""
+    tournaments = fetch_wta_tournaments(start_date, end_date)
+    frames: list[pl.DataFrame] = []
+    for tournament in tournaments:
+        group = tournament.get("tournamentGroup") or {}
+        tournament_group_id = group.get("id")
+        tournament_year = tournament.get("year")
+        if tournament_group_id is None or tournament_year is None:
+            continue
+        response = fetch_wta_tournament_matches(
+            int(tournament_group_id),
+            int(tournament_year),
+            start_date,
+            end_date,
+        )
+        frame = normalize_wta_completed_result_rows(
+            response.get("matches") or [],
+            tournament=tournament,
+        )
+        if frame.height:
+            frames.append(frame)
+
+    if not frames:
+        return empty_completed_result_frame()
+    return pl.concat(frames, how="diagonal_relaxed").unique(
+        subset=["Date", "Winner", "Loser"],
+        keep="first",
+    ).sort(["Date", "Tournament", "Winner", "Loser"])
+
+
+def empty_completed_result_frame() -> pl.DataFrame:
+    return pl.DataFrame(
+        schema={
+            "Date": pl.Date,
+            "Winner": pl.String,
+            "Loser": pl.String,
+            "Tournament": pl.String,
+            "Location": pl.String,
+            "Tier": pl.String,
+            "Surface": pl.String,
+            "Round": pl.String,
+        }
+    )
+
+
+def normalize_wta_completed_result_rows(
+    matches: list[dict[str, Any]],
+    tournament: dict[str, Any],
+) -> pl.DataFrame:
+    """Normalize final WTA API singles matches into historical result rows."""
+    rows: list[dict[str, Any]] = []
+    group = tournament.get("tournamentGroup") or {}
+    for match in matches:
+        if match.get("DrawMatchType") != "S" or match.get("MatchState") != "F":
+            continue
+        winner_side = str(match.get("Winner") or "")
+        if winner_side not in {"1", "2"}:
+            continue
+        match_datetime = parse_iso_datetime(match.get("MatchTimeStamp"))
+        if match_datetime is None:
+            continue
+
+        player_a, _ = wta_player_keys(
+            match.get("PlayerNameFirstA"),
+            match.get("PlayerNameLastA"),
+        )
+        player_b, _ = wta_player_keys(
+            match.get("PlayerNameFirstB"),
+            match.get("PlayerNameLastB"),
+        )
+        if not player_a or not player_b:
+            continue
+        winner, loser = (player_a, player_b) if winner_side == "1" else (player_b, player_a)
+        rows.append(
+            {
+                "Date": match_datetime.date(),
+                "Winner": winner,
+                "Loser": loser,
+                "Tournament": first_present(
+                    tournament.get("name"),
+                    group.get("metadata", {}).get("tournament_summary_heading"),
+                    group.get("name"),
+                    "Unknown",
+                ),
+                "Location": first_present(
+                    tournament.get("city"),
+                    tournament.get("location"),
+                    group.get("location"),
+                    "Unknown",
+                ),
+                "Tier": first_present(group.get("level"), tournament.get("level"), "Unknown"),
+                "Surface": first_present(tournament.get("surface"), match.get("Surface"), "Unknown"),
+                "Round": round_label(match.get("RoundID")),
+            }
+        )
+
+    if not rows:
+        return empty_completed_result_frame()
+    return pl.DataFrame(rows).select(COMPLETED_RESULT_COLUMNS)
 
 
 def fetch_wta_tournaments(start_date: str, end_date: str) -> list[dict[str, Any]]:
@@ -211,8 +327,15 @@ def _wta_get_json(path: str, params: dict[str, Any]) -> dict[str, Any]:
     query = urllib.parse.urlencode(params)
     url = f"{WTA_API_BASE}{path}?{query}" if query else f"{WTA_API_BASE}{path}"
     request = urllib.request.Request(url, headers=WTA_ACCOUNT_HEADER)
-    with urllib.request.urlopen(request, timeout=30) as response:
-        return json.loads(response.read().decode("utf-8"))
+    for attempt in range(3):
+        try:
+            with urllib.request.urlopen(request, timeout=30) as response:
+                return json.loads(response.read().decode("utf-8"))
+        except Exception:
+            if attempt == 2:
+                raise
+            time.sleep(attempt + 1)
+    raise RuntimeError(f"WTA request failed: {url}")
 
 
 def main() -> None:

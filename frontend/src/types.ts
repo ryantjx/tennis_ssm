@@ -69,6 +69,8 @@ export interface PlayerRanking {
 
 export interface PredictionPayload {
   generated_at: string;
+  model_state_as_of?: number | null;
+  model_state_as_of_date?: string | null;
   data_windows?: Record<string, string>;
   model_params: {
     tau: number;
@@ -95,6 +97,15 @@ export interface PredictionPayload {
     matched_model_players?: number;
     skipped_unknown_players?: number;
     synthetic_fallback?: boolean;
+    error?: string;
+  };
+  result_update_status?: {
+    source?: string;
+    start_date?: string;
+    end_date?: string;
+    latest_completed_date?: string;
+    loaded?: number;
+    appended?: number;
     error?: string;
   };
   market_status?: {

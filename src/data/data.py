@@ -163,8 +163,52 @@ def load_wta(
     if data.height == 0:
         raise RuntimeError("No matches found in the specified date range.")
 
-    # Sort by date
-    data = data.sort("Date")
+    return build_tennis_data(data, origin_date=origin_date)
+
+
+def append_completed_results(
+    historical_data: TennisData,
+    completed_results: pl.DataFrame,
+    origin_date: str,
+) -> tuple[TennisData, int]:
+    """Append completed result rows that are not already in the history.
+
+    The historical spreadsheet can lag tournaments that are still in progress.
+    WTA API results use the same eight raw columns and are deduplicated by match
+    date and winner/loser before rebuilding player IDs and previous timestamps.
+    """
+    if completed_results.height == 0:
+        return historical_data, 0
+
+    raw_columns = [
+        "Date",
+        "Winner",
+        "Loser",
+        "Tournament",
+        "Location",
+        "Tier",
+        "Surface",
+        "Round",
+    ]
+    existing = historical_data.polars_data.select(raw_columns)
+    updates = completed_results.select(raw_columns).with_columns(
+        pl.col("Date").cast(pl.Date),
+        _consolidate_name_expr("Winner").alias("Winner"),
+        _consolidate_name_expr("Loser").alias("Loser"),
+    ).drop_nulls(subset=["Date", "Winner", "Loser"])
+
+    match_key = ["Date", "Winner", "Loser"]
+    new_rows = updates.join(existing.select(match_key).unique(), on=match_key, how="anti")
+    if new_rows.height == 0:
+        return historical_data, 0
+
+    combined = pl.concat([existing, new_rows], how="diagonal_relaxed")
+    return build_tennis_data(combined, origin_date=origin_date), new_rows.height
+
+
+def build_tennis_data(data: pl.DataFrame, origin_date: str) -> TennisData:
+    """Build model arrays and metadata from normalized completed match rows."""
+    data = data.sort(["Date", "Tournament", "Winner", "Loser"])
 
     # --- Build player ID mappings ---
     player_names = sorted(

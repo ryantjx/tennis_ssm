@@ -3,7 +3,8 @@ name: Generate Daily Predictions
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 8 * * *"
+    # Avoid the top-of-hour scheduler backlog and publish before the WTA day.
+    - cron: "17 6 * * *"
 
 permissions:
   contents: write
@@ -34,7 +35,15 @@ jobs:
       - name: Generate latest prediction data
         run: |
           source .venv/bin/activate
-          python main.py
+          for attempt in 1 2 3; do
+            if python main.py; then
+              exit 0
+            fi
+            if [ "$attempt" -lt 3 ]; then
+              sleep $((attempt * 30))
+            fi
+          done
+          exit 1
 
       - name: Commit prediction outputs
         run: |
@@ -42,4 +51,5 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add outputs/tennis_factorial_state.json outputs/latest outputs/daily
           git diff --cached --quiet || git commit -m "Update daily predictions"
+          git pull --rebase --autostash origin main
           git push

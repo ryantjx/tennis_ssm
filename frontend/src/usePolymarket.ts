@@ -12,14 +12,22 @@ interface PolymarketState {
 
 interface PolymarketSource {
   dataUrl: string;
-  tagSlug: string;
+  tagSlug?: string;
+  seriesId?: string;
+  clobUrl?: string;
+  priceRefreshMs?: number;
+  metadataRefreshMs?: number;
 }
 
 interface TennisMarketCandidate extends MarketPrediction {
   event_date?: string;
+  token1_id?: string;
+  token2_id?: string;
 }
 
 const POLYMARKET_SITE_URL = "https://polymarket.com";
+const DEFAULT_PRICE_REFRESH_MS = 15_000;
+const DEFAULT_METADATA_REFRESH_MS = 5 * 60_000;
 let requestSequence = 0;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -54,6 +62,18 @@ function jsonStringList(value: unknown): string[] | null {
   } catch {
     return null;
   }
+}
+
+function marketTokenIds(market: Record<string, unknown>): string[] | null {
+  return jsonStringList(market.clobTokenIds);
+}
+
+function yesTokenId(market: Record<string, unknown>): string | undefined {
+  const outcomes = jsonStringList(market.outcomes);
+  const tokenIds = marketTokenIds(market);
+  if (!outcomes || !tokenIds || outcomes.length !== tokenIds.length) return undefined;
+  const yesIndex = outcomes.indexOf("Yes");
+  return yesIndex >= 0 ? tokenIds[yesIndex] : undefined;
 }
 
 function numberOrNull(value: unknown): number | null {
@@ -112,6 +132,7 @@ function directMoneylineCandidate(
   if (containsDoublesSignal(event.title, market.question, outcome1, outcome2)) return null;
   const price1 = numberOrNull(prices[0]);
   const price2 = numberOrNull(prices[1]);
+  const tokenIds = marketTokenIds(market);
   if (price1 === null || price2 === null || price1 < 0 || price1 > 1 || price2 < 0 || price2 > 1) return null;
 
   return {
@@ -127,6 +148,8 @@ function directMoneylineCandidate(
     outcome2,
     price1,
     price2,
+    token1_id: tokenIds?.[0],
+    token2_id: tokenIds?.[1],
     player1_price: price1,
     player2_price: price2,
     updated_at: marketUpdatedAt(market, event),
@@ -171,6 +194,8 @@ function yesNoMoneylineCandidate(group: GroupedYesNoMarket): TennisMarketCandida
     outcome2,
     price1: first.price,
     price2: second.price,
+    token1_id: yesTokenId(first.market),
+    token2_id: yesTokenId(second.market),
     player1_price: first.price,
     player2_price: second.price,
     updated_at: updatedAt,
@@ -259,28 +284,62 @@ function bestCandidate(match: MatchPrediction, candidates: TennisMarketCandidate
   return ranked[0]?.candidate ?? null;
 }
 
-export function predictionsForMatches(matches: MatchPrediction[], events: unknown[]): Record<string, MarketPrediction> {
+function candidatesForMatches(
+  matches: MatchPrediction[],
+  events: unknown[],
+): Array<{ match: MatchPrediction; candidate: TennisMarketCandidate }> {
   const markets = parsePolymarketTennisMarkets(events);
-  return Object.fromEntries(matches.flatMap((match) => {
+  return matches.flatMap((match) => {
     if (match.actual_winner) return [];
     const key = playerPairKey(match.player1, match.player2);
     if (!key || !markets[key]) return [];
-    const market = bestCandidate(match, markets[key]);
-    if (!market) return [];
+    const candidate = bestCandidate(match, markets[key]);
+    return candidate ? [{ match, candidate }] : [];
+  });
+}
+
+function livePrice(
+  tokenId: string | undefined,
+  fallback: number | undefined,
+  midpoints: Record<string, number>,
+): number {
+  if (tokenId && Number.isFinite(midpoints[tokenId])) return midpoints[tokenId];
+  return fallback ?? 0;
+}
+
+export function matchedMarketTokenIds(matches: MatchPrediction[], events: unknown[]): string[] {
+  return [...new Set(candidatesForMatches(matches, events).flatMap(({ candidate }) =>
+    [candidate.token1_id, candidate.token2_id].filter((token): token is string => Boolean(token)),
+  ))];
+}
+
+export function predictionsForMatches(
+  matches: MatchPrediction[],
+  events: unknown[],
+  midpoints: Record<string, number> = {},
+): Record<string, MarketPrediction> {
+  return Object.fromEntries(candidatesForMatches(matches, events).map(({ match, candidate }) => {
+    const { event_date: _eventDate, token1_id: token1Id, token2_id: token2Id, ...market } = candidate;
+    const price1 = livePrice(token1Id, candidate.price1, midpoints);
+    const price2 = livePrice(token2Id, candidate.price2, midpoints);
     const player1Key = canonicalPlayer(match.player1);
     const marketOutcome1Key = canonicalPlayer(market.outcome1);
-    const player1Price = player1Key === marketOutcome1Key ? market.price1 : market.price2;
-    const player2Price = player1Key === marketOutcome1Key ? market.price2 : market.price1;
-    return [[matchKey(match), {
+    const player1Price = player1Key === marketOutcome1Key ? price1 : price2;
+    const player2Price = player1Key === marketOutcome1Key ? price2 : price1;
+    return [matchKey(match), {
       ...market,
+      price1,
+      price2,
       player1_market_name: player1Key === marketOutcome1Key ? market.outcome1 : market.outcome2,
       player2_market_name: player1Key === marketOutcome1Key ? market.outcome2 : market.outcome1,
-      player1_price: player1Price ?? 0,
-      player2_price: player2Price ?? 0,
-      player1_edge: Math.round((match.p_player1_win - (player1Price ?? 0)) * 10_000) / 10_000,
-      player2_edge: Math.round((match.p_player2_win - (player2Price ?? 0)) * 10_000) / 10_000,
-      matched_by: "live_canonical_player_pair",
-    } satisfies MarketPrediction]];
+      player1_price: player1Price,
+      player2_price: player2Price,
+      player1_edge: Math.round((match.p_player1_win - player1Price) * 10_000) / 10_000,
+      player2_edge: Math.round((match.p_player2_win - player2Price) * 10_000) / 10_000,
+      matched_by: Object.keys(midpoints).length
+        ? "live_clob_canonical_player_pair"
+        : "live_gamma_canonical_player_pair",
+    } satisfies MarketPrediction] as const;
   }));
 }
 
@@ -297,10 +356,11 @@ async function fetchAllEvents(source: PolymarketSource): Promise<unknown[]> {
   do {
     const url = new URL(source.dataUrl);
     url.searchParams.set("limit", "100");
-    url.searchParams.set("tag_slug", source.tagSlug);
+    if (source.seriesId) url.searchParams.set("series_id", source.seriesId);
+    else if (source.tagSlug) url.searchParams.set("tag_slug", source.tagSlug);
     url.searchParams.set("closed", "false");
     url.searchParams.set("decimalized", "true");
-    url.searchParams.set("refresh", `${Date.now()}-${requestSequence++}`);
+    url.searchParams.set("refresh", `${Math.floor(Date.now() / DEFAULT_METADATA_REFRESH_MS)}-${requestSequence++}`);
     if (cursor) url.searchParams.set("after_cursor", cursor);
 
     const response = await fetch(url, { cache: "no-store" });
@@ -308,11 +368,32 @@ async function fetchAllEvents(source: PolymarketSource): Promise<unknown[]> {
     const page: unknown = await response.json();
     if (!isRecord(page) || !Array.isArray(page.events)) throw new Error("Polymarket response is invalid");
     events.push(...page.events);
-    if (page.next_cursor !== undefined && typeof page.next_cursor !== "string") throw new Error("Polymarket cursor is invalid");
-    cursor = page.next_cursor;
+    if (page.next_cursor != null && typeof page.next_cursor !== "string") {
+      throw new Error("Polymarket cursor is invalid");
+    }
+    cursor = typeof page.next_cursor === "string" && page.next_cursor
+      ? page.next_cursor
+      : undefined;
   } while (cursor);
 
   return events;
+}
+
+async function fetchMidpoints(clobUrl: string, tokenIds: string[]): Promise<Record<string, number>> {
+  if (!tokenIds.length) return {};
+  const response = await fetch(`${clobUrl.replace(/\/$/, "")}/midpoints`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(tokenIds.map((token_id) => ({ token_id }))),
+    cache: "no-store",
+  });
+  if (!response.ok) throw new Error(`Polymarket CLOB request failed with ${response.status}`);
+  const payload: unknown = await response.json();
+  if (!isRecord(payload)) throw new Error("Polymarket CLOB response is invalid");
+  return Object.fromEntries(Object.entries(payload).flatMap(([tokenId, value]) => {
+    const price = numberOrNull(value);
+    return price !== null && price >= 0 && price <= 1 ? [[tokenId, price]] : [];
+  }));
 }
 
 export function usePolymarket(matches: MatchPrediction[], source: PolymarketSource | undefined): PolymarketState {
@@ -325,28 +406,81 @@ export function usePolymarket(matches: MatchPrediction[], source: PolymarketSour
 
   useEffect(() => {
     let active = true;
+    let eventCache: unknown[] | null = null;
+    let priceRequest = 0;
     if (!source || matches.length === 0) {
       setState({ predictions: fallback, status: "fallback", lastCheckedAt: null });
       return () => { active = false; };
     }
 
     setState({ predictions: fallback, status: "loading", lastCheckedAt: null });
-    fetchAllEvents(source)
-      .then((events) => {
-        if (!active) return;
+
+    async function refreshPrices(): Promise<void> {
+      if (!source || !eventCache) return;
+      const requestId = ++priceRequest;
+      const gammaPredictions = predictionsForMatches(matches, eventCache);
+      if (!source.clobUrl) {
+        if (active && requestId === priceRequest) {
+          setState({ predictions: gammaPredictions, status: "current", lastCheckedAt: new Date().toISOString() });
+        }
+        return;
+      }
+      try {
+        const tokenIds = matchedMarketTokenIds(matches, eventCache);
+        const midpoints = await fetchMidpoints(source.clobUrl, tokenIds);
+        if (!active || requestId !== priceRequest) return;
         setState({
-          predictions: predictionsForMatches(matches, events),
+          predictions: predictionsForMatches(matches, eventCache, midpoints),
           status: "current",
           lastCheckedAt: new Date().toISOString(),
         });
-      })
-      .catch(() => {
-        if (!active) return;
-        setState({ predictions: fallback, status: "fallback", lastCheckedAt: new Date().toISOString() });
-      });
+      } catch {
+        if (!active || requestId !== priceRequest) return;
+        setState({ predictions: gammaPredictions, status: "current", lastCheckedAt: new Date().toISOString() });
+      }
+    }
 
-    return () => { active = false; };
-  }, [fallback, matches, source?.dataUrl, source?.tagSlug]);
+    async function refreshEvents(): Promise<void> {
+      try {
+        eventCache = await fetchAllEvents(source!);
+        if (!active) return;
+        setState({
+          predictions: predictionsForMatches(matches, eventCache),
+          status: "current",
+          lastCheckedAt: new Date().toISOString(),
+        });
+        await refreshPrices();
+      } catch {
+        if (!active || eventCache) return;
+        setState({ predictions: fallback, status: "fallback", lastCheckedAt: new Date().toISOString() });
+      }
+    }
+
+    void refreshEvents();
+    const priceTimer = window.setInterval(
+      () => { void refreshPrices(); },
+      source.priceRefreshMs ?? DEFAULT_PRICE_REFRESH_MS,
+    );
+    const metadataTimer = window.setInterval(
+      () => { void refreshEvents(); },
+      source.metadataRefreshMs ?? DEFAULT_METADATA_REFRESH_MS,
+    );
+
+    return () => {
+      active = false;
+      window.clearInterval(priceTimer);
+      window.clearInterval(metadataTimer);
+    };
+  }, [
+    fallback,
+    matches,
+    source?.clobUrl,
+    source?.dataUrl,
+    source?.metadataRefreshMs,
+    source?.priceRefreshMs,
+    source?.seriesId,
+    source?.tagSlug,
+  ]);
 
   return state;
 }

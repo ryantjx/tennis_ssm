@@ -21,10 +21,15 @@ import jax
 from jax import numpy as jnp, tree_util as jtu
 import polars as pl
 
-from src.data.data import TennisData, load_wta, most_recent_timestamp_by_player
+from src.data.data import (
+    TennisData,
+    append_completed_results,
+    load_wta,
+    most_recent_timestamp_by_player,
+)
 from src.data.data_types import TennisDynamicsOnlyData, TennisMatchMetadata, WTATennisResults
 from src.data.fixture_common import filter_known_fixtures
-from src.data.fixtures_womens import load_wta_fixtures
+from src.data.fixtures_womens import load_wta_completed_results, load_wta_fixtures
 from src.model.gaussianfactorial_tennis import GaussianFactorialTennis, TennisMatchPrediction, train
 
 
@@ -56,6 +61,7 @@ WTA_ACTIVE_MATCH_STATES = ("U", "P", "L", "I", "S")
 POLYMARKET_EVENTS_URL = "https://gamma-api.polymarket.com/events"
 POLYMARKET_TENNIS_URL = "https://polymarket.com/predictions/tennis"
 POLYMARKET_TAG_SLUG = "tennis"
+WTA_COMPLETED_LOOKBACK_DAYS = 30
 
 
 def main() -> None:
@@ -67,18 +73,20 @@ def main() -> None:
     daily_output_dir.mkdir(parents=True, exist_ok=True)
 
     print("=" * 70)
-    print("1. Loading WTA historical data")
+    print("1. Loading WTA historical data and recent completed results")
     print("=" * 70)
     historical_data = load_wta(
         start_date=TRAIN_START,
         end_date=EVAL_END,
         origin_date=ORIGIN_DATE,
     )
+    historical_data, result_update_status = load_latest_completed_wta_results(historical_data)
     test_indices = match_indices_between(historical_data, TEST_START, TEST_END)
     eval_indices = match_indices_between(historical_data, EVAL_START, EVAL_END)
     test_data = slice_tennis_data(historical_data, test_indices)
     eval_data = slice_tennis_data(historical_data, eval_indices)
     print(f"  Historical matches: {historical_data.num_matches}")
+    print(f"  Newly appended WTA API results: {result_update_status['appended']}")
     print(f"  2025 validation matches: {test_data.num_matches}")
     print(f"  2026 completed matches: {eval_data.num_matches}")
     print()
@@ -174,6 +182,7 @@ def main() -> None:
         fixture_status=fixture_status,
         market_status=market_status,
         model_state_as_of=current_time,
+        result_update_status=result_update_status,
     )
     validate_predictions_payload(output_json)
 
@@ -182,7 +191,10 @@ def main() -> None:
     (daily_output_dir / "predictions.json").write_text(json.dumps(output_json, indent=2) + "\n")
     shutil.copyfile(PREDICTIONS_FILE, FRONTEND_PREDICTIONS_FILE)
 
-    results_json = build_results_json(eval_data)
+    results_json = build_results_json(
+        eval_data,
+        source="tennis-data.co.uk history + WTA API completed results",
+    )
     RESULTS_FILE.write_text(json.dumps(results_json, indent=2) + "\n")
     LATEST_RESULTS_FILE.write_text(json.dumps(results_json, indent=2) + "\n")
     (daily_output_dir / "results.json").write_text(json.dumps(results_json, indent=2) + "\n")
@@ -224,6 +236,45 @@ def fit_and_sync_model(
     )
     sync_state = model.synchronize(final_state, sync_data)
     return model, sync_state, current_time, skill_means, skill_vars
+
+
+def load_latest_completed_wta_results(
+    historical_data: TennisData,
+) -> tuple[TennisData, dict[str, Any]]:
+    """Backfill recent final WTA matches before the sequential filter runs."""
+    latest_historical_date = historical_data.polars_data.select(
+        pl.col("Date").max()
+    ).item()
+    end_date = dt.datetime.now(dt.timezone.utc).date()
+    start_date = latest_historical_date - dt.timedelta(days=WTA_COMPLETED_LOOKBACK_DAYS)
+    status: dict[str, Any] = {
+        "source": "wta_api",
+        "start_date": start_date.isoformat(),
+        "end_date": end_date.isoformat(),
+        "loaded": 0,
+        "appended": 0,
+    }
+    try:
+        completed = load_wta_completed_results(
+            start_date=start_date.isoformat(),
+            end_date=end_date.isoformat(),
+        )
+        updated, appended = append_completed_results(
+            historical_data,
+            completed,
+            origin_date=ORIGIN_DATE,
+        )
+        status["loaded"] = completed.height
+        status["appended"] = appended
+        status["latest_completed_date"] = (
+            updated.polars_data.select(pl.col("Date").max()).item().isoformat()
+        )
+        return updated, status
+    except Exception as exc:
+        status["error"] = str(exc)
+        status["latest_completed_date"] = latest_historical_date.isoformat()
+        print(f"  Warning: could not load recent completed WTA results: {exc}")
+        return historical_data, status
 
 
 def load_saved_model_params(state_file: Path) -> dict[str, float]:
@@ -914,6 +965,7 @@ def build_predictions_payload(
     fixture_status: dict[str, Any],
     market_status: dict[str, Any] | None = None,
     model_state_as_of: float | None = None,
+    result_update_status: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     metrics = {
         **final_metrics,
@@ -922,6 +974,9 @@ def build_predictions_payload(
     return {
         "generated_at": dt.datetime.now(dt.timezone.utc).isoformat(),
         "model_state_as_of": model_state_as_of,
+        "model_state_as_of_date": (
+            dt.date.fromisoformat(ORIGIN_DATE) + dt.timedelta(days=int(model_state_as_of))
+        ).isoformat() if model_state_as_of is not None else None,
         "data_windows": {
             "origin_date": ORIGIN_DATE,
             "train_start": TRAIN_START,
@@ -948,6 +1003,7 @@ def build_predictions_payload(
         },
         "optimization": optimization,
         "fixture_status": fixture_status,
+        "result_update_status": result_update_status or {},
         "market_status": market_status or {"source": "polymarket", "loaded": 0, "matched_model_matches": 0},
         "metrics": metrics,
         "top_players": top_players,
@@ -986,7 +1042,10 @@ def validate_predictions_payload(payload: dict[str, Any]) -> None:
         )
 
 
-def build_results_json(test_data: TennisData) -> dict[str, Any]:
+def build_results_json(
+    test_data: TennisData,
+    source: str = "tennis-data.co.uk WTA historical results",
+) -> dict[str, Any]:
     results = []
     for i, row in enumerate(test_data.polars_data.iter_rows(named=True)):
         results.append(
@@ -1008,7 +1067,7 @@ def build_results_json(test_data: TennisData) -> dict[str, Any]:
     result_dates = [result["date"] for result in results]
     return {
         "generated_at": dt.datetime.now(dt.timezone.utc).isoformat(),
-        "source": "tennis-data.co.uk WTA historical results",
+        "source": source,
         "data_window": {
             "start": min(result_dates) if result_dates else TEST_DISPLAY_START,
             "end": max(result_dates) if result_dates else TEST_DISPLAY_END,

@@ -14,7 +14,10 @@ const defaultFilters: MatchFilters = {
 
 const polymarketSource = {
   dataUrl: "https://gamma-api.polymarket.com/events/keyset",
-  tagSlug: "tennis",
+  seriesId: "10366",
+  clobUrl: "https://clob.polymarket.com",
+  priceRefreshMs: 15_000,
+  metadataRefreshMs: 5 * 60_000,
 };
 
 const rawOutputBaseUrl = "https://raw.githubusercontent.com/ryantjx/tennis_ssm/main/outputs/latest";
@@ -40,17 +43,25 @@ function App() {
   const [filters, setFilters] = useState<MatchFilters>(defaultFilters);
 
   useEffect(() => {
-    Promise.all([
-      fetchJson<PredictionPayload>(dataUrl("predictions.json")),
-      fetchJson<ResultsPayload>(dataUrl("results.json")),
-    ])
-      .then(([predictionPayload, resultPayload]) => {
+    let active = true;
+    async function loadLatestModelDeployment() {
+      try {
+        const [predictionPayload, resultPayload] = await Promise.all([
+          fetchJson<PredictionPayload>(dataUrl("predictions.json")),
+          fetchJson<ResultsPayload>(dataUrl("results.json")),
+        ]);
+        if (!active) return;
         setData(predictionPayload);
         setResults(resultPayload);
-      })
-      .catch((err: unknown) => {
+        setError(null);
+      } catch (err: unknown) {
+        if (!active) return;
         setError(err instanceof Error ? err.message : String(err));
-      });
+      }
+    }
+
+    void loadLatestModelDeployment();
+    return () => { active = false; };
   }, []);
 
   const staticMatches = useMemo(() => {
