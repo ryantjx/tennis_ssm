@@ -128,6 +128,48 @@ API-Tennis is a more structured fallback if an API key is acceptable. Its
 filters, and returns `event_date`, `event_time`, players, tournament, and
 round.
 
+### Live Tennis API Fixtures (optional)
+
+`fixtures_livetennisapi.py` is an **optional additional** fixture source, in the
+spirit of the keyed fallback noted above. It changes nothing by default: the WTA
+and ATP loaders stay the defaults, and this module is inert unless a caller asks
+for it and sets `LIVETENNISAPI_KEY`.
+
+It exists because each tour above needs its own bespoke loader against a tour
+website's private JSON API, whereas `GET /fixtures` covers `atp`, `wta`,
+`challenger`, `itf` and `juniors` through one documented, versioned shape — so a
+second tour costs a parameter rather than a new scraper.
+
+Only fields published in the v1.1.0 OpenAPI description are read: `id`,
+`event_date`, `tour`, `tournament`, `round`, `surface`, `player1_name`,
+`player2_name`, `status`. Fields the provider does not publish are recorded as
+`Unknown` rather than guessed:
+
+- no venue/city, so `location` is always `Unknown`;
+- no tournament tier, so `tier` is always `Unknown`;
+- no tournament identifier, so `source_tournament_id` is empty;
+- `event_date` is a **date**, not a datetime — there is no scheduled
+  time-of-day, so `date_source` is `event_date`. A fixture with a null
+  `event_date` is dropped rather than defaulted to today.
+
+Two source-specific details:
+
+- **Doubles.** A fixture record carries its own `tour` string in a more granular
+  vocabulary than the filter (`juniors_boys`, `challenger_men`). The provider
+  documents that a doubles team reports it uppercase (`ATP`) where an individual
+  reports it lowercase (`atp`). This model is singles-only, so uppercase records
+  and `A / B` style names are dropped. The value is otherwise treated as opaque
+  and is never parsed back into the filter vocabulary; it is kept in
+  `source_event` for reference only.
+- **Name order.** `player1_name` is one string and the token order is not
+  documented, so both readings are emitted — "First Last" into `player1` and
+  "Last First" into `player1_alt`. Both are *exact* keys in the existing
+  normalized key space; there is no approximate or edit-distance matching.
+  `resolve_livetennisapi_fixtures()` adds the stronger guarantee that a name
+  resolving to two *different* players under the two readings is discarded as
+  ambiguous rather than guessed. The generic `filter_known_fixtures()` also
+  works, but takes the first hit instead.
+
 ### Normalized Schema
 
 The normalized fixture schema is:
@@ -193,9 +235,17 @@ Include ATP draw-only research rows that lack exact scheduled dates:
 .venv/bin/python -m src.data.fixtures_men --include-draw-unknown-dates
 ```
 
+Print fixtures from the optional Live Tennis API source (needs
+`LIVETENNISAPI_KEY`; any tour in `atp|wta|challenger|itf|juniors`):
+
+```bash
+LIVETENNISAPI_KEY=... .venv/bin/python -m src.data.fixtures_livetennisapi --tour atp
+```
+
 Each command prints the normalized Polars table and writes a tour-specific CSV
 for inspection. The legacy `src.data.fixtures` module remains as a compatibility
-wrapper with a combined `--tour` option.
+wrapper with a combined `--tour` option, plus `--source native|livetennisapi`
+which defaults to `native`.
 
 ## Known Limitations
 
