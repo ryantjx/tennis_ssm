@@ -118,15 +118,26 @@ export interface PredictionPayload {
     error?: string;
   };
   metrics: {
-    n_test_matches: number;
+    test?: PerformanceMetrics;
+    eval?: PerformanceMetrics;
     n_future_matches?: number;
-    accuracy: number;
-    avg_log_score: number;
-    uniform_baseline: number;
+    /** Legacy test fields retained for compatibility with older exports. */
+    n_test_matches?: number;
+    accuracy?: number;
+    avg_log_score?: number;
+    uniform_baseline?: number;
   };
   top_players: PlayerRanking[];
   matches: MatchPrediction[];
   future_matches: MatchPrediction[];
+}
+
+export interface PerformanceMetrics {
+  n_matches: number;
+  n_correct: number;
+  accuracy: number;
+  avg_log_score?: number;
+  uniform_baseline?: number;
 }
 
 export interface CompletedResult {

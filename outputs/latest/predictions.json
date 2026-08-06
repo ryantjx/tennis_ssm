@@ -18,6 +18,8 @@
     "prediction_display_end": "2026-12-31",
     "test_match_start": "2025-01-01",
     "test_match_end": "2025-12-31",
+    "eval_match_start": "2026-01-04",
+    "eval_match_end": "2026-08-05",
     "upcoming_match_start": "2026-08-06"
   },
   "model_params": {
@@ -40,7 +42,8 @@
       "tau": 0.00026683902251534164
     },
     "best_metrics": {
-      "n_test_matches": 2464,
+      "n_matches": 2464,
+      "n_correct": 1574,
       "accuracy": 0.6388,
       "avg_log_score": -0.631,
       "uniform_baseline": -0.6931
@@ -80,10 +83,20 @@
     "matched_model_matches": 4
   },
   "metrics": {
-    "n_test_matches": 2464,
-    "accuracy": 0.6388,
-    "avg_log_score": -0.631,
-    "uniform_baseline": -0.6931,
+    "test": {
+      "n_matches": 2464,
+      "n_correct": 1574,
+      "accuracy": 0.6388,
+      "avg_log_score": -0.631,
+      "uniform_baseline": -0.6931
+    },
+    "eval": {
+      "n_matches": 2095,
+      "n_correct": 1262,
+      "accuracy": 0.6024,
+      "avg_log_score": -0.6445,
+      "uniform_baseline": -0.6931
+    },
     "n_future_matches": 11
   },
   "top_players": [

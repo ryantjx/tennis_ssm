@@ -4,7 +4,7 @@ import { FilterControls } from "./components/FilterControls";
 import { MatchDetailDrawer } from "./components/MatchDetailDrawer";
 import { PlayerRankings } from "./components/PlayerRankings";
 import { UpcomingMatches } from "./components/UpcomingMatches";
-import type { MatchFilters, MatchPrediction, PredictionPayload, ResultsPayload } from "./types";
+import type { MatchFilters, MatchPrediction, PerformanceMetrics, PredictionPayload, ResultsPayload } from "./types";
 import { applyMatchFilters, formatDate, formatPercent, matchKey } from "./utils";
 import { usePolymarket } from "./usePolymarket";
 
@@ -115,8 +115,8 @@ function App() {
   }
 
   const generatedAt = new Date(data.generated_at);
-  const logDelta = data.metrics.avg_log_score - data.metrics.uniform_baseline;
-  const correctPredictions = Math.round(data.metrics.accuracy * data.metrics.n_test_matches);
+  const testPerformance = getTestPerformance(data);
+  const evalPerformance = getEvalPerformance(data);
   const upcoming = filteredMatches.filter((match) => match.is_future);
   const completed = filteredMatches.filter((match) => !match.is_future);
   const trainWindow = data.data_windows?.train_display_start && data.data_windows?.train_display_end
@@ -148,21 +148,24 @@ function App() {
               A Gaussian factorial state-space model estimates WTA player skill over time and converts skill differences into match win probabilities. More details are available in the <a href="https://github.com/ryantjx/tennis_ssm" target="_blank" rel="noreferrer">ryantjx/tennis_ssm</a> repository.
             </p>
           </div>
-          <dl className="summary-card" aria-label="Overall model results">
-            <div className="summary-card__stats">
+          <section className="summary-card" aria-labelledby="performance-title">
+            <h2 className="summary-card__title" id="performance-title">Performance</h2>
+            <dl className="summary-card__stats" aria-label="Test and evaluation accuracy">
               <div>
-                <dt>Accuracy</dt>
-                <dd>{formatPercent(data.metrics.accuracy, 1)}</dd>
-                <span>{correctPredictions} / {data.metrics.n_test_matches} correct predictions</span>
-                <span>Correct picks across evaluated test and post-selection results</span>
+                <dt>Test accuracy</dt>
+                <dd>{formatPercent(testPerformance.accuracy, 1)}</dd>
+                <span>{testPerformance.n_correct} / {testPerformance.n_matches} correct</span>
               </div>
               <div>
-                <dt>Log score</dt>
-                <dd>{data.metrics.avg_log_score.toFixed(4)}</dd>
-                <span>{logDelta >= 0 ? "+" : ""}{logDelta.toFixed(4)} vs uniform</span>
+                <dt>Eval accuracy</dt>
+                <dd>{formatPercent(evalPerformance.accuracy, 1)}</dd>
+                <span>{evalPerformance.n_correct} / {evalPerformance.n_matches} correct</span>
               </div>
-            </div>
-          </dl>
+            </dl>
+            <p className="summary-card__note">
+              Test accuracy uses held-out 2025 matches. Eval accuracy tracks completed matches from 2026 onward, after model selection.
+            </p>
+          </section>
         </section>
 
         <FilterControls
@@ -234,6 +237,31 @@ function App() {
       <MatchDetailDrawer match={selectedMatch} onClose={closeMatch} />
     </>
   );
+}
+
+function getTestPerformance(data: PredictionPayload): PerformanceMetrics {
+  if (data.metrics.test) return data.metrics.test;
+  const nMatches = data.metrics.n_test_matches ?? 0;
+  const accuracy = data.metrics.accuracy ?? 0;
+  return {
+    n_matches: nMatches,
+    n_correct: Math.round(accuracy * nMatches),
+    accuracy,
+    avg_log_score: data.metrics.avg_log_score,
+    uniform_baseline: data.metrics.uniform_baseline,
+  };
+}
+
+function getEvalPerformance(data: PredictionPayload): PerformanceMetrics {
+  if (data.metrics.eval) return data.metrics.eval;
+  const evaluatedMatches = (data.matches ?? []).filter((match) => typeof match.correct === "boolean");
+  const nCorrect = evaluatedMatches.filter((match) => match.correct).length;
+  const nMatches = evaluatedMatches.length;
+  return {
+    n_matches: nMatches,
+    n_correct: nCorrect,
+    accuracy: nMatches ? nCorrect / nMatches : 0,
+  };
 }
 
 function PrimaryNav({ className, label }: { className: string; label: string }) {

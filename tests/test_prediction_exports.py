@@ -125,7 +125,10 @@ class PredictionExportTest(unittest.TestCase):
             "data_windows": {},
             "model_params": {},
             "optimization": {},
-            "metrics": {},
+            "metrics": {
+                "test": {"n_matches": 0, "n_correct": 0, "accuracy": 0.0},
+                "eval": {"n_matches": 0, "n_correct": 0, "accuracy": 0.0},
+            },
             "top_players": [],
             "matches": [],
             "future_matches": [{"id": "duplicate"}, {"id": "duplicate"}],
@@ -144,10 +147,18 @@ class PredictionExportTest(unittest.TestCase):
                 "candidate_count": 1,
                 "trials": [],
             },
-            final_metrics={
-                "n_test_matches": 1,
+            test_metrics={
+                "n_matches": 2,
+                "n_correct": 1,
                 "accuracy": 0.5,
                 "avg_log_score": -0.69,
+                "uniform_baseline": -0.6931,
+            },
+            eval_metrics={
+                "n_matches": 1,
+                "n_correct": 1,
+                "accuracy": 1.0,
+                "avg_log_score": -0.4,
                 "uniform_baseline": -0.6931,
             },
             top_players=[
@@ -171,6 +182,8 @@ class PredictionExportTest(unittest.TestCase):
         self.assertIn("future_matches", payload)
         self.assertIn("market_status", payload)
         self.assertEqual(payload["metrics"]["n_future_matches"], 0)
+        self.assertEqual(payload["metrics"]["test"]["n_correct"], 1)
+        self.assertEqual(payload["metrics"]["eval"]["accuracy"], 1.0)
         self.assertEqual(len(payload["top_players"]), 52)
         self.assertEqual(payload["data_windows"]["train_display_start"], "2022-01-01")
         self.assertEqual(payload["data_windows"]["train_display_end"], "2024-12-31")
@@ -180,8 +193,9 @@ class PredictionExportTest(unittest.TestCase):
         self.assertEqual(payload["data_windows"]["test_match_end"], "2025-12-31")
         self.assertEqual(payload["data_windows"]["prediction_display_start"], "2026-01-01")
         self.assertEqual(payload["data_windows"]["prediction_display_end"], "2026-12-31")
-        self.assertEqual(payload["data_windows"]["upcoming_match_start"], "2026-06-27")
-        self.assertEqual(payload["data_windows"]["upcoming_match_end"], "2026-06-27")
+        self.assertEqual(payload["data_windows"]["eval_match_start"], "2026-06-27")
+        self.assertEqual(payload["data_windows"]["eval_match_end"], "2026-06-27")
+        self.assertNotIn("upcoming_match_start", payload["data_windows"])
 
     def test_polymarket_moneyline_matches_fixture_by_player_pair(self):
         events = [

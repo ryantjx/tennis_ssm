@@ -128,8 +128,9 @@ def main() -> None:
     player_rankings_by_id = build_player_rankings_by_id(historical_data, skill_means, skill_vars)
     test_predictions = slice_predictions(historical_predictions, test_indices)
     predictions = slice_predictions(historical_predictions, eval_indices)
-    eval_metrics = evaluate_predictions(test_predictions)
-    optimization = saved_parameter_metadata(best_params, eval_metrics)
+    test_metrics = evaluate_predictions(test_predictions)
+    eval_metrics = evaluate_predictions(predictions)
+    optimization = saved_parameter_metadata(best_params, test_metrics)
     print()
 
     print("=" * 70)
@@ -174,7 +175,8 @@ def main() -> None:
     output_json = build_predictions_payload(
         trained_seed_params=best_params,
         optimization=optimization,
-        final_metrics=eval_metrics,
+        test_metrics=test_metrics,
+        eval_metrics=eval_metrics,
         top_players=top_players_json,
         matches=matches_json,
         test_window_matches=test_window_json,
@@ -623,14 +625,15 @@ def predict_test_matches(
 
 def evaluate_predictions(predictions: Any) -> dict[str, float | int]:
     p1_probs = predictions.p_player1_win
-    correct = jnp.sum(p1_probs > 0.5)
-    n_test = int(p1_probs.shape[0])
-    accuracy = float(correct) / n_test if n_test else 0.0
+    correct = int(jnp.sum(p1_probs > 0.5))
+    n_matches = int(p1_probs.shape[0])
+    accuracy = correct / n_matches if n_matches else 0.0
     log_scores = jnp.log(jnp.maximum(p1_probs, 1e-8))
     return {
-        "n_test_matches": n_test,
+        "n_matches": n_matches,
+        "n_correct": correct,
         "accuracy": round(accuracy, 4),
-        "avg_log_score": round(float(jnp.mean(log_scores)), 4) if n_test else 0.0,
+        "avg_log_score": round(float(jnp.mean(log_scores)), 4) if n_matches else 0.0,
         "uniform_baseline": round(float(jnp.log(0.5)), 4),
     }
 
@@ -957,7 +960,8 @@ def evaluated_match_window(matches: list[dict[str, Any]], prefix: str) -> dict[s
 def build_predictions_payload(
     trained_seed_params: dict[str, Any],
     optimization: dict[str, Any],
-    final_metrics: dict[str, Any],
+    test_metrics: dict[str, Any],
+    eval_metrics: dict[str, Any],
     top_players: list[dict[str, Any]],
     matches: list[dict[str, Any]],
     test_window_matches: list[dict[str, Any]],
@@ -968,7 +972,8 @@ def build_predictions_payload(
     result_update_status: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     metrics = {
-        **final_metrics,
+        "test": test_metrics,
+        "eval": eval_metrics,
         "n_future_matches": len(future_matches),
     }
     return {
@@ -991,8 +996,8 @@ def build_predictions_payload(
             "prediction_end": EVAL_END,
             "prediction_display_start": EVAL_DISPLAY_START,
             "prediction_display_end": EVAL_DISPLAY_END,
-            "test_match_start": TEST_DISPLAY_START,
-            "test_match_end": TEST_DISPLAY_END,
+            **evaluated_match_window(test_window_matches, "test_match"),
+            **evaluated_match_window(matches, "eval_match"),
             **evaluated_match_window(future_matches, "upcoming_match"),
         },
         "model_params": optimization["best_params"],
@@ -1030,6 +1035,26 @@ def validate_predictions_payload(payload: dict[str, Any]) -> None:
         raise TypeError("Prediction payload matches must be a list")
     if not isinstance(payload["future_matches"], list):
         raise TypeError("Prediction payload future_matches must be a list")
+    metrics = payload["metrics"]
+    if not isinstance(metrics, dict):
+        raise TypeError("Prediction payload metrics must be an object")
+    missing_metric_groups = {"test", "eval"} - set(metrics)
+    if missing_metric_groups:
+        raise ValueError(
+            "Prediction payload metrics missing required groups: "
+            f"{sorted(missing_metric_groups)}"
+        )
+    required_metric_fields = {"n_matches", "n_correct", "accuracy"}
+    for group_name in ("test", "eval"):
+        group = metrics[group_name]
+        if not isinstance(group, dict):
+            raise TypeError(f"Prediction payload {group_name} metrics must be an object")
+        missing_metric_fields = required_metric_fields - set(group)
+        if missing_metric_fields:
+            raise ValueError(
+                f"Prediction payload {group_name} metrics missing required fields: "
+                f"{sorted(missing_metric_fields)}"
+            )
     future_ids = [match.get("id") for match in payload["future_matches"]]
     if any(not match_id for match_id in future_ids):
         raise ValueError("Prediction payload future matches must have IDs")

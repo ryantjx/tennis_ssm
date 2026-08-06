@@ -22,11 +22,21 @@ const predictions: PredictionPayload = {
   },
   model_params: { tau: 0.1, s: 1.0, init_var: 1.0 },
   metrics: {
-    n_test_matches: 1,
+    test: {
+      n_matches: 2,
+      n_correct: 1,
+      accuracy: 0.5,
+      avg_log_score: -0.69,
+      uniform_baseline: -0.6931,
+    },
+    eval: {
+      n_matches: 1,
+      n_correct: 1,
+      accuracy: 1,
+      avg_log_score: -0.4,
+      uniform_baseline: -0.6931,
+    },
     n_future_matches: 1,
-    accuracy: 1,
-    avg_log_score: -0.4,
-    uniform_baseline: -0.6931,
   },
   market_status: {
     source: "polymarket",
@@ -154,9 +164,14 @@ describe("App", () => {
     expect(screen.getByRole("heading", { name: "WTA Match Prediction State-Space Model" })).toBeInTheDocument();
     expect(screen.getAllByText("WTA Match Prediction State-Space Model")).toHaveLength(1);
     expect(screen.getByText(/A Gaussian factorial state-space model estimates WTA player skill/)).toBeInTheDocument();
-    expect(screen.getByText("Accuracy")).toBeInTheDocument();
-    expect(screen.getByText("1 / 1 correct predictions")).toBeInTheDocument();
-    expect(screen.getByText("Log score")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Performance" })).toBeInTheDocument();
+    expect(screen.getByText("Test accuracy")).toBeInTheDocument();
+    expect(screen.getByText("50.0%")).toBeInTheDocument();
+    expect(screen.getByText("1 / 2 correct")).toBeInTheDocument();
+    expect(screen.getByText("Eval accuracy")).toBeInTheDocument();
+    expect(screen.getByText("100.0%")).toBeInTheDocument();
+    expect(screen.getByText("1 / 1 correct")).toBeInTheDocument();
+    expect(screen.getByText(/Test accuracy uses held-out 2025 matches/)).toBeInTheDocument();
     expect(screen.getAllByText(/Future Open/).length).toBeGreaterThan(0);
     expect(screen.queryByText("Current WTA matches")).not.toBeInTheDocument();
     expect(screen.getByText("Completed results")).toBeInTheDocument();
