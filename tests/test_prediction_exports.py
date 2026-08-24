@@ -82,54 +82,77 @@ class PredictionExportTest(unittest.TestCase):
         self.assertAlmostEqual(row["p_player1_win"] + row["p_player2_win"], 1.0, places=4)
 
     def test_evaluate_predictions_reports_binary_brier_scores(self):
-        predictions = SimpleNamespace(p_player1_win=jnp.array([0.9, 0.5, 0.1]))
+        predictions = SimpleNamespace(
+            p_player1_win=jnp.array([0.9, 0.5, 0.1]),
+            p_player2_win=jnp.array([0.1, 0.5, 0.9]),
+        )
 
-        metrics = evaluate_predictions(predictions)
+        metrics = evaluate_predictions(predictions, jnp.array([1.0, 1.0, 1.0]))
 
         self.assertEqual(metrics["avg_brier_score"], 0.3567)
         self.assertEqual(metrics["brier_uniform_baseline"], 0.25)
 
     def test_evaluate_predictions_handles_an_empty_window(self):
-        predictions = SimpleNamespace(p_player1_win=jnp.array([]))
+        predictions = SimpleNamespace(
+            p_player1_win=jnp.array([]),
+            p_player2_win=jnp.array([]),
+        )
 
-        metrics = evaluate_predictions(predictions)
+        metrics = evaluate_predictions(predictions, jnp.array([]))
 
         self.assertEqual(metrics["avg_brier_score"], 0.0)
         self.assertEqual(metrics["brier_uniform_baseline"], 0.25)
 
-    def test_completed_match_export_includes_individual_brier_score(self):
+    def test_evaluate_predictions_uses_player2_win_outcomes(self):
+        predictions = SimpleNamespace(
+            p_player1_win=jnp.array([0.9, 0.1]),
+            p_player2_win=jnp.array([0.1, 0.9]),
+        )
+
+        metrics = evaluate_predictions(predictions, jnp.array([0.0, 0.0]))
+
+        self.assertEqual(metrics["n_correct"], 1)
+        self.assertEqual(metrics["accuracy"], 0.5)
+        self.assertEqual(metrics["avg_brier_score"], 0.41)
+
+    def test_completed_match_export_uses_each_actual_outcome(self):
         test_data = SimpleNamespace(
-            num_matches=1,
+            num_matches=2,
             match_metadata=SimpleNamespace(
-                tournament=["Test Open"],
-                location=["London"],
-                tier=["WTA500"],
-                surface=["Grass"],
-                round=["Final"],
+                tournament=["Test Open", "Test Open"],
+                location=["London", "London"],
+                tier=["WTA500", "WTA500"],
+                surface=["Grass", "Grass"],
+                round=["Final", "Final"],
             ),
         )
         test_jax = SimpleNamespace(
-            player1_id=jnp.array([0]),
-            player2_id=jnp.array([1]),
-            timestamp=jnp.array([1100]),
+            player1_id=jnp.array([0, 0]),
+            player2_id=jnp.array([1, 1]),
+            winner=jnp.array([1.0, 0.0]),
+            timestamp=jnp.array([1100, 1101]),
         )
         predictions = SimpleNamespace(
-            p_player1_win=jnp.array([0.8]),
-            p_player2_win=jnp.array([0.2]),
-            player1_mean=jnp.array([[[1.0]]]),
-            player2_mean=jnp.array([[[0.0]]]),
-            player1_var=jnp.array([[0.25]]),
-            player2_var=jnp.array([[0.25]]),
+            p_player1_win=jnp.array([0.8, 0.8]),
+            p_player2_win=jnp.array([0.2, 0.2]),
+            player1_mean=jnp.array([[[1.0]], [[1.0]]]),
+            player2_mean=jnp.array([[[0.0]], [[0.0]]]),
+            player1_var=jnp.array([[0.25], [0.25]]),
+            player2_var=jnp.array([[0.25], [0.25]]),
         )
 
         exported = build_match_predictions_json(
             test_data=test_data,
             test_jax=test_jax,
             predictions=predictions,
-            id_to_name={0: "Winner", 1: "Loser"},
+            id_to_name={0: "Player One", 1: "Player Two"},
         )
 
         self.assertEqual(exported[0]["brier_score"], 0.04)
+        self.assertEqual(exported[0]["actual_winner"], "Player One")
+        self.assertEqual(exported[1]["brier_score"], 0.64)
+        self.assertEqual(exported[1]["actual_winner"], "Player Two")
+        self.assertEqual(exported[1]["log_score"], -1.6094)
 
     def test_fixture_prediction_ids_include_tournament_context(self):
         model = GaussianFactorialTennis(

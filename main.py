@@ -129,8 +129,8 @@ def main() -> None:
     player_rankings_by_id = build_player_rankings_by_id(historical_data, skill_means, skill_vars)
     test_predictions = slice_predictions(historical_predictions, test_indices)
     predictions = slice_predictions(historical_predictions, eval_indices)
-    test_metrics = evaluate_predictions(test_predictions)
-    eval_metrics = evaluate_predictions(predictions)
+    test_metrics = evaluate_predictions(test_predictions, test_data.jax_data.winner)
+    eval_metrics = evaluate_predictions(predictions, eval_data.jax_data.winner)
     optimization = saved_parameter_metadata(best_params, test_metrics)
     print()
 
@@ -540,7 +540,7 @@ def optimize_params_for_test_log_score(
             current_time=current_time,
             test_jax=test_jax,
         )
-        metrics = evaluate_predictions(predictions)
+        metrics = evaluate_predictions(predictions, test_jax.winner)
         trial = {
             "trial": idx,
             "params": params,
@@ -625,13 +625,19 @@ def predict_test_matches(
     return predict_fn(state, jnp.array(current_time), test_jax)
 
 
-def evaluate_predictions(predictions: Any) -> dict[str, float | int]:
+def evaluate_predictions(predictions: Any, outcomes: Any) -> dict[str, float | int]:
     p1_probs = predictions.p_player1_win
-    correct = int(jnp.sum(p1_probs > 0.5))
+    p2_probs = predictions.p_player2_win
+    outcomes = jnp.asarray(outcomes)
+    if p1_probs.shape != outcomes.shape or p2_probs.shape != outcomes.shape:
+        raise ValueError("Prediction probabilities and outcomes must have matching shapes")
+    predicted_outcomes = (p1_probs > 0.5).astype(outcomes.dtype)
+    correct = int(jnp.sum(predicted_outcomes == outcomes))
     n_matches = int(p1_probs.shape[0])
     accuracy = correct / n_matches if n_matches else 0.0
-    log_scores = jnp.log(jnp.maximum(p1_probs, 1e-8))
-    brier_scores = jnp.square(p1_probs - 1.0)
+    actual_winner_probs = jnp.where(outcomes == 1.0, p1_probs, p2_probs)
+    log_scores = jnp.log(jnp.maximum(actual_winner_probs, 1e-8))
+    brier_scores = jnp.square(p1_probs - outcomes)
     return {
         "n_matches": n_matches,
         "n_correct": correct,
@@ -878,10 +884,12 @@ def build_match_predictions_json(
         p2_name = id_to_name.get(p2_id, f"Unknown({p2_id})")
         p1_prob = float(predictions.p_player1_win[i])
         p2_prob = float(predictions.p_player2_win[i])
-        actual_winner = p1_name
+        actual_player1_outcome = float(test_jax.winner[i])
+        player1_won = actual_player1_outcome == 1.0
+        actual_winner = p1_name if player1_won else p2_name
         predicted_winner = p1_name if p1_prob > 0.5 else p2_name
         confidence = max(p1_prob, p2_prob)
-        actual_winner_prob = p1_prob
+        actual_winner_prob = p1_prob if player1_won else p2_prob
         ts = int(test_jax.timestamp[i])
         matches_json.append(
             {
@@ -897,7 +905,7 @@ def build_match_predictions_json(
                 "correct": predicted_winner == actual_winner,
                 "confidence": round(confidence, 4),
                 "log_score": round(float(jnp.log(jnp.maximum(actual_winner_prob, 1e-8))), 4),
-                "brier_score": round((p1_prob - 1.0) ** 2, 4),
+                "brier_score": round((p1_prob - actual_player1_outcome) ** 2, 4),
                 "player1_skill": round(float(predictions.player1_mean[i, 0, 0]), 4),
                 "player2_skill": round(float(predictions.player2_mean[i, 0, 0]), 4),
                 "player1_skill_sd": round(
