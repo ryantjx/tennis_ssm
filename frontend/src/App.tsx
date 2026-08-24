@@ -150,20 +150,30 @@ function App() {
           </div>
           <section className="summary-card" aria-labelledby="performance-title">
             <h2 className="summary-card__title" id="performance-title">Performance</h2>
-            <dl className="summary-card__stats" aria-label="Test and evaluation accuracy">
+            <dl className="summary-card__stats" aria-label="Test and evaluation performance">
               <div>
                 <dt>Test accuracy</dt>
                 <dd>{formatPercent(testPerformance.accuracy, 1)}</dd>
                 <span>{testPerformance.n_correct} / {testPerformance.n_matches} correct</span>
               </div>
               <div>
+                <dt>Test Brier</dt>
+                <dd>{formatMetric(testPerformance.avg_brier_score)}</dd>
+                <span>Lower is better</span>
+              </div>
+              <div>
                 <dt>Eval accuracy</dt>
                 <dd>{formatPercent(evalPerformance.accuracy, 1)}</dd>
                 <span>{evalPerformance.n_correct} / {evalPerformance.n_matches} correct</span>
               </div>
+              <div>
+                <dt>Eval Brier</dt>
+                <dd>{formatMetric(evalPerformance.avg_brier_score)}</dd>
+                <span>Lower is better</span>
+              </div>
             </dl>
             <p className="summary-card__note">
-              Test accuracy uses held-out 2025 matches. Eval accuracy tracks completed matches from 2026 onward, after model selection.
+              Test metrics use held-out 2025 matches. Eval metrics track completed matches from 2026 onward, after model selection. Brier score is 0 for a perfect forecast; the uniform baseline is 0.25.
             </p>
           </section>
         </section>
@@ -250,6 +260,10 @@ function getTestPerformance(data: PredictionPayload): PerformanceMetrics {
     avg_log_score: data.metrics.avg_log_score,
     uniform_baseline: data.metrics.uniform_baseline,
   };
+}
+
+function formatMetric(value: number | undefined): string {
+  return value === undefined ? "—" : value.toFixed(4);
 }
 
 function getEvalPerformance(data: PredictionPayload): PerformanceMetrics {

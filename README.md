@@ -103,11 +103,20 @@ where $\phi_k = \exp(-\tau_d \cdot \Delta t)$ and $Q_k = \Sigma_0 - \phi_k \Sigm
 | Accuracy | 63.84% |
 | Avg log-score | -0.631 |
 | Uniform baseline | -0.6931 |
+| Avg Brier score | 0.2205 |
+| Brier uniform baseline | 0.25 |
 **Trained parameters (OU):** $\tau=0.000267$, $s=1.228$, $\Sigma_0=1.242$
+
+Prediction exports also report the mean binary Brier score for the held-out
+test and post-selection evaluation windows. For player-1 win probability
+$p$ and observed player-1 outcome $y$, the score is $(p-y)^2$. Lower is better:
+0 is perfect and a uniform 50% forecast has a score of 0.25. Brier score is a
+reporting metric only; saved model parameters continue to be selected by
+maximizing average log score.
 
 ### Predictions Output
 
-`predictions.json` contains model forecasts. It includes a completed 2026 forecast archive plus `future_matches` for unplayed fixtures loaded from the WTA fixture API. Future fixtures are predictions only; they do not update player skills until their completed results later appear in the historical results source.
+`predictions.json` contains model forecasts. It includes a completed 2026 forecast archive plus `future_matches` for unplayed fixtures loaded from the WTA fixture API. Completed forecasts include their individual `brier_score`; future fixtures use `null` until an outcome is known. Future fixtures are predictions only; they do not update player skills until their completed results later appear in the historical results source.
 
 Before future predictions are generated, the latest filtered state is synchronized to the newest completed match timestamp. Player rankings and future fixture predictions therefore reflect all completed historical observations available at generation time.
 

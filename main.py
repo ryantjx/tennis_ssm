@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import datetime as dt
 import json
+import math
 import os
 import shutil
 import unicodedata
@@ -549,6 +550,7 @@ def optimize_params_for_test_log_score(
         print(
             f"  trial={idx:02d} "
             f"avg_log_score={metrics['avg_log_score']:.4f} "
+            f"avg_brier_score={metrics['avg_brier_score']:.4f} "
             f"accuracy={metrics['accuracy']:.1%} "
             f"tau={params['tau']:.6f} s={params['s']:.6f} "
             f"init_var={params['init_var']:.6f}"
@@ -629,12 +631,15 @@ def evaluate_predictions(predictions: Any) -> dict[str, float | int]:
     n_matches = int(p1_probs.shape[0])
     accuracy = correct / n_matches if n_matches else 0.0
     log_scores = jnp.log(jnp.maximum(p1_probs, 1e-8))
+    brier_scores = jnp.square(p1_probs - 1.0)
     return {
         "n_matches": n_matches,
         "n_correct": correct,
         "accuracy": round(accuracy, 4),
         "avg_log_score": round(float(jnp.mean(log_scores)), 4) if n_matches else 0.0,
+        "avg_brier_score": round(float(jnp.mean(brier_scores)), 4) if n_matches else 0.0,
         "uniform_baseline": round(float(jnp.log(0.5)), 4),
+        "brier_uniform_baseline": 0.25,
     }
 
 
@@ -892,6 +897,7 @@ def build_match_predictions_json(
                 "correct": predicted_winner == actual_winner,
                 "confidence": round(confidence, 4),
                 "log_score": round(float(jnp.log(jnp.maximum(actual_winner_prob, 1e-8))), 4),
+                "brier_score": round((p1_prob - 1.0) ** 2, 4),
                 "player1_skill": round(float(predictions.player1_mean[i, 0, 0]), 4),
                 "player2_skill": round(float(predictions.player2_mean[i, 0, 0]), 4),
                 "player1_skill_sd": round(
@@ -1044,7 +1050,13 @@ def validate_predictions_payload(payload: dict[str, Any]) -> None:
             "Prediction payload metrics missing required groups: "
             f"{sorted(missing_metric_groups)}"
         )
-    required_metric_fields = {"n_matches", "n_correct", "accuracy"}
+    required_metric_fields = {
+        "n_matches",
+        "n_correct",
+        "accuracy",
+        "avg_brier_score",
+        "brier_uniform_baseline",
+    }
     for group_name in ("test", "eval"):
         group = metrics[group_name]
         if not isinstance(group, dict):
@@ -1055,6 +1067,33 @@ def validate_predictions_payload(payload: dict[str, Any]) -> None:
                 f"Prediction payload {group_name} metrics missing required fields: "
                 f"{sorted(missing_metric_fields)}"
             )
+        for field_name in ("avg_brier_score", "brier_uniform_baseline"):
+            value = group[field_name]
+            if (
+                isinstance(value, bool)
+                or not isinstance(value, (int, float))
+                or not math.isfinite(value)
+                or not 0.0 <= value <= 1.0
+            ):
+                raise ValueError(
+                    f"Prediction payload {group_name} {field_name} must be finite "
+                    "and within [0, 1]"
+                )
+    for match_group_name in ("matches", "future_matches"):
+        for match in payload[match_group_name]:
+            brier_score = match.get("brier_score")
+            if brier_score is None:
+                continue
+            if (
+                isinstance(brier_score, bool)
+                or not isinstance(brier_score, (int, float))
+                or not math.isfinite(brier_score)
+                or not 0.0 <= brier_score <= 1.0
+            ):
+                raise ValueError(
+                    f"Prediction payload {match_group_name} brier_score must be finite "
+                    "and within [0, 1]"
+                )
     future_ids = [match.get("id") for match in payload["future_matches"]]
     if any(not match_id for match_id in future_ids):
         raise ValueError("Prediction payload future matches must have IDs")
@@ -1235,6 +1274,7 @@ def generate_fixture_predictions(
                 "correct": None,
                 "confidence": round(confidence, 4),
                 "log_score": None,
+                "brier_score": None,
                 "player1_skill": round(float(pred.player1_mean[0, 0]), 4),
                 "player2_skill": round(float(pred.player2_mean[0, 0]), 4),
                 "player1_skill_sd": round(float(jnp.sqrt(jnp.maximum(pred.player1_var[0], 1e-8))), 4),

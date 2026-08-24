@@ -27,14 +27,18 @@ const predictions: PredictionPayload = {
       n_correct: 1,
       accuracy: 0.5,
       avg_log_score: -0.69,
+      avg_brier_score: 0.3,
       uniform_baseline: -0.6931,
+      brier_uniform_baseline: 0.25,
     },
     eval: {
       n_matches: 1,
       n_correct: 1,
       accuracy: 1,
       avg_log_score: -0.4,
+      avg_brier_score: 0.16,
       uniform_baseline: -0.6931,
+      brier_uniform_baseline: 0.25,
     },
     n_future_matches: 1,
   },
@@ -62,6 +66,7 @@ const predictions: PredictionPayload = {
       correct: true,
       confidence: 0.62,
       log_score: -0.48,
+      brier_score: 0.1444,
       player1_skill: 1.2,
       player2_skill: 0.2,
       player1_skill_sd: 0.4,
@@ -88,6 +93,7 @@ const predictions: PredictionPayload = {
       correct: null,
       confidence: 0.55,
       log_score: null,
+      brier_score: null,
       player1_skill: 0.8,
       player2_skill: 0.5,
       player1_skill_sd: 0.5,
@@ -168,10 +174,14 @@ describe("App", () => {
     expect(screen.getByText("Test accuracy")).toBeInTheDocument();
     expect(screen.getByText("50.0%")).toBeInTheDocument();
     expect(screen.getByText("1 / 2 correct")).toBeInTheDocument();
+    expect(screen.getByText("Test Brier")).toBeInTheDocument();
+    expect(screen.getByText("0.3000")).toBeInTheDocument();
     expect(screen.getByText("Eval accuracy")).toBeInTheDocument();
     expect(screen.getByText("100.0%")).toBeInTheDocument();
     expect(screen.getByText("1 / 1 correct")).toBeInTheDocument();
-    expect(screen.getByText(/Test accuracy uses held-out 2025 matches/)).toBeInTheDocument();
+    expect(screen.getByText("Eval Brier")).toBeInTheDocument();
+    expect(screen.getByText("0.1600")).toBeInTheDocument();
+    expect(screen.getByText(/Brier score is 0 for a perfect forecast/)).toBeInTheDocument();
     expect(screen.getAllByText(/Future Open/).length).toBeGreaterThan(0);
     expect(screen.queryByText("Current WTA matches")).not.toBeInTheDocument();
     expect(screen.getByText("Completed results")).toBeInTheDocument();
@@ -242,6 +252,8 @@ describe("App", () => {
     const outcomeSection = within(drawer).getByRole("region", { name: "Outcome" });
     expect(within(outcomeSection).getByText("Prediction")).toBeInTheDocument();
     expect(within(outcomeSection).queryByText("Result")).not.toBeInTheDocument();
+    expect(within(outcomeSection).getByText("Brier score")).toBeInTheDocument();
+    expect(within(outcomeSection).getAllByText("Pending")).toHaveLength(2);
     expect(within(drawer).getByText("Model vs Polymarket")).toBeInTheDocument();
     expect(within(drawer).getByRole("columnheader", { name: "Outcome" })).toBeInTheDocument();
     expect(within(drawer).getByRole("columnheader", { name: "Difference" })).toBeInTheDocument();
@@ -250,6 +262,40 @@ describe("App", () => {
     expect(screen.queryByRole("dialog", { name: /Player C vs Player D/ })).not.toBeInTheDocument();
     expect(document.body).not.toHaveStyle({ overflow: "hidden" });
     expect(trigger).toHaveFocus();
+  });
+
+  it("shows a completed match Brier score in the drawer", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await waitFor(() => expect(screen.getByText("Completed results")).toBeInTheDocument());
+    const completedSection = screen.getByRole("region", { name: "Completed results" });
+    await user.click(within(completedSection).getByText("Player A").closest("article")!);
+
+    const drawer = screen.getByRole("dialog", { name: /Player A vs Player B/ });
+    const outcomeSection = within(drawer).getByRole("region", { name: "Outcome" });
+    expect(within(outcomeSection).getByText("Brier score")).toBeInTheDocument();
+    expect(within(outcomeSection).getByText("0.1444")).toBeInTheDocument();
+  });
+
+  it("shows fallback values while loading a legacy payload without Brier metrics", async () => {
+    const legacyPredictions: PredictionPayload = {
+      ...predictions,
+      metrics: {
+        ...predictions.metrics,
+        test: { n_matches: 2, n_correct: 1, accuracy: 0.5 },
+        eval: { n_matches: 1, n_correct: 1, accuracy: 1 },
+      },
+    };
+    vi.stubGlobal("fetch", vi.fn((url: string) => Promise.resolve({
+      ok: true,
+      json: () => Promise.resolve(url.includes("results") ? results : legacyPredictions),
+    })));
+
+    render(<App />);
+
+    await waitFor(() => expect(screen.getByText("Upcoming predictions")).toBeInTheDocument());
+    expect(screen.getAllByText("—")).toHaveLength(2);
   });
 
   it("renders all completed forecasts and rankings", async () => {

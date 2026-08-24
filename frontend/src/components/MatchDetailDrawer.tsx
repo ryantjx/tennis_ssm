@@ -124,6 +124,10 @@ export function MatchDetailDrawer({ match, onClose }: MatchDetailDrawerProps) {
                 <dt>Log score</dt>
                 <dd>{match.log_score === null ? "Pending" : match.log_score.toFixed(4)}</dd>
               </div>
+              <div>
+                <dt>Brier score</dt>
+                <dd>{match.brier_score == null ? "Pending" : match.brier_score.toFixed(4)}</dd>
+              </div>
             </dl>
           </section>
         </div>
