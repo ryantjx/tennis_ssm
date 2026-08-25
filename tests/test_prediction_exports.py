@@ -1,12 +1,16 @@
 import datetime as dt
+from types import SimpleNamespace
 import unittest
 
+from jax import numpy as jnp
 import polars as pl
 
 from main import (
     apply_market_predictions,
+    build_match_predictions_json,
     build_predictions_payload,
     build_results_json,
+    evaluate_predictions,
     extract_polymarket_moneylines,
     generate_fixture_predictions,
     validate_predictions_payload,
@@ -74,7 +78,81 @@ class PredictionExportTest(unittest.TestCase):
         self.assertEqual(row["player2_rank"], 9)
         self.assertTrue(row["is_future"])
         self.assertIsNone(row["actual_winner"])
+        self.assertIsNone(row["brier_score"])
         self.assertAlmostEqual(row["p_player1_win"] + row["p_player2_win"], 1.0, places=4)
+
+    def test_evaluate_predictions_reports_binary_brier_scores(self):
+        predictions = SimpleNamespace(
+            p_player1_win=jnp.array([0.9, 0.5, 0.1]),
+            p_player2_win=jnp.array([0.1, 0.5, 0.9]),
+        )
+
+        metrics = evaluate_predictions(predictions, jnp.array([1.0, 1.0, 1.0]))
+
+        self.assertEqual(metrics["avg_brier_score"], 0.3567)
+        self.assertEqual(metrics["brier_uniform_baseline"], 0.25)
+
+    def test_evaluate_predictions_handles_an_empty_window(self):
+        predictions = SimpleNamespace(
+            p_player1_win=jnp.array([]),
+            p_player2_win=jnp.array([]),
+        )
+
+        metrics = evaluate_predictions(predictions, jnp.array([]))
+
+        self.assertEqual(metrics["avg_brier_score"], 0.0)
+        self.assertEqual(metrics["brier_uniform_baseline"], 0.25)
+
+    def test_evaluate_predictions_uses_player2_win_outcomes(self):
+        predictions = SimpleNamespace(
+            p_player1_win=jnp.array([0.9, 0.1]),
+            p_player2_win=jnp.array([0.1, 0.9]),
+        )
+
+        metrics = evaluate_predictions(predictions, jnp.array([0.0, 0.0]))
+
+        self.assertEqual(metrics["n_correct"], 1)
+        self.assertEqual(metrics["accuracy"], 0.5)
+        self.assertEqual(metrics["avg_brier_score"], 0.41)
+
+    def test_completed_match_export_uses_each_actual_outcome(self):
+        test_data = SimpleNamespace(
+            num_matches=2,
+            match_metadata=SimpleNamespace(
+                tournament=["Test Open", "Test Open"],
+                location=["London", "London"],
+                tier=["WTA500", "WTA500"],
+                surface=["Grass", "Grass"],
+                round=["Final", "Final"],
+            ),
+        )
+        test_jax = SimpleNamespace(
+            player1_id=jnp.array([0, 0]),
+            player2_id=jnp.array([1, 1]),
+            winner=jnp.array([1.0, 0.0]),
+            timestamp=jnp.array([1100, 1101]),
+        )
+        predictions = SimpleNamespace(
+            p_player1_win=jnp.array([0.8, 0.8]),
+            p_player2_win=jnp.array([0.2, 0.2]),
+            player1_mean=jnp.array([[[1.0]], [[1.0]]]),
+            player2_mean=jnp.array([[[0.0]], [[0.0]]]),
+            player1_var=jnp.array([[0.25], [0.25]]),
+            player2_var=jnp.array([[0.25], [0.25]]),
+        )
+
+        exported = build_match_predictions_json(
+            test_data=test_data,
+            test_jax=test_jax,
+            predictions=predictions,
+            id_to_name={0: "Player One", 1: "Player Two"},
+        )
+
+        self.assertEqual(exported[0]["brier_score"], 0.04)
+        self.assertEqual(exported[0]["actual_winner"], "Player One")
+        self.assertEqual(exported[1]["brier_score"], 0.64)
+        self.assertEqual(exported[1]["actual_winner"], "Player Two")
+        self.assertEqual(exported[1]["log_score"], -1.6094)
 
     def test_fixture_prediction_ids_include_tournament_context(self):
         model = GaussianFactorialTennis(
@@ -126,8 +204,20 @@ class PredictionExportTest(unittest.TestCase):
             "model_params": {},
             "optimization": {},
             "metrics": {
-                "test": {"n_matches": 0, "n_correct": 0, "accuracy": 0.0},
-                "eval": {"n_matches": 0, "n_correct": 0, "accuracy": 0.0},
+                "test": {
+                    "n_matches": 0,
+                    "n_correct": 0,
+                    "accuracy": 0.0,
+                    "avg_brier_score": 0.0,
+                    "brier_uniform_baseline": 0.25,
+                },
+                "eval": {
+                    "n_matches": 0,
+                    "n_correct": 0,
+                    "accuracy": 0.0,
+                    "avg_brier_score": 0.0,
+                    "brier_uniform_baseline": 0.25,
+                },
             },
             "top_players": [],
             "matches": [],
@@ -152,21 +242,25 @@ class PredictionExportTest(unittest.TestCase):
                 "n_correct": 1,
                 "accuracy": 0.5,
                 "avg_log_score": -0.69,
+                "avg_brier_score": 0.3,
                 "uniform_baseline": -0.6931,
+                "brier_uniform_baseline": 0.25,
             },
             eval_metrics={
                 "n_matches": 1,
                 "n_correct": 1,
                 "accuracy": 1.0,
                 "avg_log_score": -0.4,
+                "avg_brier_score": 0.16,
                 "uniform_baseline": -0.6931,
+                "brier_uniform_baseline": 0.25,
             },
             top_players=[
                 {"rank": rank, "name": f"Player {rank}", "skill": 1 / rank, "variance": 0.1}
                 for rank in range(1, 53)
             ],
             matches=[
-                {"date": "2026-06-27"},
+                {"date": "2026-06-27", "brier_score": 0.16},
             ],
             test_window_matches=[
                 {"date": "2025-01-01"},
@@ -184,6 +278,8 @@ class PredictionExportTest(unittest.TestCase):
         self.assertEqual(payload["metrics"]["n_future_matches"], 0)
         self.assertEqual(payload["metrics"]["test"]["n_correct"], 1)
         self.assertEqual(payload["metrics"]["eval"]["accuracy"], 1.0)
+        self.assertEqual(payload["metrics"]["test"]["avg_brier_score"], 0.3)
+        self.assertEqual(payload["matches"][0]["brier_score"], 0.16)
         self.assertEqual(len(payload["top_players"]), 52)
         self.assertEqual(payload["data_windows"]["train_display_start"], "2022-01-01")
         self.assertEqual(payload["data_windows"]["train_display_end"], "2024-12-31")
@@ -196,6 +292,41 @@ class PredictionExportTest(unittest.TestCase):
         self.assertEqual(payload["data_windows"]["eval_match_start"], "2026-06-27")
         self.assertEqual(payload["data_windows"]["eval_match_end"], "2026-06-27")
         self.assertNotIn("upcoming_match_start", payload["data_windows"])
+
+    def test_prediction_payload_rejects_invalid_brier_scores(self):
+        payload = {
+            "generated_at": "2026-07-09T12:00:00Z",
+            "data_windows": {},
+            "model_params": {},
+            "optimization": {},
+            "metrics": {
+                "test": {
+                    "n_matches": 1,
+                    "n_correct": 1,
+                    "accuracy": 1.0,
+                    "avg_brier_score": 0.1,
+                    "brier_uniform_baseline": 0.25,
+                },
+                "eval": {
+                    "n_matches": 1,
+                    "n_correct": 1,
+                    "accuracy": 1.0,
+                    "avg_brier_score": 0.1,
+                    "brier_uniform_baseline": 0.25,
+                },
+            },
+            "top_players": [],
+            "matches": [{"brier_score": 1.1}],
+            "future_matches": [],
+        }
+
+        with self.assertRaisesRegex(ValueError, "brier_score must be finite"):
+            validate_predictions_payload(payload)
+
+        payload["matches"][0]["brier_score"] = None
+        payload["metrics"]["test"]["avg_brier_score"] = float("nan")
+        with self.assertRaisesRegex(ValueError, "avg_brier_score must be finite"):
+            validate_predictions_payload(payload)
 
     def test_polymarket_moneyline_matches_fixture_by_player_pair(self):
         events = [

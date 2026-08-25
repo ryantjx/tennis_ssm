@@ -36,6 +36,7 @@ export interface MatchPrediction {
   correct: boolean | null;
   confidence: number;
   log_score: number | null;
+  brier_score?: number | null;
   player1_skill: number;
   player2_skill: number;
   player1_skill_sd: number;
@@ -137,7 +138,9 @@ export interface PerformanceMetrics {
   n_correct: number;
   accuracy: number;
   avg_log_score?: number;
+  avg_brier_score?: number;
   uniform_baseline?: number;
+  brier_uniform_baseline?: number;
 }
 
 export interface CompletedResult {

@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import datetime as dt
 import json
+import math
 import os
 import shutil
 import unicodedata
@@ -128,8 +129,8 @@ def main() -> None:
     player_rankings_by_id = build_player_rankings_by_id(historical_data, skill_means, skill_vars)
     test_predictions = slice_predictions(historical_predictions, test_indices)
     predictions = slice_predictions(historical_predictions, eval_indices)
-    test_metrics = evaluate_predictions(test_predictions)
-    eval_metrics = evaluate_predictions(predictions)
+    test_metrics = evaluate_predictions(test_predictions, test_data.jax_data.winner)
+    eval_metrics = evaluate_predictions(predictions, eval_data.jax_data.winner)
     optimization = saved_parameter_metadata(best_params, test_metrics)
     print()
 
@@ -539,7 +540,7 @@ def optimize_params_for_test_log_score(
             current_time=current_time,
             test_jax=test_jax,
         )
-        metrics = evaluate_predictions(predictions)
+        metrics = evaluate_predictions(predictions, test_jax.winner)
         trial = {
             "trial": idx,
             "params": params,
@@ -549,6 +550,7 @@ def optimize_params_for_test_log_score(
         print(
             f"  trial={idx:02d} "
             f"avg_log_score={metrics['avg_log_score']:.4f} "
+            f"avg_brier_score={metrics['avg_brier_score']:.4f} "
             f"accuracy={metrics['accuracy']:.1%} "
             f"tau={params['tau']:.6f} s={params['s']:.6f} "
             f"init_var={params['init_var']:.6f}"
@@ -623,18 +625,27 @@ def predict_test_matches(
     return predict_fn(state, jnp.array(current_time), test_jax)
 
 
-def evaluate_predictions(predictions: Any) -> dict[str, float | int]:
+def evaluate_predictions(predictions: Any, outcomes: Any) -> dict[str, float | int]:
     p1_probs = predictions.p_player1_win
-    correct = int(jnp.sum(p1_probs > 0.5))
+    p2_probs = predictions.p_player2_win
+    outcomes = jnp.asarray(outcomes)
+    if p1_probs.shape != outcomes.shape or p2_probs.shape != outcomes.shape:
+        raise ValueError("Prediction probabilities and outcomes must have matching shapes")
+    predicted_outcomes = (p1_probs > 0.5).astype(outcomes.dtype)
+    correct = int(jnp.sum(predicted_outcomes == outcomes))
     n_matches = int(p1_probs.shape[0])
     accuracy = correct / n_matches if n_matches else 0.0
-    log_scores = jnp.log(jnp.maximum(p1_probs, 1e-8))
+    actual_winner_probs = jnp.where(outcomes == 1.0, p1_probs, p2_probs)
+    log_scores = jnp.log(jnp.maximum(actual_winner_probs, 1e-8))
+    brier_scores = jnp.square(p1_probs - outcomes)
     return {
         "n_matches": n_matches,
         "n_correct": correct,
         "accuracy": round(accuracy, 4),
         "avg_log_score": round(float(jnp.mean(log_scores)), 4) if n_matches else 0.0,
+        "avg_brier_score": round(float(jnp.mean(brier_scores)), 4) if n_matches else 0.0,
         "uniform_baseline": round(float(jnp.log(0.5)), 4),
+        "brier_uniform_baseline": 0.25,
     }
 
 
@@ -873,10 +884,12 @@ def build_match_predictions_json(
         p2_name = id_to_name.get(p2_id, f"Unknown({p2_id})")
         p1_prob = float(predictions.p_player1_win[i])
         p2_prob = float(predictions.p_player2_win[i])
-        actual_winner = p1_name
+        actual_player1_outcome = float(test_jax.winner[i])
+        player1_won = actual_player1_outcome == 1.0
+        actual_winner = p1_name if player1_won else p2_name
         predicted_winner = p1_name if p1_prob > 0.5 else p2_name
         confidence = max(p1_prob, p2_prob)
-        actual_winner_prob = p1_prob
+        actual_winner_prob = p1_prob if player1_won else p2_prob
         ts = int(test_jax.timestamp[i])
         matches_json.append(
             {
@@ -892,6 +905,7 @@ def build_match_predictions_json(
                 "correct": predicted_winner == actual_winner,
                 "confidence": round(confidence, 4),
                 "log_score": round(float(jnp.log(jnp.maximum(actual_winner_prob, 1e-8))), 4),
+                "brier_score": round((p1_prob - actual_player1_outcome) ** 2, 4),
                 "player1_skill": round(float(predictions.player1_mean[i, 0, 0]), 4),
                 "player2_skill": round(float(predictions.player2_mean[i, 0, 0]), 4),
                 "player1_skill_sd": round(
@@ -1044,7 +1058,13 @@ def validate_predictions_payload(payload: dict[str, Any]) -> None:
             "Prediction payload metrics missing required groups: "
             f"{sorted(missing_metric_groups)}"
         )
-    required_metric_fields = {"n_matches", "n_correct", "accuracy"}
+    required_metric_fields = {
+        "n_matches",
+        "n_correct",
+        "accuracy",
+        "avg_brier_score",
+        "brier_uniform_baseline",
+    }
     for group_name in ("test", "eval"):
         group = metrics[group_name]
         if not isinstance(group, dict):
@@ -1055,6 +1075,33 @@ def validate_predictions_payload(payload: dict[str, Any]) -> None:
                 f"Prediction payload {group_name} metrics missing required fields: "
                 f"{sorted(missing_metric_fields)}"
             )
+        for field_name in ("avg_brier_score", "brier_uniform_baseline"):
+            value = group[field_name]
+            if (
+                isinstance(value, bool)
+                or not isinstance(value, (int, float))
+                or not math.isfinite(value)
+                or not 0.0 <= value <= 1.0
+            ):
+                raise ValueError(
+                    f"Prediction payload {group_name} {field_name} must be finite "
+                    "and within [0, 1]"
+                )
+    for match_group_name in ("matches", "future_matches"):
+        for match in payload[match_group_name]:
+            brier_score = match.get("brier_score")
+            if brier_score is None:
+                continue
+            if (
+                isinstance(brier_score, bool)
+                or not isinstance(brier_score, (int, float))
+                or not math.isfinite(brier_score)
+                or not 0.0 <= brier_score <= 1.0
+            ):
+                raise ValueError(
+                    f"Prediction payload {match_group_name} brier_score must be finite "
+                    "and within [0, 1]"
+                )
     future_ids = [match.get("id") for match in payload["future_matches"]]
     if any(not match_id for match_id in future_ids):
         raise ValueError("Prediction payload future matches must have IDs")
@@ -1235,6 +1282,7 @@ def generate_fixture_predictions(
                 "correct": None,
                 "confidence": round(confidence, 4),
                 "log_score": None,
+                "brier_score": None,
                 "player1_skill": round(float(pred.player1_mean[0, 0]), 4),
                 "player2_skill": round(float(pred.player2_mean[0, 0]), 4),
                 "player1_skill_sd": round(float(jnp.sqrt(jnp.maximum(pred.player1_var[0], 1e-8))), 4),

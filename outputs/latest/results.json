@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-24T07:22:32.291477+00:00",
+  "generated_at": "2026-08-24T20:09:04.368285+00:00",
   "source": "tennis-data.co.uk history + WTA API completed results",
   "data_window": {
     "start": "2026-01-04",
@@ -23249,20 +23249,6 @@
     {
       "id": "result-2026-07-24-1660",
       "date": "2026-07-24",
-      "winner": "Badosa P",
-      "loser": "Sherif M",
-      "player1": "Badosa P",
-      "player2": "Sherif M",
-      "actual_winner": "Badosa P",
-      "tournament": "Hamburg European Open",
-      "location": "HAMBURG",
-      "tier": "WTA 250",
-      "surface": "Clay",
-      "round": "Quarterfinals"
-    },
-    {
-      "id": "result-2026-07-24-1661",
-      "date": "2026-07-24",
       "winner": "Bondar A",
       "loser": "Charaeva A",
       "player1": "Bondar A",
@@ -23275,35 +23261,7 @@
       "round": "Quarterfinals"
     },
     {
-      "id": "result-2026-07-24-1662",
-      "date": "2026-07-24",
-      "winner": "Charaeva A",
-      "loser": "Bondar A",
-      "player1": "Charaeva A",
-      "player2": "Bondar A",
-      "actual_winner": "Charaeva A",
-      "tournament": "Hamburg European Open",
-      "location": "HAMBURG",
-      "tier": "WTA 250",
-      "surface": "Clay",
-      "round": "Quarterfinals"
-    },
-    {
-      "id": "result-2026-07-24-1663",
-      "date": "2026-07-24",
-      "winner": "Kalinina A",
-      "loser": "Korpatsch T",
-      "player1": "Kalinina A",
-      "player2": "Korpatsch T",
-      "actual_winner": "Kalinina A",
-      "tournament": "Hamburg European Open",
-      "location": "HAMBURG",
-      "tier": "WTA 250",
-      "surface": "Clay",
-      "round": "Quarterfinals"
-    },
-    {
-      "id": "result-2026-07-24-1664",
+      "id": "result-2026-07-24-1661",
       "date": "2026-07-24",
       "winner": "Korpatsch T",
       "loser": "Kalinina A",
@@ -23317,7 +23275,7 @@
       "round": "Quarterfinals"
     },
     {
-      "id": "result-2026-07-24-1665",
+      "id": "result-2026-07-24-1662",
       "date": "2026-07-24",
       "winner": "Sherif M",
       "loser": "Badosa P",
@@ -23331,63 +23289,7 @@
       "round": "Quarterfinals"
     },
     {
-      "id": "result-2026-07-24-1666",
-      "date": "2026-07-24",
-      "winner": "Burel C",
-      "loser": "Ibragimova A",
-      "player1": "Burel C",
-      "player2": "Ibragimova A",
-      "actual_winner": "Burel C",
-      "tournament": "Palermo Ladies Open",
-      "location": "PALERMO",
-      "tier": "WTA 125",
-      "surface": "Clay",
-      "round": "Quarterfinals"
-    },
-    {
-      "id": "result-2026-07-24-1667",
-      "date": "2026-07-24",
-      "winner": "Hodzic M",
-      "loser": "Ferro F",
-      "player1": "Hodzic M",
-      "player2": "Ferro F",
-      "actual_winner": "Hodzic M",
-      "tournament": "Palermo Ladies Open",
-      "location": "PALERMO",
-      "tier": "WTA 125",
-      "surface": "Clay",
-      "round": "Quarterfinals"
-    },
-    {
-      "id": "result-2026-07-24-1668",
-      "date": "2026-07-24",
-      "winner": "Ruggeri J",
-      "loser": "Jones F",
-      "player1": "Ruggeri J",
-      "player2": "Jones F",
-      "actual_winner": "Ruggeri J",
-      "tournament": "Palermo Ladies Open",
-      "location": "PALERMO",
-      "tier": "WTA 125",
-      "surface": "Clay",
-      "round": "Quarterfinals"
-    },
-    {
-      "id": "result-2026-07-24-1669",
-      "date": "2026-07-24",
-      "winner": "Bejlek S",
-      "loser": "Tagger L",
-      "player1": "Bejlek S",
-      "player2": "Tagger L",
-      "actual_winner": "Bejlek S",
-      "tournament": "Prague Open",
-      "location": "PRAGUE",
-      "tier": "WTA 250",
-      "surface": "Hard",
-      "round": "Quarterfinals"
-    },
-    {
-      "id": "result-2026-07-24-1670",
+      "id": "result-2026-07-24-1663",
       "date": "2026-07-24",
       "winner": "Krejcikova B",
       "loser": "Salkova D",
@@ -23401,7 +23303,7 @@
       "round": "Quarterfinals"
     },
     {
-      "id": "result-2026-07-24-1671",
+      "id": "result-2026-07-24-1664",
       "date": "2026-07-24",
       "winner": "Snigur D",
       "loser": "Tararudee L",
@@ -23415,7 +23317,7 @@
       "round": "Quarterfinals"
     },
     {
-      "id": "result-2026-07-24-1672",
+      "id": "result-2026-07-24-1665",
       "date": "2026-07-24",
       "winner": "Tagger L",
       "loser": "Bejlek S",
@@ -23429,7 +23331,7 @@
       "round": "Quarterfinals"
     },
     {
-      "id": "result-2026-07-24-1673",
+      "id": "result-2026-07-24-1666",
       "date": "2026-07-24",
       "winner": "Valentova T",
       "loser": "Bouzkova M",
@@ -23443,7 +23345,7 @@
       "round": "Quarterfinals"
     },
     {
-      "id": "result-2026-07-25-1674",
+      "id": "result-2026-07-25-1667",
       "date": "2026-07-25",
       "winner": "Bondar A",
       "loser": "Avanesyan E",
@@ -23457,7 +23359,7 @@
       "round": "Semifinals"
     },
     {
-      "id": "result-2026-07-25-1675",
+      "id": "result-2026-07-25-1668",
       "date": "2026-07-25",
       "winner": "Korpatsch T",
       "loser": "Sherif M",
@@ -23471,7 +23373,7 @@
       "round": "Semifinals"
     },
     {
-      "id": "result-2026-07-25-1676",
+      "id": "result-2026-07-25-1669",
       "date": "2026-07-25",
       "winner": "Bolkvadze M",
       "loser": "Kasatkina D",
@@ -23485,7 +23387,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-07-25-1677",
+      "id": "result-2026-07-25-1670",
       "date": "2026-07-25",
       "winner": "Iatcenko P",
       "loser": "Pareja J",
@@ -23499,7 +23401,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-07-25-1678",
+      "id": "result-2026-07-25-1671",
       "date": "2026-07-25",
       "winner": "Yamaguchi M",
       "loser": "Kudermetova P",
@@ -23513,7 +23415,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-07-25-1679",
+      "id": "result-2026-07-25-1672",
       "date": "2026-07-25",
       "winner": "Bronzetti L",
       "loser": "Ferro F",
@@ -23527,7 +23429,7 @@
       "round": "Semifinals"
     },
     {
-      "id": "result-2026-07-25-1680",
+      "id": "result-2026-07-25-1673",
       "date": "2026-07-25",
       "winner": "Ibragimova A",
       "loser": "Jones F",
@@ -23541,7 +23443,7 @@
       "round": "Semifinals"
     },
     {
-      "id": "result-2026-07-25-1681",
+      "id": "result-2026-07-25-1674",
       "date": "2026-07-25",
       "winner": "Krejcikova B",
       "loser": "Tagger L",
@@ -23555,7 +23457,7 @@
       "round": "Semifinals"
     },
     {
-      "id": "result-2026-07-25-1682",
+      "id": "result-2026-07-25-1675",
       "date": "2026-07-25",
       "winner": "Snigur D",
       "loser": "Valentova T",
@@ -23569,7 +23471,7 @@
       "round": "Semifinals"
     },
     {
-      "id": "result-2026-07-25-1683",
+      "id": "result-2026-07-25-1676",
       "date": "2026-07-25",
       "winner": "Tagger L",
       "loser": "Krejcikova B",
@@ -23583,7 +23485,7 @@
       "round": "Semifinals"
     },
     {
-      "id": "result-2026-07-25-1684",
+      "id": "result-2026-07-25-1677",
       "date": "2026-07-25",
       "winner": "Payne B",
       "loser": "Drenser-Hagmann K",
@@ -23597,7 +23499,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-07-25-1685",
+      "id": "result-2026-07-25-1678",
       "date": "2026-07-25",
       "winner": "Soares C",
       "loser": "Sebov K",
@@ -23611,7 +23513,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-07-25-1686",
+      "id": "result-2026-07-25-1679",
       "date": "2026-07-25",
       "winner": "Grubor A",
       "loser": "Schoppe E",
@@ -23625,7 +23527,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-07-25-1687",
+      "id": "result-2026-07-25-1680",
       "date": "2026-07-25",
       "winner": "Kadi H",
       "loser": "Wei S",
@@ -23639,7 +23541,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-07-25-1688",
+      "id": "result-2026-07-25-1681",
       "date": "2026-07-25",
       "winner": "Leon S",
       "loser": "Scott K",
@@ -23653,7 +23555,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-07-25-1689",
+      "id": "result-2026-07-25-1682",
       "date": "2026-07-25",
       "winner": "Okalova M",
       "loser": "Alexander A",
@@ -23667,7 +23569,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-07-26-1690",
+      "id": "result-2026-07-26-1683",
       "date": "2026-07-26",
       "winner": "Korpatsch T",
       "loser": "Bondar A",
@@ -23681,7 +23583,7 @@
       "round": "The Final"
     },
     {
-      "id": "result-2026-07-26-1691",
+      "id": "result-2026-07-26-1684",
       "date": "2026-07-26",
       "winner": "Lepchenko V",
       "loser": "Kudermetova P",
@@ -23695,7 +23597,7 @@
       "round": "Round 2"
     },
     {
-      "id": "result-2026-07-26-1692",
+      "id": "result-2026-07-26-1685",
       "date": "2026-07-26",
       "winner": "Smith A",
       "loser": "Kasatkina D",
@@ -23709,7 +23611,7 @@
       "round": "Round 2"
     },
     {
-      "id": "result-2026-07-26-1693",
+      "id": "result-2026-07-26-1686",
       "date": "2026-07-26",
       "winner": "Ferro F",
       "loser": "Jones F",
@@ -23723,7 +23625,7 @@
       "round": "Final"
     },
     {
-      "id": "result-2026-07-26-1694",
+      "id": "result-2026-07-26-1687",
       "date": "2026-07-26",
       "winner": "Tagger L",
       "loser": "Snigur D",
@@ -23737,7 +23639,7 @@
       "round": "The Final"
     },
     {
-      "id": "result-2026-07-26-1695",
+      "id": "result-2026-07-26-1688",
       "date": "2026-07-26",
       "winner": "Mazzola A",
       "loser": "Kotliar Y",
@@ -23751,7 +23653,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-07-26-1696",
+      "id": "result-2026-07-26-1689",
       "date": "2026-07-26",
       "winner": "Drenser-Hagmann K",
       "loser": "Prozorova T",
@@ -23765,7 +23667,7 @@
       "round": "Round 2"
     },
     {
-      "id": "result-2026-07-26-1697",
+      "id": "result-2026-07-26-1690",
       "date": "2026-07-26",
       "winner": "Ito A",
       "loser": "Ma Y",
@@ -23779,7 +23681,7 @@
       "round": "Round 2"
     },
     {
-      "id": "result-2026-07-26-1698",
+      "id": "result-2026-07-26-1691",
       "date": "2026-07-26",
       "winner": "Johnson S",
       "loser": "Hunter S",
@@ -23793,7 +23695,7 @@
       "round": "Round 2"
     },
     {
-      "id": "result-2026-07-26-1699",
+      "id": "result-2026-07-26-1692",
       "date": "2026-07-26",
       "winner": "Kozyreva M",
       "loser": "Liutova K",
@@ -23807,7 +23709,7 @@
       "round": "Round 2"
     },
     {
-      "id": "result-2026-07-26-1700",
+      "id": "result-2026-07-26-1693",
       "date": "2026-07-26",
       "winner": "Ovcharenko E",
       "loser": "Raina A",
@@ -23821,7 +23723,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-07-26-1701",
+      "id": "result-2026-07-26-1694",
       "date": "2026-07-26",
       "winner": "Teixido Garcia A",
       "loser": "Sebov K",
@@ -23835,7 +23737,7 @@
       "round": "Round 2"
     },
     {
-      "id": "result-2026-07-26-1702",
+      "id": "result-2026-07-26-1695",
       "date": "2026-07-26",
       "winner": "Kuwata H",
       "loser": "Kuramochi M",
@@ -23849,7 +23751,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-07-27-1703",
+      "id": "result-2026-07-27-1696",
       "date": "2026-07-27",
       "winner": "Cocciaretto E",
       "loser": "Tauson C",
@@ -23863,7 +23765,7 @@
       "round": "1st Round"
     },
     {
-      "id": "result-2026-07-27-1704",
+      "id": "result-2026-07-27-1697",
       "date": "2026-07-27",
       "winner": "Fernandez L",
       "loser": "Linette M",
@@ -23877,7 +23779,7 @@
       "round": "1st Round"
     },
     {
-      "id": "result-2026-07-27-1705",
+      "id": "result-2026-07-27-1698",
       "date": "2026-07-27",
       "winner": "Navarro E",
       "loser": "Kenin S",
@@ -23891,7 +23793,7 @@
       "round": "1st Round"
     },
     {
-      "id": "result-2026-07-27-1706",
+      "id": "result-2026-07-27-1699",
       "date": "2026-07-27",
       "winner": "Samsonova L",
       "loser": "Keys M",
@@ -23905,7 +23807,7 @@
       "round": "1st Round"
     },
     {
-      "id": "result-2026-07-27-1707",
+      "id": "result-2026-07-27-1700",
       "date": "2026-07-27",
       "winner": "Joint M",
       "loser": "Osuigwe W",
@@ -23919,7 +23821,7 @@
       "round": "1st Round"
     },
     {
-      "id": "result-2026-07-27-1708",
+      "id": "result-2026-07-27-1701",
       "date": "2026-07-27",
       "winner": "Maria T",
       "loser": "Gibson T",
@@ -23933,7 +23835,7 @@
       "round": "1st Round"
     },
     {
-      "id": "result-2026-07-27-1709",
+      "id": "result-2026-07-27-1702",
       "date": "2026-07-27",
       "winner": "Shymanovich I",
       "loser": "Brantmeier R",
@@ -23947,7 +23849,7 @@
       "round": "1st Round"
     },
     {
-      "id": "result-2026-07-27-1710",
+      "id": "result-2026-07-27-1703",
       "date": "2026-07-27",
       "winner": "Volynets K",
       "loser": "Golubic V",
@@ -23961,7 +23863,7 @@
       "round": "1st Round"
     },
     {
-      "id": "result-2026-07-27-1711",
+      "id": "result-2026-07-27-1704",
       "date": "2026-07-27",
       "winner": "Zakharova A",
       "loser": "Fruhvirtova L",
@@ -23975,7 +23877,7 @@
       "round": "1st Round"
     },
     {
-      "id": "result-2026-07-27-1712",
+      "id": "result-2026-07-27-1705",
       "date": "2026-07-27",
       "winner": "Boulter K",
       "loser": "Krueger A",
@@ -23989,7 +23891,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-07-27-1713",
+      "id": "result-2026-07-27-1706",
       "date": "2026-07-27",
       "winner": "Kenin S",
       "loser": "Navarro E",
@@ -24003,7 +23905,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-07-27-1714",
+      "id": "result-2026-07-27-1707",
       "date": "2026-07-27",
       "winner": "Keys M",
       "loser": "Samsonova L",
@@ -24017,7 +23919,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-07-27-1715",
+      "id": "result-2026-07-27-1708",
       "date": "2026-07-27",
       "winner": "Linette M",
       "loser": "Fernandez L",
@@ -24031,7 +23933,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-07-27-1716",
+      "id": "result-2026-07-27-1709",
       "date": "2026-07-27",
       "winner": "Sramkova R",
       "loser": "Tjen J",
@@ -24045,7 +23947,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-07-27-1717",
+      "id": "result-2026-07-27-1710",
       "date": "2026-07-27",
       "winner": "Tauson C",
       "loser": "Cocciaretto E",
@@ -24059,7 +23961,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-07-27-1718",
+      "id": "result-2026-07-27-1711",
       "date": "2026-07-27",
       "winner": "Fetecau I",
       "loser": "Quevedo K",
@@ -24073,7 +23975,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-07-27-1719",
+      "id": "result-2026-07-27-1712",
       "date": "2026-07-27",
       "winner": "Lansere S",
       "loser": "Burillo I",
@@ -24087,7 +23989,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-07-27-1720",
+      "id": "result-2026-07-27-1713",
       "date": "2026-07-27",
       "winner": "Pohankova M",
       "loser": "Hennemann C",
@@ -24101,7 +24003,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-07-27-1721",
+      "id": "result-2026-07-27-1714",
       "date": "2026-07-27",
       "winner": "Popa M",
       "loser": "Ciric Bagaric L",
@@ -24115,7 +24017,7 @@
       "round": "Round 2"
     },
     {
-      "id": "result-2026-07-27-1722",
+      "id": "result-2026-07-27-1715",
       "date": "2026-07-27",
       "winner": "Struplova J",
       "loser": "Rame A",
@@ -24129,7 +24031,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-07-27-1723",
+      "id": "result-2026-07-27-1716",
       "date": "2026-07-27",
       "winner": "Brantmeier R",
       "loser": "Shymanovich I",
@@ -24143,7 +24045,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-07-27-1724",
+      "id": "result-2026-07-27-1717",
       "date": "2026-07-27",
       "winner": "Fruhvirtova L",
       "loser": "Zakharova A",
@@ -24157,7 +24059,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-07-27-1725",
+      "id": "result-2026-07-27-1718",
       "date": "2026-07-27",
       "winner": "Golubic V",
       "loser": "Volynets K",
@@ -24171,7 +24073,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-07-27-1726",
+      "id": "result-2026-07-27-1719",
       "date": "2026-07-27",
       "winner": "Hunter S",
       "loser": "Osorio C",
@@ -24185,7 +24087,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-07-27-1727",
+      "id": "result-2026-07-27-1720",
       "date": "2026-07-27",
       "winner": "Osuigwe W",
       "loser": "Joint M",
@@ -24199,7 +24101,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-07-27-1728",
+      "id": "result-2026-07-27-1721",
       "date": "2026-07-27",
       "winner": "Raina A",
       "loser": "Shymanovich I",
@@ -24213,7 +24115,7 @@
       "round": "Round 2"
     },
     {
-      "id": "result-2026-07-28-1729",
+      "id": "result-2026-07-28-1722",
       "date": "2026-07-28",
       "winner": "Eala A",
       "loser": "Zheng Q",
@@ -24227,7 +24129,7 @@
       "round": "1st Round"
     },
     {
-      "id": "result-2026-07-28-1730",
+      "id": "result-2026-07-28-1723",
       "date": "2026-07-28",
       "winner": "Frech M",
       "loser": "Li A",
@@ -24241,7 +24143,7 @@
       "round": "1st Round"
     },
     {
-      "id": "result-2026-07-28-1731",
+      "id": "result-2026-07-28-1724",
       "date": "2026-07-28",
       "winner": "Kalinskaya A",
       "loser": "Kasatkina D",
@@ -24255,7 +24157,7 @@
       "round": "1st Round"
     },
     {
-      "id": "result-2026-07-28-1732",
+      "id": "result-2026-07-28-1725",
       "date": "2026-07-28",
       "winner": "Krueger A",
       "loser": "Boulter K",
@@ -24269,7 +24171,7 @@
       "round": "1st Round"
     },
     {
-      "id": "result-2026-07-28-1733",
+      "id": "result-2026-07-28-1726",
       "date": "2026-07-28",
       "winner": "Kudermetova P",
       "loser": "Bucsa C",
@@ -24283,7 +24185,7 @@
       "round": "1st Round"
     },
     {
-      "id": "result-2026-07-28-1734",
+      "id": "result-2026-07-28-1727",
       "date": "2026-07-28",
       "winner": "Tjen J",
       "loser": "Sramkova R",
@@ -24297,7 +24199,7 @@
       "round": "1st Round"
     },
     {
-      "id": "result-2026-07-28-1735",
+      "id": "result-2026-07-28-1728",
       "date": "2026-07-28",
       "winner": "Wang Xin",
       "loser": "Pareja J",
@@ -24311,7 +24213,7 @@
       "round": "1st Round"
     },
     {
-      "id": "result-2026-07-28-1736",
+      "id": "result-2026-07-28-1729",
       "date": "2026-07-28",
       "winner": "Kalieva E",
       "loser": "Sebov K",
@@ -24325,7 +24227,7 @@
       "round": "1st Round"
     },
     {
-      "id": "result-2026-07-28-1737",
+      "id": "result-2026-07-28-1730",
       "date": "2026-07-28",
       "winner": "Liutova K",
       "loser": "Alexandrova E",
@@ -24339,7 +24241,7 @@
       "round": "1st Round"
     },
     {
-      "id": "result-2026-07-28-1738",
+      "id": "result-2026-07-28-1731",
       "date": "2026-07-28",
       "winner": "McNally C",
       "loser": "Wang Xiy",
@@ -24353,7 +24255,7 @@
       "round": "1st Round"
     },
     {
-      "id": "result-2026-07-28-1739",
+      "id": "result-2026-07-28-1732",
       "date": "2026-07-28",
       "winner": "Osorio M",
       "loser": "Hunter S",
@@ -24367,7 +24269,7 @@
       "round": "1st Round"
     },
     {
-      "id": "result-2026-07-28-1740",
+      "id": "result-2026-07-28-1733",
       "date": "2026-07-28",
       "winner": "Prozorova T",
       "loser": "Sierra S",
@@ -24381,7 +24283,7 @@
       "round": "1st Round"
     },
     {
-      "id": "result-2026-07-28-1741",
+      "id": "result-2026-07-28-1734",
       "date": "2026-07-28",
       "winner": "Sonmez Z",
       "loser": "Brace C",
@@ -24395,7 +24297,7 @@
       "round": "1st Round"
     },
     {
-      "id": "result-2026-07-28-1742",
+      "id": "result-2026-07-28-1735",
       "date": "2026-07-28",
       "winner": "Stearns P",
       "loser": "Stoiana M",
@@ -24409,7 +24311,7 @@
       "round": "1st Round"
     },
     {
-      "id": "result-2026-07-28-1743",
+      "id": "result-2026-07-28-1736",
       "date": "2026-07-28",
       "winner": "Stephens S",
       "loser": "Starodubtseva Y",
@@ -24423,7 +24325,7 @@
       "round": "1st Round"
     },
     {
-      "id": "result-2026-07-28-1744",
+      "id": "result-2026-07-28-1737",
       "date": "2026-07-28",
       "winner": "Vidmanova D",
       "loser": "Bassols M",
@@ -24437,7 +24339,7 @@
       "round": "1st Round"
     },
     {
-      "id": "result-2026-07-28-1745",
+      "id": "result-2026-07-28-1738",
       "date": "2026-07-28",
       "winner": "Li A",
       "loser": "Frech M",
@@ -24451,7 +24353,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-07-28-1746",
+      "id": "result-2026-07-28-1739",
       "date": "2026-07-28",
       "winner": "Zheng Q",
       "loser": "Eala A",
@@ -24465,7 +24367,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-07-28-1747",
+      "id": "result-2026-07-28-1740",
       "date": "2026-07-28",
       "winner": "Breaz A",
       "loser": "Samson L",
@@ -24479,7 +24381,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-07-28-1748",
+      "id": "result-2026-07-28-1741",
       "date": "2026-07-28",
       "winner": "Burcescu M",
       "loser": "Ibragimova A",
@@ -24493,7 +24395,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-07-28-1749",
+      "id": "result-2026-07-28-1742",
       "date": "2026-07-28",
       "winner": "Gailis R",
       "loser": "Ciric Bagaric L",
@@ -24507,7 +24409,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-07-28-1750",
+      "id": "result-2026-07-28-1743",
       "date": "2026-07-28",
       "winner": "Paquet C",
       "loser": "Jones F",
@@ -24521,7 +24423,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-07-28-1751",
+      "id": "result-2026-07-28-1744",
       "date": "2026-07-28",
       "winner": "Radivojevic L",
       "loser": "Rouvroy M",
@@ -24535,7 +24437,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-07-28-1752",
+      "id": "result-2026-07-28-1745",
       "date": "2026-07-28",
       "winner": "Semenistaja D",
       "loser": "Ristic M",
@@ -24549,7 +24451,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-07-28-1753",
+      "id": "result-2026-07-28-1746",
       "date": "2026-07-28",
       "winner": "Spiteri D",
       "loser": "Kotliar Y",
@@ -24563,7 +24465,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-07-28-1754",
+      "id": "result-2026-07-28-1747",
       "date": "2026-07-28",
       "winner": "Bassols Ribera M",
       "loser": "Vidmanova D",
@@ -24577,7 +24479,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-07-28-1755",
+      "id": "result-2026-07-28-1748",
       "date": "2026-07-28",
       "winner": "Brace C",
       "loser": "Sonmez Z",
@@ -24591,7 +24493,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-07-28-1756",
+      "id": "result-2026-07-28-1749",
       "date": "2026-07-28",
       "winner": "Alexander A",
       "loser": "Kuramochi M",
@@ -24605,7 +24507,7 @@
       "round": "Round 2"
     },
     {
-      "id": "result-2026-07-28-1757",
+      "id": "result-2026-07-28-1750",
       "date": "2026-07-28",
       "winner": "Dolehide C",
       "loser": "Lu J",
@@ -24619,7 +24521,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-07-28-1758",
+      "id": "result-2026-07-28-1751",
       "date": "2026-07-28",
       "winner": "Kuramochi M",
       "loser": "Uchijima M",
@@ -24633,7 +24535,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-07-28-1759",
+      "id": "result-2026-07-28-1752",
       "date": "2026-07-28",
       "winner": "Okamura K",
       "loser": "Kinoshita H",
@@ -24647,7 +24549,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-07-28-1760",
+      "id": "result-2026-07-28-1753",
       "date": "2026-07-28",
       "winner": "Savinykh V",
       "loser": "Dong E",
@@ -24661,7 +24563,7 @@
       "round": "Round 2"
     },
     {
-      "id": "result-2026-07-28-1761",
+      "id": "result-2026-07-28-1754",
       "date": "2026-07-28",
       "winner": "Schoppe E",
       "loser": "Hon P",
@@ -24675,7 +24577,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-07-28-1762",
+      "id": "result-2026-07-28-1755",
       "date": "2026-07-28",
       "winner": "Vagramov A",
       "loser": "Brengle M",
@@ -24689,7 +24591,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-07-28-1763",
+      "id": "result-2026-07-28-1756",
       "date": "2026-07-28",
       "winner": "Zhao C",
       "loser": "Jones E",
@@ -24703,7 +24605,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-07-29-1764",
+      "id": "result-2026-07-29-1757",
       "date": "2026-07-29",
       "winner": "Cocciaretto E",
       "loser": "Navarro E",
@@ -24717,7 +24619,7 @@
       "round": "2nd Round"
     },
     {
-      "id": "result-2026-07-29-1765",
+      "id": "result-2026-07-29-1758",
       "date": "2026-07-29",
       "winner": "Eala A",
       "loser": "Fernandez L",
@@ -24731,7 +24633,7 @@
       "round": "2nd Round"
     },
     {
-      "id": "result-2026-07-29-1766",
+      "id": "result-2026-07-29-1759",
       "date": "2026-07-29",
       "winner": "Osaka N",
       "loser": "Krueger A",
@@ -24745,7 +24647,7 @@
       "round": "2nd Round"
     },
     {
-      "id": "result-2026-07-29-1767",
+      "id": "result-2026-07-29-1760",
       "date": "2026-07-29",
       "winner": "Potapova A",
       "loser": "Williams V",
@@ -24759,7 +24661,7 @@
       "round": "1st Round"
     },
     {
-      "id": "result-2026-07-29-1768",
+      "id": "result-2026-07-29-1761",
       "date": "2026-07-29",
       "winner": "Samsonova L",
       "loser": "Wang Xin",
@@ -24773,7 +24675,7 @@
       "round": "2nd Round"
     },
     {
-      "id": "result-2026-07-29-1769",
+      "id": "result-2026-07-29-1762",
       "date": "2026-07-29",
       "winner": "Kalieva E",
       "loser": "Sonmez Z",
@@ -24787,7 +24689,7 @@
       "round": "2nd Round"
     },
     {
-      "id": "result-2026-07-29-1770",
+      "id": "result-2026-07-29-1763",
       "date": "2026-07-29",
       "winner": "Ma Y",
       "loser": "Birrell K",
@@ -24801,7 +24703,7 @@
       "round": "1st Round"
     },
     {
-      "id": "result-2026-07-29-1771",
+      "id": "result-2026-07-29-1764",
       "date": "2026-07-29",
       "winner": "Volynets K",
       "loser": "Shymanovich I",
@@ -24815,7 +24717,7 @@
       "round": "2nd Round"
     },
     {
-      "id": "result-2026-07-29-1772",
+      "id": "result-2026-07-29-1765",
       "date": "2026-07-29",
       "winner": "Zakharova A",
       "loser": "Osorio M",
@@ -24829,7 +24731,7 @@
       "round": "2nd Round"
     },
     {
-      "id": "result-2026-07-29-1773",
+      "id": "result-2026-07-29-1766",
       "date": "2026-07-29",
       "winner": "Zarazua R",
       "loser": "Kessler M",
@@ -24843,7 +24745,7 @@
       "round": "1st Round"
     },
     {
-      "id": "result-2026-07-29-1774",
+      "id": "result-2026-07-29-1767",
       "date": "2026-07-29",
       "winner": "Williams V",
       "loser": "Potapova A",
@@ -24857,7 +24759,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-07-29-1775",
+      "id": "result-2026-07-29-1768",
       "date": "2026-07-29",
       "winner": "Burillo I",
       "loser": "Quevedo K",
@@ -24871,7 +24773,7 @@
       "round": "Round 2"
     },
     {
-      "id": "result-2026-07-29-1776",
+      "id": "result-2026-07-29-1769",
       "date": "2026-07-29",
       "winner": "Hennemann C",
       "loser": "Sorribes Tormo S",
@@ -24885,7 +24787,7 @@
       "round": "Round 2"
     },
     {
-      "id": "result-2026-07-29-1777",
+      "id": "result-2026-07-29-1770",
       "date": "2026-07-29",
       "winner": "Rouvroy M",
       "loser": "Rame A",
@@ -24899,7 +24801,7 @@
       "round": "Round 2"
     },
     {
-      "id": "result-2026-07-29-1778",
+      "id": "result-2026-07-29-1771",
       "date": "2026-07-29",
       "winner": "Birrell K",
       "loser": "Ma Y",
@@ -24913,7 +24815,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-07-29-1779",
+      "id": "result-2026-07-29-1772",
       "date": "2026-07-29",
       "winner": "Kessler M",
       "loser": "Zarazua R",
@@ -24927,7 +24829,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-07-29-1780",
+      "id": "result-2026-07-29-1773",
       "date": "2026-07-29",
       "winner": "Cross K",
       "loser": "Dart H",
@@ -24941,7 +24843,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-07-29-1781",
+      "id": "result-2026-07-29-1774",
       "date": "2026-07-29",
       "winner": "Kinoshita H",
       "loser": "Uchijima M",
@@ -24955,7 +24857,7 @@
       "round": "Round 2"
     },
     {
-      "id": "result-2026-07-29-1782",
+      "id": "result-2026-07-29-1775",
       "date": "2026-07-29",
       "winner": "Lu J",
       "loser": "Hontama M",
@@ -24969,7 +24871,7 @@
       "round": "Round 2"
     },
     {
-      "id": "result-2026-07-29-1783",
+      "id": "result-2026-07-29-1776",
       "date": "2026-07-29",
       "winner": "Xu A",
       "loser": "Arseneault A",
@@ -24983,7 +24885,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-07-30-1784",
+      "id": "result-2026-07-30-1777",
       "date": "2026-07-30",
       "winner": "Kalinskaya A",
       "loser": "Tjen J",
@@ -24997,7 +24899,7 @@
       "round": "2nd Round"
     },
     {
-      "id": "result-2026-07-30-1785",
+      "id": "result-2026-07-30-1778",
       "date": "2026-07-30",
       "winner": "Pegula J",
       "loser": "Frech M",
@@ -25011,7 +24913,7 @@
       "round": "2nd Round"
     },
     {
-      "id": "result-2026-07-30-1786",
+      "id": "result-2026-07-30-1779",
       "date": "2026-07-30",
       "winner": "Liutova K",
       "loser": "Joint M",
@@ -25025,7 +24927,7 @@
       "round": "2nd Round"
     },
     {
-      "id": "result-2026-07-30-1787",
+      "id": "result-2026-07-30-1780",
       "date": "2026-07-30",
       "winner": "McNally C",
       "loser": "Ma Y",
@@ -25039,7 +24941,7 @@
       "round": "2nd Round"
     },
     {
-      "id": "result-2026-07-30-1788",
+      "id": "result-2026-07-30-1781",
       "date": "2026-07-30",
       "winner": "Stearns P",
       "loser": "Prozorova T",
@@ -25053,7 +24955,7 @@
       "round": "2nd Round"
     },
     {
-      "id": "result-2026-07-30-1789",
+      "id": "result-2026-07-30-1782",
       "date": "2026-07-30",
       "winner": "Zarazua R",
       "loser": "Maria T",
@@ -25067,7 +24969,7 @@
       "round": "2nd Round"
     },
     {
-      "id": "result-2026-07-30-1790",
+      "id": "result-2026-07-30-1783",
       "date": "2026-07-30",
       "winner": "Frech M",
       "loser": "Pegula J",
@@ -25081,7 +24983,7 @@
       "round": "Round 2"
     },
     {
-      "id": "result-2026-07-30-1791",
+      "id": "result-2026-07-30-1784",
       "date": "2026-07-30",
       "winner": "Potapova A",
       "loser": "Shnaider D",
@@ -25095,7 +24997,7 @@
       "round": "Round 2"
     },
     {
-      "id": "result-2026-07-30-1792",
+      "id": "result-2026-07-30-1785",
       "date": "2026-07-30",
       "winner": "Ciric Bagaric L",
       "loser": "Jones F",
@@ -25109,7 +25011,7 @@
       "round": "Round 2"
     },
     {
-      "id": "result-2026-07-30-1793",
+      "id": "result-2026-07-30-1786",
       "date": "2026-07-30",
       "winner": "Joint M",
       "loser": "Liutova K",
@@ -25123,7 +25025,7 @@
       "round": "Round 2"
     },
     {
-      "id": "result-2026-07-30-1794",
+      "id": "result-2026-07-30-1787",
       "date": "2026-07-30",
       "winner": "Brengle M",
       "loser": "Jones E",
@@ -25137,7 +25039,7 @@
       "round": "Round 2"
     },
     {
-      "id": "result-2026-07-30-1795",
+      "id": "result-2026-07-30-1788",
       "date": "2026-07-30",
       "winner": "Sakatsume H",
       "loser": "Hontama M",
@@ -25151,7 +25053,7 @@
       "round": "Quarterfinals"
     },
     {
-      "id": "result-2026-07-31-1796",
+      "id": "result-2026-07-31-1789",
       "date": "2026-07-31",
       "winner": "Osaka N",
       "loser": "Cocciaretto E",
@@ -25165,7 +25067,7 @@
       "round": "Quarterfinals"
     },
     {
-      "id": "result-2026-07-31-1797",
+      "id": "result-2026-07-31-1790",
       "date": "2026-07-31",
       "winner": "Pegula J",
       "loser": "Kalinskaya A",
@@ -25179,7 +25081,7 @@
       "round": "Quarterfinals"
     },
     {
-      "id": "result-2026-07-31-1798",
+      "id": "result-2026-07-31-1791",
       "date": "2026-07-31",
       "winner": "Shnaider D",
       "loser": "Potapova A",
@@ -25193,7 +25095,7 @@
       "round": "2nd Round"
     },
     {
-      "id": "result-2026-07-31-1799",
+      "id": "result-2026-07-31-1792",
       "date": "2026-07-31",
       "winner": "Shnaider D",
       "loser": "Samsonova L",
@@ -25207,7 +25109,7 @@
       "round": "Quarterfinals"
     },
     {
-      "id": "result-2026-07-31-1800",
+      "id": "result-2026-07-31-1793",
       "date": "2026-07-31",
       "winner": "Svitolina E",
       "loser": "Kudermetova P",
@@ -25221,7 +25123,7 @@
       "round": "2nd Round"
     },
     {
-      "id": "result-2026-07-31-1801",
+      "id": "result-2026-07-31-1794",
       "date": "2026-07-31",
       "winner": "Kalieva E",
       "loser": "Stearns P",
@@ -25235,7 +25137,7 @@
       "round": "Quarterfinals"
     },
     {
-      "id": "result-2026-07-31-1802",
+      "id": "result-2026-07-31-1795",
       "date": "2026-07-31",
       "winner": "Liutova K",
       "loser": "McNally C",
@@ -25249,7 +25151,7 @@
       "round": "Quarterfinals"
     },
     {
-      "id": "result-2026-07-31-1803",
+      "id": "result-2026-07-31-1796",
       "date": "2026-07-31",
       "winner": "Vidmanova D",
       "loser": "Stephens S",
@@ -25263,7 +25165,7 @@
       "round": "2nd Round"
     },
     {
-      "id": "result-2026-07-31-1804",
+      "id": "result-2026-07-31-1797",
       "date": "2026-07-31",
       "winner": "Kalinskaya A",
       "loser": "Pegula J",
@@ -25277,7 +25179,7 @@
       "round": "Quarterfinals"
     },
     {
-      "id": "result-2026-07-31-1805",
+      "id": "result-2026-07-31-1798",
       "date": "2026-07-31",
       "winner": "Samsonova L",
       "loser": "Shnaider D",
@@ -25291,7 +25193,7 @@
       "round": "Quarterfinals"
     },
     {
-      "id": "result-2026-07-31-1806",
+      "id": "result-2026-07-31-1799",
       "date": "2026-07-31",
       "winner": "Svitolina E",
       "loser": "Eala A",
@@ -25305,7 +25207,7 @@
       "round": "Quarterfinals"
     },
     {
-      "id": "result-2026-07-31-1807",
+      "id": "result-2026-07-31-1800",
       "date": "2026-07-31",
       "winner": "Monnet C",
       "loser": "Quevedo K",
@@ -25319,7 +25221,7 @@
       "round": "Quarterfinals"
     },
     {
-      "id": "result-2026-07-31-1808",
+      "id": "result-2026-07-31-1801",
       "date": "2026-07-31",
       "winner": "Rame A",
       "loser": "Jones F",
@@ -25333,7 +25235,7 @@
       "round": "Quarterfinals"
     },
     {
-      "id": "result-2026-07-31-1809",
+      "id": "result-2026-07-31-1802",
       "date": "2026-07-31",
       "winner": "Ristic M",
       "loser": "Samson L",
@@ -25347,7 +25249,7 @@
       "round": "Quarterfinals"
     },
     {
-      "id": "result-2026-07-31-1810",
+      "id": "result-2026-07-31-1803",
       "date": "2026-07-31",
       "winner": "McNally C",
       "loser": "Liutova K",
@@ -25361,7 +25263,7 @@
       "round": "Quarterfinals"
     },
     {
-      "id": "result-2026-07-31-1811",
+      "id": "result-2026-07-31-1804",
       "date": "2026-07-31",
       "winner": "Stearns P",
       "loser": "Kalieva E",
@@ -25375,7 +25277,7 @@
       "round": "Quarterfinals"
     },
     {
-      "id": "result-2026-07-31-1812",
+      "id": "result-2026-07-31-1805",
       "date": "2026-07-31",
       "winner": "Hontama M",
       "loser": "Inglis M",
@@ -25389,7 +25291,7 @@
       "round": "Semifinals"
     },
     {
-      "id": "result-2026-07-31-1813",
+      "id": "result-2026-07-31-1806",
       "date": "2026-07-31",
       "winner": "Sawangkaew M",
       "loser": "Preston T",
@@ -25403,7 +25305,7 @@
       "round": "Semifinals"
     },
     {
-      "id": "result-2026-08-01-1814",
+      "id": "result-2026-08-01-1807",
       "date": "2026-08-01",
       "winner": "Alexander A",
       "loser": "Kudermetova P",
@@ -25417,7 +25319,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-08-01-1815",
+      "id": "result-2026-08-01-1808",
       "date": "2026-08-01",
       "winner": "Bassols Ribera M",
       "loser": "Jimenez Kasintseva V",
@@ -25431,7 +25333,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-08-01-1816",
+      "id": "result-2026-08-01-1809",
       "date": "2026-08-01",
       "winner": "Grubor A",
       "loser": "Joint M",
@@ -25445,7 +25347,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-08-01-1817",
+      "id": "result-2026-08-01-1810",
       "date": "2026-08-01",
       "winner": "Marton I",
       "loser": "Maria T",
@@ -25459,7 +25361,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-08-01-1818",
+      "id": "result-2026-08-01-1811",
       "date": "2026-08-01",
       "winner": "Sakatsume H",
       "loser": "Uchijima M",
@@ -25473,7 +25375,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-08-01-1819",
+      "id": "result-2026-08-01-1812",
       "date": "2026-08-01",
       "winner": "Stoiana M",
       "loser": "Korneeva A",
@@ -25487,7 +25389,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-08-01-1820",
+      "id": "result-2026-08-01-1813",
       "date": "2026-08-01",
       "winner": "Watson H",
       "loser": "Blinkova A",
@@ -25501,7 +25403,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-08-01-1821",
+      "id": "result-2026-08-01-1814",
       "date": "2026-08-01",
       "winner": "Zheng Q",
       "loser": "Tararudee L",
@@ -25515,7 +25417,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-08-01-1822",
+      "id": "result-2026-08-01-1815",
       "date": "2026-08-01",
       "winner": "Zhu L",
       "loser": "Jeanjean L",
@@ -25529,7 +25431,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-08-01-1823",
+      "id": "result-2026-08-01-1816",
       "date": "2026-08-01",
       "winner": "Eala A",
       "loser": "Osaka N",
@@ -25543,7 +25445,7 @@
       "round": "Semifinals"
     },
     {
-      "id": "result-2026-08-01-1824",
+      "id": "result-2026-08-01-1817",
       "date": "2026-08-01",
       "winner": "Eala A",
       "loser": "Svitolina E",
@@ -25557,7 +25459,7 @@
       "round": "Quarterfinals"
     },
     {
-      "id": "result-2026-08-01-1825",
+      "id": "result-2026-08-01-1818",
       "date": "2026-08-01",
       "winner": "Pegula J",
       "loser": "Shnaider D",
@@ -25571,7 +25473,7 @@
       "round": "Semifinals"
     },
     {
-      "id": "result-2026-08-01-1826",
+      "id": "result-2026-08-01-1819",
       "date": "2026-08-01",
       "winner": "Liutova K",
       "loser": "Kalieva E",
@@ -25585,7 +25487,7 @@
       "round": "Semifinals"
     },
     {
-      "id": "result-2026-08-01-1827",
+      "id": "result-2026-08-01-1820",
       "date": "2026-08-01",
       "winner": "Vidmanova D",
       "loser": "Volynets K",
@@ -25599,7 +25501,7 @@
       "round": "Quarterfinals"
     },
     {
-      "id": "result-2026-08-01-1828",
+      "id": "result-2026-08-01-1821",
       "date": "2026-08-01",
       "winner": "Vidmanova D",
       "loser": "Zarazua R",
@@ -25613,7 +25515,7 @@
       "round": "Semifinals"
     },
     {
-      "id": "result-2026-08-01-1829",
+      "id": "result-2026-08-01-1822",
       "date": "2026-08-01",
       "winner": "Zarazua R",
       "loser": "Zakharova A",
@@ -25627,7 +25529,7 @@
       "round": "Quarterfinals"
     },
     {
-      "id": "result-2026-08-01-1830",
+      "id": "result-2026-08-01-1823",
       "date": "2026-08-01",
       "winner": "Shnaider D",
       "loser": "Pegula J",
@@ -25641,7 +25543,7 @@
       "round": "Semifinals"
     },
     {
-      "id": "result-2026-08-01-1831",
+      "id": "result-2026-08-01-1824",
       "date": "2026-08-01",
       "winner": "Kalieva E",
       "loser": "Liutova K",
@@ -25655,7 +25557,7 @@
       "round": "Semifinals"
     },
     {
-      "id": "result-2026-08-01-1832",
+      "id": "result-2026-08-01-1825",
       "date": "2026-08-01",
       "winner": "Volynets K",
       "loser": "Vidmanova D",
@@ -25669,7 +25571,7 @@
       "round": "Quarterfinals"
     },
     {
-      "id": "result-2026-08-01-1833",
+      "id": "result-2026-08-01-1826",
       "date": "2026-08-01",
       "winner": "Zarazua R",
       "loser": "Vidmanova D",
@@ -25683,7 +25585,7 @@
       "round": "Semifinals"
     },
     {
-      "id": "result-2026-08-02-1834",
+      "id": "result-2026-08-02-1827",
       "date": "2026-08-02",
       "winner": "Andreescu B",
       "loser": "Bartunkova N",
@@ -25697,7 +25599,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-08-02-1835",
+      "id": "result-2026-08-02-1828",
       "date": "2026-08-02",
       "winner": "Arseneault A",
       "loser": "Bouzas Maneiro J",
@@ -25711,7 +25613,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-08-02-1836",
+      "id": "result-2026-08-02-1829",
       "date": "2026-08-02",
       "winner": "Bejlek S",
       "loser": "Wang Xiy",
@@ -25725,7 +25627,7 @@
       "round": "1st Round"
     },
     {
-      "id": "result-2026-08-02-1837",
+      "id": "result-2026-08-02-1830",
       "date": "2026-08-02",
       "winner": "Bouzas Maneiro J",
       "loser": "Arseneault A",
@@ -25739,7 +25641,7 @@
       "round": "1st Round"
     },
     {
-      "id": "result-2026-08-02-1838",
+      "id": "result-2026-08-02-1831",
       "date": "2026-08-02",
       "winner": "Bucsa C",
       "loser": "Uchijima M",
@@ -25753,7 +25655,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-08-02-1839",
+      "id": "result-2026-08-02-1832",
       "date": "2026-08-02",
       "winner": "Golubic V",
       "loser": "Birrell K",
@@ -25767,7 +25669,7 @@
       "round": "1st Round"
     },
     {
-      "id": "result-2026-08-02-1840",
+      "id": "result-2026-08-02-1833",
       "date": "2026-08-02",
       "winner": "Jeanjean L",
       "loser": "Frech M",
@@ -25781,7 +25683,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-08-02-1841",
+      "id": "result-2026-08-02-1834",
       "date": "2026-08-02",
       "winner": "Osorio M",
       "loser": "Stefanini L",
@@ -25795,7 +25697,7 @@
       "round": "1st Round"
     },
     {
-      "id": "result-2026-08-02-1842",
+      "id": "result-2026-08-02-1835",
       "date": "2026-08-02",
       "winner": "Rakhimova K",
       "loser": "Williams V",
@@ -25809,7 +25711,7 @@
       "round": "1st Round"
     },
     {
-      "id": "result-2026-08-02-1843",
+      "id": "result-2026-08-02-1836",
       "date": "2026-08-02",
       "winner": "Sebov K",
       "loser": "Ito A",
@@ -25823,7 +25725,7 @@
       "round": "1st Round"
     },
     {
-      "id": "result-2026-08-02-1844",
+      "id": "result-2026-08-02-1837",
       "date": "2026-08-02",
       "winner": "Uchijima M",
       "loser": "Bucsa C",
@@ -25837,7 +25739,7 @@
       "round": "1st Round"
     },
     {
-      "id": "result-2026-08-02-1845",
+      "id": "result-2026-08-02-1838",
       "date": "2026-08-02",
       "winner": "Williams V",
       "loser": "Rakhimova K",
@@ -25851,7 +25753,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-08-02-1846",
+      "id": "result-2026-08-02-1839",
       "date": "2026-08-02",
       "winner": "Liutova K",
       "loser": "Vidmanova D",
@@ -25865,7 +25767,7 @@
       "round": "The Final"
     },
     {
-      "id": "result-2026-08-02-1847",
+      "id": "result-2026-08-02-1840",
       "date": "2026-08-02",
       "winner": "Garcia Perez G",
       "loser": "Micic E",
@@ -25879,7 +25781,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-08-02-1848",
+      "id": "result-2026-08-02-1841",
       "date": "2026-08-02",
       "winner": "Gorska D",
       "loser": "Smith A",
@@ -25893,7 +25795,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-08-02-1849",
+      "id": "result-2026-08-02-1842",
       "date": "2026-08-02",
       "winner": "Hurkacz N",
       "loser": "Karatancheva L",
@@ -25907,7 +25809,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-08-02-1850",
+      "id": "result-2026-08-02-1843",
       "date": "2026-08-02",
       "winner": "Vidmanova D",
       "loser": "Liutova K",
@@ -25921,7 +25823,7 @@
       "round": "Final"
     },
     {
-      "id": "result-2026-08-03-1851",
+      "id": "result-2026-08-03-1844",
       "date": "2026-08-03",
       "winner": "Bartunkova N",
       "loser": "Andreescu B",
@@ -25935,7 +25837,7 @@
       "round": "1st Round"
     },
     {
-      "id": "result-2026-08-03-1852",
+      "id": "result-2026-08-03-1845",
       "date": "2026-08-03",
       "winner": "Blinkova A",
       "loser": "Sramkova R",
@@ -25949,7 +25851,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-08-03-1853",
+      "id": "result-2026-08-03-1846",
       "date": "2026-08-03",
       "winner": "Bondar A",
       "loser": "Kalinina A",
@@ -25963,7 +25865,7 @@
       "round": "1st Round"
     },
     {
-      "id": "result-2026-08-03-1854",
+      "id": "result-2026-08-03-1847",
       "date": "2026-08-03",
       "winner": "Brace C",
       "loser": "Kessler M",
@@ -25977,7 +25879,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-08-03-1855",
+      "id": "result-2026-08-03-1848",
       "date": "2026-08-03",
       "winner": "Cross K",
       "loser": "Boulter K",
@@ -25991,7 +25893,7 @@
       "round": "1st Round"
     },
     {
-      "id": "result-2026-08-03-1856",
+      "id": "result-2026-08-03-1849",
       "date": "2026-08-03",
       "winner": "Day K",
       "loser": "Parry D",
@@ -26005,7 +25907,7 @@
       "round": "1st Round"
     },
     {
-      "id": "result-2026-08-03-1857",
+      "id": "result-2026-08-03-1850",
       "date": "2026-08-03",
       "winner": "Frech M",
       "loser": "Jeanjean L",
@@ -26019,7 +25921,7 @@
       "round": "1st Round"
     },
     {
-      "id": "result-2026-08-03-1858",
+      "id": "result-2026-08-03-1851",
       "date": "2026-08-03",
       "winner": "Gibson T",
       "loser": "Cocciaretto E",
@@ -26033,7 +25935,7 @@
       "round": "1st Round"
     },
     {
-      "id": "result-2026-08-03-1859",
+      "id": "result-2026-08-03-1852",
       "date": "2026-08-03",
       "winner": "Joint M",
       "loser": "Starodubtseva Y",
@@ -26047,7 +25949,7 @@
       "round": "1st Round"
     },
     {
-      "id": "result-2026-08-03-1860",
+      "id": "result-2026-08-03-1853",
       "date": "2026-08-03",
       "winner": "Kessler M",
       "loser": "Brace C",
@@ -26061,7 +25963,7 @@
       "round": "1st Round"
     },
     {
-      "id": "result-2026-08-03-1861",
+      "id": "result-2026-08-03-1854",
       "date": "2026-08-03",
       "winner": "Korneeva A",
       "loser": "Kudermetova P",
@@ -26075,7 +25977,7 @@
       "round": "1st Round"
     },
     {
-      "id": "result-2026-08-03-1862",
+      "id": "result-2026-08-03-1855",
       "date": "2026-08-03",
       "winner": "Korpatsch T",
       "loser": "Zarazua R",
@@ -26089,7 +25991,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-08-03-1863",
+      "id": "result-2026-08-03-1856",
       "date": "2026-08-03",
       "winner": "Linette M",
       "loser": "Zhao C",
@@ -26103,7 +26005,7 @@
       "round": "1st Round"
     },
     {
-      "id": "result-2026-08-03-1864",
+      "id": "result-2026-08-03-1857",
       "date": "2026-08-03",
       "winner": "Parks A",
       "loser": "Jimenez Kasintseva V",
@@ -26117,7 +26019,7 @@
       "round": "1st Round"
     },
     {
-      "id": "result-2026-08-03-1865",
+      "id": "result-2026-08-03-1858",
       "date": "2026-08-03",
       "winner": "Pliskova Ka",
       "loser": "Oliynykova O",
@@ -26131,7 +26033,7 @@
       "round": "1st Round"
     },
     {
-      "id": "result-2026-08-03-1866",
+      "id": "result-2026-08-03-1859",
       "date": "2026-08-03",
       "winner": "Ruse E",
       "loser": "Stearns P",
@@ -26145,7 +26047,7 @@
       "round": "1st Round"
     },
     {
-      "id": "result-2026-08-03-1867",
+      "id": "result-2026-08-03-1860",
       "date": "2026-08-03",
       "winner": "Ruzic A",
       "loser": "Boisson L",
@@ -26159,7 +26061,7 @@
       "round": "1st Round"
     },
     {
-      "id": "result-2026-08-03-1868",
+      "id": "result-2026-08-03-1861",
       "date": "2026-08-03",
       "winner": "Samsonova L",
       "loser": "Tjen J",
@@ -26173,7 +26075,7 @@
       "round": "1st Round"
     },
     {
-      "id": "result-2026-08-03-1869",
+      "id": "result-2026-08-03-1862",
       "date": "2026-08-03",
       "winner": "Sramkova R",
       "loser": "Blinkova A",
@@ -26187,7 +26089,7 @@
       "round": "1st Round"
     },
     {
-      "id": "result-2026-08-03-1870",
+      "id": "result-2026-08-03-1863",
       "date": "2026-08-03",
       "winner": "Stearns P",
       "loser": "Ruse E",
@@ -26201,7 +26103,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-08-03-1871",
+      "id": "result-2026-08-03-1864",
       "date": "2026-08-03",
       "winner": "Tararudee L",
       "loser": "Jones E",
@@ -26215,7 +26117,7 @@
       "round": "1st Round"
     },
     {
-      "id": "result-2026-08-03-1872",
+      "id": "result-2026-08-03-1865",
       "date": "2026-08-03",
       "winner": "Townsend T",
       "loser": "Valentova T",
@@ -26229,7 +26131,7 @@
       "round": "1st Round"
     },
     {
-      "id": "result-2026-08-03-1873",
+      "id": "result-2026-08-03-1866",
       "date": "2026-08-03",
       "winner": "Udvardy P",
       "loser": "Lys E",
@@ -26243,7 +26145,7 @@
       "round": "1st Round"
     },
     {
-      "id": "result-2026-08-03-1874",
+      "id": "result-2026-08-03-1867",
       "date": "2026-08-03",
       "winner": "Zarazua R",
       "loser": "Korpatsch T",
@@ -26257,7 +26159,7 @@
       "round": "1st Round"
     },
     {
-      "id": "result-2026-08-03-1875",
+      "id": "result-2026-08-03-1868",
       "date": "2026-08-03",
       "winner": "Zhang S",
       "loser": "Putintseva Y",
@@ -26271,7 +26173,7 @@
       "round": "1st Round"
     },
     {
-      "id": "result-2026-08-03-1876",
+      "id": "result-2026-08-03-1869",
       "date": "2026-08-03",
       "winner": "Eala A",
       "loser": "Pegula J",
@@ -26285,7 +26187,7 @@
       "round": "The Final"
     },
     {
-      "id": "result-2026-08-03-1877",
+      "id": "result-2026-08-03-1870",
       "date": "2026-08-03",
       "winner": "Fruhvirtova L",
       "loser": "Kawa K",
@@ -26299,7 +26201,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-08-03-1878",
+      "id": "result-2026-08-03-1871",
       "date": "2026-08-03",
       "winner": "Radwanska U",
       "loser": "Falei A",
@@ -26313,7 +26215,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-08-04-1879",
+      "id": "result-2026-08-04-1872",
       "date": "2026-08-04",
       "winner": "Alexandrova E",
       "loser": "Osorio M",
@@ -26327,7 +26229,7 @@
       "round": "2nd Round"
     },
     {
-      "id": "result-2026-08-04-1880",
+      "id": "result-2026-08-04-1873",
       "date": "2026-08-04",
       "winner": "Bouzas Maneiro J",
       "loser": "Svitolina E",
@@ -26341,7 +26243,7 @@
       "round": "Round 2"
     },
     {
-      "id": "result-2026-08-04-1881",
+      "id": "result-2026-08-04-1874",
       "date": "2026-08-04",
       "winner": "Gibson T",
       "loser": "Chwalinska M",
@@ -26355,7 +26257,7 @@
       "round": "2nd Round"
     },
     {
-      "id": "result-2026-08-04-1882",
+      "id": "result-2026-08-04-1875",
       "date": "2026-08-04",
       "winner": "Golubic V",
       "loser": "Vekic D",
@@ -26369,7 +26271,7 @@
       "round": "2nd Round"
     },
     {
-      "id": "result-2026-08-04-1883",
+      "id": "result-2026-08-04-1876",
       "date": "2026-08-04",
       "winner": "Kalinskaya A",
       "loser": "Kessler M",
@@ -26383,7 +26285,7 @@
       "round": "2nd Round"
     },
     {
-      "id": "result-2026-08-04-1884",
+      "id": "result-2026-08-04-1877",
       "date": "2026-08-04",
       "winner": "Kasatkina D",
       "loser": "Wang Xin",
@@ -26397,7 +26299,7 @@
       "round": "1st Round"
     },
     {
-      "id": "result-2026-08-04-1885",
+      "id": "result-2026-08-04-1878",
       "date": "2026-08-04",
       "winner": "Kessler M",
       "loser": "Kalinskaya A",
@@ -26411,7 +26313,7 @@
       "round": "Round 2"
     },
     {
-      "id": "result-2026-08-04-1886",
+      "id": "result-2026-08-04-1879",
       "date": "2026-08-04",
       "winner": "Keys M",
       "loser": "Ruzic A",
@@ -26425,7 +26327,7 @@
       "round": "2nd Round"
     },
     {
-      "id": "result-2026-08-04-1887",
+      "id": "result-2026-08-04-1880",
       "date": "2026-08-04",
       "winner": "Kostyuk M",
       "loser": "Sebov K",
@@ -26439,7 +26341,7 @@
       "round": "2nd Round"
     },
     {
-      "id": "result-2026-08-04-1888",
+      "id": "result-2026-08-04-1881",
       "date": "2026-08-04",
       "winner": "McNally C",
       "loser": "Maria T",
@@ -26453,7 +26355,7 @@
       "round": "1st Round"
     },
     {
-      "id": "result-2026-08-04-1889",
+      "id": "result-2026-08-04-1882",
       "date": "2026-08-04",
       "winner": "Potapova A",
       "loser": "Ruse E",
@@ -26467,7 +26369,7 @@
       "round": "2nd Round"
     },
     {
-      "id": "result-2026-08-04-1890",
+      "id": "result-2026-08-04-1883",
       "date": "2026-08-04",
       "winner": "Rakhimova K",
       "loser": "Siniakova K",
@@ -26481,7 +26383,7 @@
       "round": "2nd Round"
     },
     {
-      "id": "result-2026-08-04-1891",
+      "id": "result-2026-08-04-1884",
       "date": "2026-08-04",
       "winner": "Sebov K",
       "loser": "Kostyuk M",
@@ -26495,7 +26397,7 @@
       "round": "Round 2"
     },
     {
-      "id": "result-2026-08-04-1892",
+      "id": "result-2026-08-04-1885",
       "date": "2026-08-04",
       "winner": "Shnaider D",
       "loser": "Sramkova R",
@@ -26509,7 +26411,7 @@
       "round": "2nd Round"
     },
     {
-      "id": "result-2026-08-04-1893",
+      "id": "result-2026-08-04-1886",
       "date": "2026-08-04",
       "winner": "Sonmez Z",
       "loser": "Marino R",
@@ -26523,7 +26425,7 @@
       "round": "1st Round"
     },
     {
-      "id": "result-2026-08-04-1894",
+      "id": "result-2026-08-04-1887",
       "date": "2026-08-04",
       "winner": "Stephens S",
       "loser": "Sierra S",
@@ -26537,7 +26439,7 @@
       "round": "1st Round"
     },
     {
-      "id": "result-2026-08-04-1895",
+      "id": "result-2026-08-04-1888",
       "date": "2026-08-04",
       "winner": "Svitolina E",
       "loser": "Bouzas Maneiro J",
@@ -26551,7 +26453,7 @@
       "round": "2nd Round"
     },
     {
-      "id": "result-2026-08-04-1896",
+      "id": "result-2026-08-04-1889",
       "date": "2026-08-04",
       "winner": "Swiatek I",
       "loser": "Bejlek S",
@@ -26565,7 +26467,7 @@
       "round": "2nd Round"
     },
     {
-      "id": "result-2026-08-04-1897",
+      "id": "result-2026-08-04-1890",
       "date": "2026-08-04",
       "winner": "Uchijima M",
       "loser": "Sabalenka A",
@@ -26579,7 +26481,7 @@
       "round": "Round 2"
     },
     {
-      "id": "result-2026-08-04-1898",
+      "id": "result-2026-08-04-1891",
       "date": "2026-08-04",
       "winner": "Zhang S",
       "loser": "Ostapenko J",
@@ -26593,7 +26495,7 @@
       "round": "2nd Round"
     },
     {
-      "id": "result-2026-08-04-1899",
+      "id": "result-2026-08-04-1892",
       "date": "2026-08-04",
       "winner": "Costoulas S",
       "loser": "Knutson G",
@@ -26607,7 +26509,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-08-04-1900",
+      "id": "result-2026-08-04-1893",
       "date": "2026-08-04",
       "winner": "Karatancheva L",
       "loser": "Pawlikowska Z",
@@ -26621,7 +26523,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-08-05-1901",
+      "id": "result-2026-08-05-1894",
       "date": "2026-08-05",
       "winner": "Andreeva M",
       "loser": "Pliskova Ka",
@@ -26635,7 +26537,7 @@
       "round": "2nd Round"
     },
     {
-      "id": "result-2026-08-05-1902",
+      "id": "result-2026-08-05-1895",
       "date": "2026-08-05",
       "winner": "Anisimova A",
       "loser": "Tararudee L",
@@ -26649,7 +26551,7 @@
       "round": "2nd Round"
     },
     {
-      "id": "result-2026-08-05-1903",
+      "id": "result-2026-08-05-1896",
       "date": "2026-08-05",
       "winner": "Bartunkova N",
       "loser": "Tauson C",
@@ -26663,7 +26565,7 @@
       "round": "2nd Round"
     },
     {
-      "id": "result-2026-08-05-1904",
+      "id": "result-2026-08-05-1897",
       "date": "2026-08-05",
       "winner": "Bencic B",
       "loser": "Stephens S",
@@ -26677,7 +26579,7 @@
       "round": "2nd Round"
     },
     {
-      "id": "result-2026-08-05-1905",
+      "id": "result-2026-08-05-1898",
       "date": "2026-08-05",
       "winner": "Bondar A",
       "loser": "Mertens E",
@@ -26691,7 +26593,7 @@
       "round": "Round 2"
     },
     {
-      "id": "result-2026-08-05-1906",
+      "id": "result-2026-08-05-1899",
       "date": "2026-08-05",
       "winner": "Cross K",
       "loser": "Li A",
@@ -26705,7 +26607,7 @@
       "round": "Round 2"
     },
     {
-      "id": "result-2026-08-05-1907",
+      "id": "result-2026-08-05-1900",
       "date": "2026-08-05",
       "winner": "Frech M",
       "loser": "Pegula J",
@@ -26719,7 +26621,7 @@
       "round": "Round 2"
     },
     {
-      "id": "result-2026-08-05-1908",
+      "id": "result-2026-08-05-1901",
       "date": "2026-08-05",
       "winner": "Gauff C",
       "loser": "Day K",
@@ -26733,7 +26635,7 @@
       "round": "2nd Round"
     },
     {
-      "id": "result-2026-08-05-1909",
+      "id": "result-2026-08-05-1902",
       "date": "2026-08-05",
       "winner": "Jovic I",
       "loser": "Linette M",
@@ -26747,7 +26649,7 @@
       "round": "2nd Round"
     },
     {
-      "id": "result-2026-08-05-1910",
+      "id": "result-2026-08-05-1903",
       "date": "2026-08-05",
       "winner": "Korneeva A",
       "loser": "Navarro E",
@@ -26761,7 +26663,7 @@
       "round": "2nd Round"
     },
     {
-      "id": "result-2026-08-05-1911",
+      "id": "result-2026-08-05-1904",
       "date": "2026-08-05",
       "winner": "Krejcikova B",
       "loser": "Samsonova L",
@@ -26775,7 +26677,7 @@
       "round": "Round 2"
     },
     {
-      "id": "result-2026-08-05-1912",
+      "id": "result-2026-08-05-1905",
       "date": "2026-08-05",
       "winner": "Li A",
       "loser": "Cross K",
@@ -26789,7 +26691,7 @@
       "round": "2nd Round"
     },
     {
-      "id": "result-2026-08-05-1913",
+      "id": "result-2026-08-05-1906",
       "date": "2026-08-05",
       "winner": "Linette M",
       "loser": "Jovic I",
@@ -26803,7 +26705,7 @@
       "round": "Round 2"
     },
     {
-      "id": "result-2026-08-05-1914",
+      "id": "result-2026-08-05-1907",
       "date": "2026-08-05",
       "winner": "McNally C",
       "loser": "Noskova L",
@@ -26817,7 +26719,7 @@
       "round": "2nd Round"
     },
     {
-      "id": "result-2026-08-05-1915",
+      "id": "result-2026-08-05-1908",
       "date": "2026-08-05",
       "winner": "Mertens E",
       "loser": "Bondar A",
@@ -26831,7 +26733,7 @@
       "round": "2nd Round"
     },
     {
-      "id": "result-2026-08-05-1916",
+      "id": "result-2026-08-05-1909",
       "date": "2026-08-05",
       "winner": "Navarro E",
       "loser": "Korneeva A",
@@ -26845,7 +26747,7 @@
       "round": "Round 2"
     },
     {
-      "id": "result-2026-08-05-1917",
+      "id": "result-2026-08-05-1910",
       "date": "2026-08-05",
       "winner": "Osaka N",
       "loser": "Udvardy P",
@@ -26859,7 +26761,7 @@
       "round": "2nd Round"
     },
     {
-      "id": "result-2026-08-05-1918",
+      "id": "result-2026-08-05-1911",
       "date": "2026-08-05",
       "winner": "Pegula J",
       "loser": "Frech M",
@@ -26873,7 +26775,7 @@
       "round": "2nd Round"
     },
     {
-      "id": "result-2026-08-05-1919",
+      "id": "result-2026-08-05-1912",
       "date": "2026-08-05",
       "winner": "Pliskova K",
       "loser": "Andreeva M",
@@ -26887,7 +26789,7 @@
       "round": "Round 2"
     },
     {
-      "id": "result-2026-08-05-1920",
+      "id": "result-2026-08-05-1913",
       "date": "2026-08-05",
       "winner": "Rybakina E",
       "loser": "Kasatkina D",
@@ -26901,7 +26803,7 @@
       "round": "2nd Round"
     },
     {
-      "id": "result-2026-08-05-1921",
+      "id": "result-2026-08-05-1914",
       "date": "2026-08-05",
       "winner": "Sabalenka A",
       "loser": "Uchijima M",
@@ -26915,7 +26817,7 @@
       "round": "2nd Round"
     },
     {
-      "id": "result-2026-08-05-1922",
+      "id": "result-2026-08-05-1915",
       "date": "2026-08-05",
       "winner": "Sakkari M",
       "loser": "Sonmez Z",
@@ -26929,7 +26831,7 @@
       "round": "2nd Round"
     },
     {
-      "id": "result-2026-08-05-1923",
+      "id": "result-2026-08-05-1916",
       "date": "2026-08-05",
       "winner": "Samsonova L",
       "loser": "Krejcikova B",
@@ -26943,7 +26845,7 @@
       "round": "2nd Round"
     },
     {
-      "id": "result-2026-08-05-1924",
+      "id": "result-2026-08-05-1917",
       "date": "2026-08-05",
       "winner": "Sonmez Z",
       "loser": "Sakkari M",
@@ -26957,7 +26859,7 @@
       "round": "Round 2"
     },
     {
-      "id": "result-2026-08-05-1925",
+      "id": "result-2026-08-05-1918",
       "date": "2026-08-05",
       "winner": "Townsend T",
       "loser": "Bouzkova M",
@@ -26971,7 +26873,7 @@
       "round": "2nd Round"
     },
     {
-      "id": "result-2026-08-05-1926",
+      "id": "result-2026-08-05-1919",
       "date": "2026-08-05",
       "winner": "Falei A",
       "loser": "Lee C",
@@ -26985,7 +26887,7 @@
       "round": "Round 2"
     },
     {
-      "id": "result-2026-08-05-1927",
+      "id": "result-2026-08-05-1920",
       "date": "2026-08-05",
       "winner": "Noha Akugue N",
       "loser": "Falkowska W",
@@ -26999,7 +26901,7 @@
       "round": "Round 2"
     },
     {
-      "id": "result-2026-08-05-1928",
+      "id": "result-2026-08-05-1921",
       "date": "2026-08-05",
       "winner": "Pawlikowska Z",
       "loser": "Valdmannova V",
@@ -27013,7 +26915,7 @@
       "round": "Round 2"
     },
     {
-      "id": "result-2026-08-05-1929",
+      "id": "result-2026-08-05-1922",
       "date": "2026-08-05",
       "winner": "Podrez V",
       "loser": "Bandecchi S",
@@ -27027,7 +26929,7 @@
       "round": "Round 2"
     },
     {
-      "id": "result-2026-08-05-1930",
+      "id": "result-2026-08-05-1923",
       "date": "2026-08-05",
       "winner": "Seidel E",
       "loser": "Knutson G",
@@ -27041,7 +26943,7 @@
       "round": "Round 2"
     },
     {
-      "id": "result-2026-08-05-1931",
+      "id": "result-2026-08-05-1924",
       "date": "2026-08-05",
       "winner": "Yuan Y",
       "loser": "Yaneva E",
@@ -27055,7 +26957,7 @@
       "round": "Round 2"
     },
     {
-      "id": "result-2026-08-06-1932",
+      "id": "result-2026-08-06-1925",
       "date": "2026-08-06",
       "winner": "Alexandrova E",
       "loser": "Gibson T",
@@ -27069,7 +26971,7 @@
       "round": "3rd Round"
     },
     {
-      "id": "result-2026-08-06-1933",
+      "id": "result-2026-08-06-1926",
       "date": "2026-08-06",
       "winner": "Anisimova A",
       "loser": "Bartunkova N",
@@ -27083,7 +26985,7 @@
       "round": "3rd Round"
     },
     {
-      "id": "result-2026-08-06-1934",
+      "id": "result-2026-08-06-1927",
       "date": "2026-08-06",
       "winner": "Eala A",
       "loser": "Parks A",
@@ -27097,7 +26999,7 @@
       "round": "2nd Round"
     },
     {
-      "id": "result-2026-08-06-1935",
+      "id": "result-2026-08-06-1928",
       "date": "2026-08-06",
       "winner": "Fernandez L",
       "loser": "Zarazua R",
@@ -27111,7 +27013,7 @@
       "round": "2nd Round"
     },
     {
-      "id": "result-2026-08-06-1936",
+      "id": "result-2026-08-06-1929",
       "date": "2026-08-06",
       "winner": "Joint M",
       "loser": "Cirstea S",
@@ -27125,7 +27027,7 @@
       "round": "2nd Round"
     },
     {
-      "id": "result-2026-08-06-1937",
+      "id": "result-2026-08-06-1930",
       "date": "2026-08-06",
       "winner": "Keys M",
       "loser": "Kostyuk M",
@@ -27139,7 +27041,7 @@
       "round": "Round 3"
     },
     {
-      "id": "result-2026-08-06-1938",
+      "id": "result-2026-08-06-1931",
       "date": "2026-08-06",
       "winner": "Kostyuk M",
       "loser": "Keys M",
@@ -27153,7 +27055,7 @@
       "round": "3rd Round"
     },
     {
-      "id": "result-2026-08-06-1939",
+      "id": "result-2026-08-06-1932",
       "date": "2026-08-06",
       "winner": "Pegula J",
       "loser": "Rakhimova K",
@@ -27167,7 +27069,7 @@
       "round": "3rd Round"
     },
     {
-      "id": "result-2026-08-06-1940",
+      "id": "result-2026-08-06-1933",
       "date": "2026-08-06",
       "winner": "Rakhimova K",
       "loser": "Pegula J",
@@ -27181,7 +27083,7 @@
       "round": "Round 3"
     },
     {
-      "id": "result-2026-08-06-1941",
+      "id": "result-2026-08-06-1934",
       "date": "2026-08-06",
       "winner": "Shnaider D",
       "loser": "Kalinskaya A",
@@ -27195,7 +27097,7 @@
       "round": "3rd Round"
     },
     {
-      "id": "result-2026-08-06-1942",
+      "id": "result-2026-08-06-1935",
       "date": "2026-08-06",
       "winner": "Swiatek I",
       "loser": "Golubic V",
@@ -27209,7 +27111,7 @@
       "round": "3rd Round"
     },
     {
-      "id": "result-2026-08-06-1943",
+      "id": "result-2026-08-06-1936",
       "date": "2026-08-06",
       "winner": "Zhang S",
       "loser": "Sabalenka A",
@@ -27223,7 +27125,7 @@
       "round": "Round 3"
     },
     {
-      "id": "result-2026-08-06-1944",
+      "id": "result-2026-08-06-1937",
       "date": "2026-08-06",
       "winner": "Bandecchi S",
       "loser": "Valdmannova V",
@@ -27237,7 +27139,7 @@
       "round": "Quarterfinals"
     },
     {
-      "id": "result-2026-08-06-1945",
+      "id": "result-2026-08-06-1938",
       "date": "2026-08-06",
       "winner": "Falkowska W",
       "loser": "Lee C",
@@ -27251,7 +27153,7 @@
       "round": "Quarterfinals"
     },
     {
-      "id": "result-2026-08-07-1946",
+      "id": "result-2026-08-07-1939",
       "date": "2026-08-07",
       "winner": "Fernandez L",
       "loser": "Andreeva M",
@@ -27265,7 +27167,7 @@
       "round": "3rd Round"
     },
     {
-      "id": "result-2026-08-07-1947",
+      "id": "result-2026-08-07-1940",
       "date": "2026-08-07",
       "winner": "Korneeva A",
       "loser": "Jovic I",
@@ -27279,7 +27181,7 @@
       "round": "3rd Round"
     },
     {
-      "id": "result-2026-08-07-1948",
+      "id": "result-2026-08-07-1941",
       "date": "2026-08-07",
       "winner": "Osaka N",
       "loser": "Mertens E",
@@ -27293,7 +27195,7 @@
       "round": "3rd Round"
     },
     {
-      "id": "result-2026-08-07-1949",
+      "id": "result-2026-08-07-1942",
       "date": "2026-08-07",
       "winner": "Potapova A",
       "loser": "Svitolina E",
@@ -27307,7 +27209,7 @@
       "round": "Round 3"
     },
     {
-      "id": "result-2026-08-07-1950",
+      "id": "result-2026-08-07-1943",
       "date": "2026-08-07",
       "winner": "Rybakina E",
       "loser": "Li A",
@@ -27321,7 +27223,7 @@
       "round": "3rd Round"
     },
     {
-      "id": "result-2026-08-07-1951",
+      "id": "result-2026-08-07-1944",
       "date": "2026-08-07",
       "winner": "Sabalenka A",
       "loser": "Zhang S",
@@ -27335,7 +27237,7 @@
       "round": "3rd Round"
     },
     {
-      "id": "result-2026-08-07-1952",
+      "id": "result-2026-08-07-1945",
       "date": "2026-08-07",
       "winner": "Samsonova L",
       "loser": "Joint M",
@@ -27349,7 +27251,7 @@
       "round": "3rd Round"
     },
     {
-      "id": "result-2026-08-07-1953",
+      "id": "result-2026-08-07-1946",
       "date": "2026-08-07",
       "winner": "Svitolina E",
       "loser": "Potapova A",
@@ -27363,7 +27265,7 @@
       "round": "3rd Round"
     },
     {
-      "id": "result-2026-08-07-1954",
+      "id": "result-2026-08-07-1947",
       "date": "2026-08-07",
       "winner": "Valdmannova V",
       "loser": "Lee C",
@@ -27377,7 +27279,7 @@
       "round": "Semifinals"
     },
     {
-      "id": "result-2026-08-08-1955",
+      "id": "result-2026-08-08-1948",
       "date": "2026-08-08",
       "winner": "Bencic B",
       "loser": "Townsend T",
@@ -27391,7 +27293,7 @@
       "round": "3rd Round"
     },
     {
-      "id": "result-2026-08-08-1956",
+      "id": "result-2026-08-08-1949",
       "date": "2026-08-08",
       "winner": "Eala A",
       "loser": "McNally C",
@@ -27405,7 +27307,7 @@
       "round": "3rd Round"
     },
     {
-      "id": "result-2026-08-08-1957",
+      "id": "result-2026-08-08-1950",
       "date": "2026-08-08",
       "winner": "Gauff C",
       "loser": "Sakkari M",
@@ -27419,7 +27321,7 @@
       "round": "3rd Round"
     },
     {
-      "id": "result-2026-08-08-1958",
+      "id": "result-2026-08-08-1951",
       "date": "2026-08-08",
       "winner": "Shnaider D",
       "loser": "Pegula J",
@@ -27433,7 +27335,7 @@
       "round": "4th Round"
     },
     {
-      "id": "result-2026-08-08-1959",
+      "id": "result-2026-08-08-1952",
       "date": "2026-08-08",
       "winner": "Swiatek I",
       "loser": "Kostyuk M",
@@ -27447,7 +27349,7 @@
       "round": "4th Round"
     },
     {
-      "id": "result-2026-08-08-1960",
+      "id": "result-2026-08-08-1953",
       "date": "2026-08-08",
       "winner": "Knutson G",
       "loser": "Lee C",
@@ -27461,7 +27363,7 @@
       "round": "Final"
     },
     {
-      "id": "result-2026-08-09-1961",
+      "id": "result-2026-08-09-1954",
       "date": "2026-08-09",
       "winner": "Alexandrova E",
       "loser": "Sabalenka A",
@@ -27475,7 +27377,7 @@
       "round": "4th Round"
     },
     {
-      "id": "result-2026-08-09-1962",
+      "id": "result-2026-08-09-1955",
       "date": "2026-08-09",
       "winner": "Anisimova A",
       "loser": "Svitolina E",
@@ -27489,7 +27391,7 @@
       "round": "Round 4"
     },
     {
-      "id": "result-2026-08-09-1963",
+      "id": "result-2026-08-09-1956",
       "date": "2026-08-09",
       "winner": "Gauff C",
       "loser": "Korneeva A",
@@ -27503,7 +27405,7 @@
       "round": "4th Round"
     },
     {
-      "id": "result-2026-08-09-1964",
+      "id": "result-2026-08-09-1957",
       "date": "2026-08-09",
       "winner": "Rybakina E",
       "loser": "Samsonova L",
@@ -27517,7 +27419,7 @@
       "round": "4th Round"
     },
     {
-      "id": "result-2026-08-09-1965",
+      "id": "result-2026-08-09-1958",
       "date": "2026-08-09",
       "winner": "Svitolina E",
       "loser": "Anisimova A",
@@ -27531,7 +27433,7 @@
       "round": "4th Round"
     },
     {
-      "id": "result-2026-08-10-1966",
+      "id": "result-2026-08-10-1959",
       "date": "2026-08-10",
       "winner": "Bencic B",
       "loser": "Eala A",
@@ -27545,7 +27447,7 @@
       "round": "4th Round"
     },
     {
-      "id": "result-2026-08-10-1967",
+      "id": "result-2026-08-10-1960",
       "date": "2026-08-10",
       "winner": "Osaka N",
       "loser": "Fernandez L",
@@ -27559,7 +27461,7 @@
       "round": "4th Round"
     },
     {
-      "id": "result-2026-08-11-1968",
+      "id": "result-2026-08-11-1961",
       "date": "2026-08-11",
       "winner": "Svitolina E",
       "loser": "Alexandrova E",
@@ -27573,7 +27475,7 @@
       "round": "Quarterfinals"
     },
     {
-      "id": "result-2026-08-11-1969",
+      "id": "result-2026-08-11-1962",
       "date": "2026-08-11",
       "winner": "Swiatek I",
       "loser": "Shnaider D",
@@ -27587,7 +27489,7 @@
       "round": "Quarterfinals"
     },
     {
-      "id": "result-2026-08-11-1970",
+      "id": "result-2026-08-11-1963",
       "date": "2026-08-11",
       "winner": "Bassols Ribera M",
       "loser": "Kraus S",
@@ -27601,7 +27503,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-08-11-1971",
+      "id": "result-2026-08-11-1964",
       "date": "2026-08-11",
       "winner": "Erjavec V",
       "loser": "Stoiana M",
@@ -27615,7 +27517,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-08-11-1972",
+      "id": "result-2026-08-11-1965",
       "date": "2026-08-11",
       "winner": "Grabher J",
       "loser": "Montgomery R",
@@ -27629,7 +27531,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-08-11-1973",
+      "id": "result-2026-08-11-1966",
       "date": "2026-08-11",
       "winner": "Jacquemot E",
       "loser": "Sramkova R",
@@ -27643,7 +27545,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-08-11-1974",
+      "id": "result-2026-08-11-1967",
       "date": "2026-08-11",
       "winner": "Jones E",
       "loser": "Tararudee L",
@@ -27657,7 +27559,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-08-11-1975",
+      "id": "result-2026-08-11-1968",
       "date": "2026-08-11",
       "winner": "Lepchenko V",
       "loser": "Korneeva A",
@@ -27671,7 +27573,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-08-11-1976",
+      "id": "result-2026-08-11-1969",
       "date": "2026-08-11",
       "winner": "Mandlik E",
       "loser": "Selekhmeteva O",
@@ -27685,7 +27587,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-08-11-1977",
+      "id": "result-2026-08-11-1970",
       "date": "2026-08-11",
       "winner": "Preston T",
       "loser": "Day K",
@@ -27699,7 +27601,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-08-11-1978",
+      "id": "result-2026-08-11-1971",
       "date": "2026-08-11",
       "winner": "Urhobo A",
       "loser": "Vandewinkel H",
@@ -27713,7 +27615,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-08-11-1979",
+      "id": "result-2026-08-11-1972",
       "date": "2026-08-11",
       "winner": "Zhu L",
       "loser": "Tagger L",
@@ -27727,7 +27629,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-08-12-1980",
+      "id": "result-2026-08-12-1973",
       "date": "2026-08-12",
       "winner": "Gauff C",
       "loser": "Bencic B",
@@ -27741,7 +27643,7 @@
       "round": "Quarterfinals"
     },
     {
-      "id": "result-2026-08-12-1981",
+      "id": "result-2026-08-12-1974",
       "date": "2026-08-12",
       "winner": "Rybakina E",
       "loser": "Osaka N",
@@ -27755,7 +27657,7 @@
       "round": "Quarterfinals"
     },
     {
-      "id": "result-2026-08-12-1982",
+      "id": "result-2026-08-12-1975",
       "date": "2026-08-12",
       "winner": "Andreescu B",
       "loser": "Wang X",
@@ -27769,7 +27671,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-08-12-1983",
+      "id": "result-2026-08-12-1976",
       "date": "2026-08-12",
       "winner": "Kawa K",
       "loser": "Lys E",
@@ -27783,7 +27685,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-08-12-1984",
+      "id": "result-2026-08-12-1977",
       "date": "2026-08-12",
       "winner": "Sasnovich A",
       "loser": "Arango E",
@@ -27797,7 +27699,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-08-12-1985",
+      "id": "result-2026-08-12-1978",
       "date": "2026-08-12",
       "winner": "Seidel E",
       "loser": "Podoroska N",
@@ -27811,7 +27713,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-08-12-1986",
+      "id": "result-2026-08-12-1979",
       "date": "2026-08-12",
       "winner": "Uchijima M",
       "loser": "Dart H",
@@ -27825,7 +27727,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-08-13-1987",
+      "id": "result-2026-08-13-1980",
       "date": "2026-08-13",
       "winner": "Rybakina E",
       "loser": "Gauff C",
@@ -27839,7 +27741,7 @@
       "round": "Semifinals"
     },
     {
-      "id": "result-2026-08-13-1988",
+      "id": "result-2026-08-13-1981",
       "date": "2026-08-13",
       "winner": "Rybakina E",
       "loser": "Swiatek I",
@@ -27853,7 +27755,7 @@
       "round": "Final"
     },
     {
-      "id": "result-2026-08-13-1989",
+      "id": "result-2026-08-13-1982",
       "date": "2026-08-13",
       "winner": "Swiatek I",
       "loser": "Rybakina E",
@@ -27867,7 +27769,7 @@
       "round": "The Final"
     },
     {
-      "id": "result-2026-08-13-1990",
+      "id": "result-2026-08-13-1983",
       "date": "2026-08-13",
       "winner": "Swiatek I",
       "loser": "Svitolina E",
@@ -27881,7 +27783,7 @@
       "round": "Semifinals"
     },
     {
-      "id": "result-2026-08-13-1991",
+      "id": "result-2026-08-13-1984",
       "date": "2026-08-13",
       "winner": "Birrell K",
       "loser": "Rakhimova K",
@@ -27895,7 +27797,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-08-13-1992",
+      "id": "result-2026-08-13-1985",
       "date": "2026-08-13",
       "winner": "Dolehide C",
       "loser": "Parry D",
@@ -27909,7 +27811,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-08-13-1993",
+      "id": "result-2026-08-13-1986",
       "date": "2026-08-13",
       "winner": "Jeanjean L",
       "loser": "Stefanini L",
@@ -27923,7 +27825,7 @@
       "round": "Round 2"
     },
     {
-      "id": "result-2026-08-13-1994",
+      "id": "result-2026-08-13-1987",
       "date": "2026-08-13",
       "winner": "Kudermetova P",
       "loser": "Wang X",
@@ -27937,7 +27839,7 @@
       "round": "Round 2"
     },
     {
-      "id": "result-2026-08-13-1995",
+      "id": "result-2026-08-13-1988",
       "date": "2026-08-13",
       "winner": "Linette M",
       "loser": "Ruse E",
@@ -27951,7 +27853,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-08-13-1996",
+      "id": "result-2026-08-13-1989",
       "date": "2026-08-13",
       "winner": "Liu C",
       "loser": "Kraus S",
@@ -27965,7 +27867,7 @@
       "round": "Round 2"
     },
     {
-      "id": "result-2026-08-13-1997",
+      "id": "result-2026-08-13-1990",
       "date": "2026-08-13",
       "winner": "Marcinko P",
       "loser": "Waltert S",
@@ -27979,7 +27881,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-08-13-1998",
+      "id": "result-2026-08-13-1991",
       "date": "2026-08-13",
       "winner": "Montgomery R",
       "loser": "Tagger L",
@@ -27993,7 +27895,7 @@
       "round": "Round 2"
     },
     {
-      "id": "result-2026-08-13-1999",
+      "id": "result-2026-08-13-1992",
       "date": "2026-08-13",
       "winner": "Osorio C",
       "loser": "Townsend T",
@@ -28007,7 +27909,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-08-13-2000",
+      "id": "result-2026-08-13-1993",
       "date": "2026-08-13",
       "winner": "Podoroska N",
       "loser": "Arango E",
@@ -28021,7 +27923,7 @@
       "round": "Round 2"
     },
     {
-      "id": "result-2026-08-13-2001",
+      "id": "result-2026-08-13-1994",
       "date": "2026-08-13",
       "winner": "Sramkova R",
       "loser": "Vandewinkel H",
@@ -28035,7 +27937,7 @@
       "round": "Round 2"
     },
     {
-      "id": "result-2026-08-13-2002",
+      "id": "result-2026-08-13-1995",
       "date": "2026-08-13",
       "winner": "Udvardy P",
       "loser": "Bucsa C",
@@ -28049,7 +27951,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-08-13-2003",
+      "id": "result-2026-08-13-1996",
       "date": "2026-08-13",
       "winner": "Volynets K",
       "loser": "Boulter K",
@@ -28063,7 +27965,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-08-13-2004",
+      "id": "result-2026-08-13-1997",
       "date": "2026-08-13",
       "winner": "Yastremska D",
       "loser": "Maria T",
@@ -28077,7 +27979,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-08-13-2005",
+      "id": "result-2026-08-13-1998",
       "date": "2026-08-13",
       "winner": "Boisson L",
       "loser": "Krueger A",
@@ -28091,7 +27993,7 @@
       "round": "1st Round"
     },
     {
-      "id": "result-2026-08-13-2006",
+      "id": "result-2026-08-13-1999",
       "date": "2026-08-13",
       "winner": "Bucsa C",
       "loser": "Udvardy P",
@@ -28105,7 +28007,7 @@
       "round": "1st Round"
     },
     {
-      "id": "result-2026-08-13-2007",
+      "id": "result-2026-08-13-2000",
       "date": "2026-08-13",
       "winner": "Frech M",
       "loser": "Ruzic A",
@@ -28119,7 +28021,7 @@
       "round": "1st Round"
     },
     {
-      "id": "result-2026-08-13-2008",
+      "id": "result-2026-08-13-2001",
       "date": "2026-08-13",
       "winner": "Kalinina A",
       "loser": "Vidmanova D",
@@ -28133,7 +28035,7 @@
       "round": "1st Round"
     },
     {
-      "id": "result-2026-08-13-2009",
+      "id": "result-2026-08-13-2002",
       "date": "2026-08-13",
       "winner": "Maria T",
       "loser": "Yastremska D",
@@ -28147,7 +28049,7 @@
       "round": "1st Round"
     },
     {
-      "id": "result-2026-08-13-2010",
+      "id": "result-2026-08-13-2003",
       "date": "2026-08-13",
       "winner": "Parry D",
       "loser": "Dolehide C",
@@ -28161,7 +28063,7 @@
       "round": "1st Round"
     },
     {
-      "id": "result-2026-08-13-2011",
+      "id": "result-2026-08-13-2004",
       "date": "2026-08-13",
       "winner": "Rakhimova K",
       "loser": "Birrell K",
@@ -28175,7 +28077,7 @@
       "round": "1st Round"
     },
     {
-      "id": "result-2026-08-13-2012",
+      "id": "result-2026-08-13-2005",
       "date": "2026-08-13",
       "winner": "Ruse E",
       "loser": "Linette M",
@@ -28189,7 +28091,7 @@
       "round": "1st Round"
     },
     {
-      "id": "result-2026-08-13-2013",
+      "id": "result-2026-08-13-2006",
       "date": "2026-08-13",
       "winner": "Sonmez Z",
       "loser": "Kasatkina D",
@@ -28203,7 +28105,7 @@
       "round": "1st Round"
     },
     {
-      "id": "result-2026-08-13-2014",
+      "id": "result-2026-08-13-2007",
       "date": "2026-08-13",
       "winner": "Townsend T",
       "loser": "Osorio M",
@@ -28217,7 +28119,7 @@
       "round": "1st Round"
     },
     {
-      "id": "result-2026-08-13-2015",
+      "id": "result-2026-08-13-2008",
       "date": "2026-08-13",
       "winner": "Waltert S",
       "loser": "Marcinko P",
@@ -28231,7 +28133,7 @@
       "round": "1st Round"
     },
     {
-      "id": "result-2026-08-14-2016",
+      "id": "result-2026-08-14-2009",
       "date": "2026-08-14",
       "winner": "Bondar A",
       "loser": "Bouzas Maneiro J",
@@ -28245,7 +28147,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-08-14-2017",
+      "id": "result-2026-08-14-2010",
       "date": "2026-08-14",
       "winner": "Charaeva A",
       "loser": "Bartunkova N",
@@ -28259,7 +28161,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-08-14-2018",
+      "id": "result-2026-08-14-2011",
       "date": "2026-08-14",
       "winner": "Dart H",
       "loser": "Stearns P",
@@ -28273,7 +28175,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-08-14-2019",
+      "id": "result-2026-08-14-2012",
       "date": "2026-08-14",
       "winner": "Kessler M",
       "loser": "McNally C",
@@ -28287,7 +28189,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-08-14-2020",
+      "id": "result-2026-08-14-2013",
       "date": "2026-08-14",
       "winner": "Kraus S",
       "loser": "Stephens S",
@@ -28301,7 +28203,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-08-14-2021",
+      "id": "result-2026-08-14-2014",
       "date": "2026-08-14",
       "winner": "Pliskova K",
       "loser": "Bejlek S",
@@ -28315,7 +28217,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-08-14-2022",
+      "id": "result-2026-08-14-2015",
       "date": "2026-08-14",
       "winner": "Starodubtseva Y",
       "loser": "Snigur D",
@@ -28329,7 +28231,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-08-14-2023",
+      "id": "result-2026-08-14-2016",
       "date": "2026-08-14",
       "winner": "Vandewinkel H",
       "loser": "Wang X",
@@ -28343,7 +28245,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-08-14-2024",
+      "id": "result-2026-08-14-2017",
       "date": "2026-08-14",
       "winner": "Williams V",
       "loser": "Arango E",
@@ -28357,7 +28259,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-08-14-2025",
+      "id": "result-2026-08-14-2018",
       "date": "2026-08-14",
       "winner": "Arango E",
       "loser": "Williams V",
@@ -28371,7 +28273,7 @@
       "round": "1st Round"
     },
     {
-      "id": "result-2026-08-14-2026",
+      "id": "result-2026-08-14-2019",
       "date": "2026-08-14",
       "winner": "Bartunkova N",
       "loser": "Charaeva A",
@@ -28385,7 +28287,7 @@
       "round": "1st Round"
     },
     {
-      "id": "result-2026-08-14-2027",
+      "id": "result-2026-08-14-2020",
       "date": "2026-08-14",
       "winner": "Bejlek S",
       "loser": "Pliskova Ka",
@@ -28399,7 +28301,7 @@
       "round": "1st Round"
     },
     {
-      "id": "result-2026-08-14-2028",
+      "id": "result-2026-08-14-2021",
       "date": "2026-08-14",
       "winner": "Blinkova A",
       "loser": "Sawangkaew M",
@@ -28413,7 +28315,7 @@
       "round": "1st Round"
     },
     {
-      "id": "result-2026-08-14-2029",
+      "id": "result-2026-08-14-2022",
       "date": "2026-08-14",
       "winner": "Boulter K",
       "loser": "Volynets K",
@@ -28427,7 +28329,7 @@
       "round": "1st Round"
     },
     {
-      "id": "result-2026-08-14-2030",
+      "id": "result-2026-08-14-2023",
       "date": "2026-08-14",
       "winner": "Bouzas Maneiro J",
       "loser": "Bondar A",
@@ -28441,7 +28343,7 @@
       "round": "1st Round"
     },
     {
-      "id": "result-2026-08-14-2031",
+      "id": "result-2026-08-14-2024",
       "date": "2026-08-14",
       "winner": "Gibson T",
       "loser": "Tagger L",
@@ -28455,7 +28357,7 @@
       "round": "1st Round"
     },
     {
-      "id": "result-2026-08-14-2032",
+      "id": "result-2026-08-14-2025",
       "date": "2026-08-14",
       "winner": "Golubic V",
       "loser": "Parks A",
@@ -28469,7 +28371,7 @@
       "round": "1st Round"
     },
     {
-      "id": "result-2026-08-14-2033",
+      "id": "result-2026-08-14-2026",
       "date": "2026-08-14",
       "winner": "Korpatsch T",
       "loser": "Joint M",
@@ -28483,7 +28385,7 @@
       "round": "1st Round"
     },
     {
-      "id": "result-2026-08-14-2034",
+      "id": "result-2026-08-14-2027",
       "date": "2026-08-14",
       "winner": "McNally C",
       "loser": "Kessler M",
@@ -28497,7 +28399,7 @@
       "round": "1st Round"
     },
     {
-      "id": "result-2026-08-14-2035",
+      "id": "result-2026-08-14-2028",
       "date": "2026-08-14",
       "winner": "Oliynykova O",
       "loser": "Kalieva E",
@@ -28511,7 +28413,7 @@
       "round": "1st Round"
     },
     {
-      "id": "result-2026-08-14-2036",
+      "id": "result-2026-08-14-2029",
       "date": "2026-08-14",
       "winner": "Samsonova L",
       "loser": "Putintseva Y",
@@ -28525,7 +28427,7 @@
       "round": "1st Round"
     },
     {
-      "id": "result-2026-08-14-2037",
+      "id": "result-2026-08-14-2030",
       "date": "2026-08-14",
       "winner": "Snigur D",
       "loser": "Starodubtseva Y",
@@ -28539,7 +28441,7 @@
       "round": "1st Round"
     },
     {
-      "id": "result-2026-08-14-2038",
+      "id": "result-2026-08-14-2031",
       "date": "2026-08-14",
       "winner": "Stearns P",
       "loser": "Dart H",
@@ -28553,7 +28455,7 @@
       "round": "1st Round"
     },
     {
-      "id": "result-2026-08-14-2039",
+      "id": "result-2026-08-14-2032",
       "date": "2026-08-14",
       "winner": "Stefanini L",
       "loser": "Cocciaretto E",
@@ -28567,7 +28469,7 @@
       "round": "1st Round"
     },
     {
-      "id": "result-2026-08-14-2040",
+      "id": "result-2026-08-14-2033",
       "date": "2026-08-14",
       "winner": "Valentova T",
       "loser": "Stoiana M",
@@ -28581,7 +28483,7 @@
       "round": "1st Round"
     },
     {
-      "id": "result-2026-08-14-2041",
+      "id": "result-2026-08-14-2034",
       "date": "2026-08-14",
       "winner": "Wang Xin",
       "loser": "Vandewinkel H",
@@ -28595,7 +28497,7 @@
       "round": "1st Round"
     },
     {
-      "id": "result-2026-08-14-2042",
+      "id": "result-2026-08-14-2035",
       "date": "2026-08-14",
       "winner": "Wang Xiy",
       "loser": "Timofeeva M",
@@ -28609,7 +28511,7 @@
       "round": "1st Round"
     },
     {
-      "id": "result-2026-08-15-2043",
+      "id": "result-2026-08-15-2036",
       "date": "2026-08-15",
       "winner": "Bartunkova N",
       "loser": "Cirstea S",
@@ -28623,7 +28525,7 @@
       "round": "Round 2"
     },
     {
-      "id": "result-2026-08-15-2044",
+      "id": "result-2026-08-15-2037",
       "date": "2026-08-15",
       "winner": "Boulter K",
       "loser": "Noskova L",
@@ -28637,7 +28539,7 @@
       "round": "Round 2"
     },
     {
-      "id": "result-2026-08-15-2045",
+      "id": "result-2026-08-15-2038",
       "date": "2026-08-15",
       "winner": "Day K",
       "loser": "Zhang S",
@@ -28651,7 +28553,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-08-15-2046",
+      "id": "result-2026-08-15-2039",
       "date": "2026-08-15",
       "winner": "Kalinina A",
       "loser": "Navarro E",
@@ -28665,7 +28567,7 @@
       "round": "Round 2"
     },
     {
-      "id": "result-2026-08-15-2047",
+      "id": "result-2026-08-15-2040",
       "date": "2026-08-15",
       "winner": "Lys E",
       "loser": "Kenin S",
@@ -28679,7 +28581,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-08-15-2048",
+      "id": "result-2026-08-15-2041",
       "date": "2026-08-15",
       "winner": "Maria T",
       "loser": "Shnaider D",
@@ -28693,7 +28595,7 @@
       "round": "Round 2"
     },
     {
-      "id": "result-2026-08-15-2049",
+      "id": "result-2026-08-15-2042",
       "date": "2026-08-15",
       "winner": "Anisimova A",
       "loser": "Sonmez Z",
@@ -28707,7 +28609,7 @@
       "round": "2nd Round"
     },
     {
-      "id": "result-2026-08-15-2050",
+      "id": "result-2026-08-15-2043",
       "date": "2026-08-15",
       "winner": "Chwalinska M",
       "loser": "Bucsa C",
@@ -28721,7 +28623,7 @@
       "round": "2nd Round"
     },
     {
-      "id": "result-2026-08-15-2051",
+      "id": "result-2026-08-15-2044",
       "date": "2026-08-15",
       "winner": "Cirstea S",
       "loser": "Bartunkova N",
@@ -28735,7 +28637,7 @@
       "round": "2nd Round"
     },
     {
-      "id": "result-2026-08-15-2052",
+      "id": "result-2026-08-15-2045",
       "date": "2026-08-15",
       "winner": "Eala A",
       "loser": "Ruse E",
@@ -28749,7 +28651,7 @@
       "round": "2nd Round"
     },
     {
-      "id": "result-2026-08-15-2053",
+      "id": "result-2026-08-15-2046",
       "date": "2026-08-15",
       "winner": "Frech M",
       "loser": "Ostapenko J",
@@ -28763,7 +28665,7 @@
       "round": "2nd Round"
     },
     {
-      "id": "result-2026-08-15-2054",
+      "id": "result-2026-08-15-2047",
       "date": "2026-08-15",
       "winner": "Kalinskaya A",
       "loser": "McNally C",
@@ -28777,7 +28679,7 @@
       "round": "2nd Round"
     },
     {
-      "id": "result-2026-08-15-2055",
+      "id": "result-2026-08-15-2048",
       "date": "2026-08-15",
       "winner": "Kenin S",
       "loser": "Lys E",
@@ -28791,7 +28693,7 @@
       "round": "1st Round"
     },
     {
-      "id": "result-2026-08-15-2056",
+      "id": "result-2026-08-15-2049",
       "date": "2026-08-15",
       "winner": "Navarro E",
       "loser": "Kalinina A",
@@ -28805,7 +28707,7 @@
       "round": "2nd Round"
     },
     {
-      "id": "result-2026-08-15-2057",
+      "id": "result-2026-08-15-2050",
       "date": "2026-08-15",
       "winner": "Noskova L",
       "loser": "Boulter K",
@@ -28819,7 +28721,7 @@
       "round": "2nd Round"
     },
     {
-      "id": "result-2026-08-15-2058",
+      "id": "result-2026-08-15-2051",
       "date": "2026-08-15",
       "winner": "Pegula J",
       "loser": "Waltert S",
@@ -28833,7 +28735,7 @@
       "round": "2nd Round"
     },
     {
-      "id": "result-2026-08-15-2059",
+      "id": "result-2026-08-15-2052",
       "date": "2026-08-15",
       "winner": "Sakkari M",
       "loser": "Rakhimova K",
@@ -28847,7 +28749,7 @@
       "round": "2nd Round"
     },
     {
-      "id": "result-2026-08-15-2060",
+      "id": "result-2026-08-15-2053",
       "date": "2026-08-15",
       "winner": "Shnaider D",
       "loser": "Maria T",
@@ -28861,7 +28763,7 @@
       "round": "2nd Round"
     },
     {
-      "id": "result-2026-08-15-2061",
+      "id": "result-2026-08-15-2054",
       "date": "2026-08-15",
       "winner": "Stephens S",
       "loser": "Kraus S",
@@ -28875,7 +28777,7 @@
       "round": "1st Round"
     },
     {
-      "id": "result-2026-08-15-2062",
+      "id": "result-2026-08-15-2055",
       "date": "2026-08-15",
       "winner": "Zhang S",
       "loser": "Day K",
@@ -28889,7 +28791,7 @@
       "round": "1st Round"
     },
     {
-      "id": "result-2026-08-16-2063",
+      "id": "result-2026-08-16-2056",
       "date": "2026-08-16",
       "winner": "Arango E",
       "loser": "Swiatek I",
@@ -28903,7 +28805,7 @@
       "round": "Round 2"
     },
     {
-      "id": "result-2026-08-16-2064",
+      "id": "result-2026-08-16-2057",
       "date": "2026-08-16",
       "winner": "Bouzas Maneiro J",
       "loser": "Siniakova K",
@@ -28917,7 +28819,7 @@
       "round": "Round 2"
     },
     {
-      "id": "result-2026-08-16-2065",
+      "id": "result-2026-08-16-2058",
       "date": "2026-08-16",
       "winner": "Gibson T",
       "loser": "Sabalenka A",
@@ -28931,7 +28833,7 @@
       "round": "Round 2"
     },
     {
-      "id": "result-2026-08-16-2066",
+      "id": "result-2026-08-16-2059",
       "date": "2026-08-16",
       "winner": "Golubic V",
       "loser": "Tjen J",
@@ -28945,7 +28847,7 @@
       "round": "Round 2"
     },
     {
-      "id": "result-2026-08-16-2067",
+      "id": "result-2026-08-16-2060",
       "date": "2026-08-16",
       "winner": "Kenin S",
       "loser": "Kostyuk M",
@@ -28959,7 +28861,7 @@
       "round": "Round 2"
     },
     {
-      "id": "result-2026-08-16-2068",
+      "id": "result-2026-08-16-2061",
       "date": "2026-08-16",
       "winner": "Potapova A",
       "loser": "Stephens S",
@@ -28973,7 +28875,7 @@
       "round": "Round 2"
     },
     {
-      "id": "result-2026-08-16-2069",
+      "id": "result-2026-08-16-2062",
       "date": "2026-08-16",
       "winner": "Samsonova L",
       "loser": "Gauff C",
@@ -28987,7 +28889,7 @@
       "round": "Round 2"
     },
     {
-      "id": "result-2026-08-16-2070",
+      "id": "result-2026-08-16-2063",
       "date": "2026-08-16",
       "winner": "Stefanini L",
       "loser": "Bouzkova M",
@@ -29001,7 +28903,7 @@
       "round": "Round 2"
     },
     {
-      "id": "result-2026-08-16-2071",
+      "id": "result-2026-08-16-2064",
       "date": "2026-08-16",
       "winner": "Vekic D",
       "loser": "Wang X",
@@ -29015,7 +28917,7 @@
       "round": "Round 2"
     },
     {
-      "id": "result-2026-08-16-2072",
+      "id": "result-2026-08-16-2065",
       "date": "2026-08-16",
       "winner": "Alexandrova E",
       "loser": "Blinkova A",
@@ -29029,7 +28931,7 @@
       "round": "2nd Round"
     },
     {
-      "id": "result-2026-08-16-2073",
+      "id": "result-2026-08-16-2066",
       "date": "2026-08-16",
       "winner": "Andreeva M",
       "loser": "Oliynykova O",
@@ -29043,7 +28945,7 @@
       "round": "2nd Round"
     },
     {
-      "id": "result-2026-08-16-2074",
+      "id": "result-2026-08-16-2067",
       "date": "2026-08-16",
       "winner": "Bejlek S",
       "loser": "Krejcikova B",
@@ -29057,7 +28959,7 @@
       "round": "2nd Round"
     },
     {
-      "id": "result-2026-08-16-2075",
+      "id": "result-2026-08-16-2068",
       "date": "2026-08-16",
       "winner": "Boisson L",
       "loser": "Bencic B",
@@ -29071,7 +28973,7 @@
       "round": "2nd Round"
     },
     {
-      "id": "result-2026-08-16-2076",
+      "id": "result-2026-08-16-2069",
       "date": "2026-08-16",
       "winner": "Bouzkova M",
       "loser": "Stefanini L",
@@ -29085,7 +28987,7 @@
       "round": "2nd Round"
     },
     {
-      "id": "result-2026-08-16-2077",
+      "id": "result-2026-08-16-2070",
       "date": "2026-08-16",
       "winner": "Jovic I",
       "loser": "Korpatsch T",
@@ -29099,7 +29001,7 @@
       "round": "2nd Round"
     },
     {
-      "id": "result-2026-08-16-2078",
+      "id": "result-2026-08-16-2071",
       "date": "2026-08-16",
       "winner": "Keys M",
       "loser": "Snigur D",
@@ -29113,7 +29015,7 @@
       "round": "2nd Round"
     },
     {
-      "id": "result-2026-08-16-2079",
+      "id": "result-2026-08-16-2072",
       "date": "2026-08-16",
       "winner": "Kostyuk M",
       "loser": "Kenin S",
@@ -29127,7 +29029,7 @@
       "round": "2nd Round"
     },
     {
-      "id": "result-2026-08-16-2080",
+      "id": "result-2026-08-16-2073",
       "date": "2026-08-16",
       "winner": "Li A",
       "loser": "Zhang S",
@@ -29141,7 +29043,7 @@
       "round": "2nd Round"
     },
     {
-      "id": "result-2026-08-16-2081",
+      "id": "result-2026-08-16-2074",
       "date": "2026-08-16",
       "winner": "Parry D",
       "loser": "Mertens E",
@@ -29155,7 +29057,7 @@
       "round": "2nd Round"
     },
     {
-      "id": "result-2026-08-16-2082",
+      "id": "result-2026-08-16-2075",
       "date": "2026-08-16",
       "winner": "Rybakina E",
       "loser": "Townsend T",
@@ -29169,7 +29071,7 @@
       "round": "2nd Round"
     },
     {
-      "id": "result-2026-08-16-2083",
+      "id": "result-2026-08-16-2076",
       "date": "2026-08-16",
       "winner": "Sabalenka A",
       "loser": "Gibson T",
@@ -29183,7 +29085,7 @@
       "round": "2nd Round"
     },
     {
-      "id": "result-2026-08-16-2084",
+      "id": "result-2026-08-16-2077",
       "date": "2026-08-16",
       "winner": "Siniakova K",
       "loser": "Bouzas Maneiro J",
@@ -29197,7 +29099,7 @@
       "round": "2nd Round"
     },
     {
-      "id": "result-2026-08-16-2085",
+      "id": "result-2026-08-16-2078",
       "date": "2026-08-16",
       "winner": "Stephens S",
       "loser": "Potapova A",
@@ -29211,7 +29113,7 @@
       "round": "2nd Round"
     },
     {
-      "id": "result-2026-08-16-2086",
+      "id": "result-2026-08-16-2079",
       "date": "2026-08-16",
       "winner": "Swiatek I",
       "loser": "Arango E",
@@ -29225,7 +29127,7 @@
       "round": "2nd Round"
     },
     {
-      "id": "result-2026-08-16-2087",
+      "id": "result-2026-08-16-2080",
       "date": "2026-08-16",
       "winner": "Tauson C",
       "loser": "Stearns P",
@@ -29239,7 +29141,7 @@
       "round": "2nd Round"
     },
     {
-      "id": "result-2026-08-16-2088",
+      "id": "result-2026-08-16-2081",
       "date": "2026-08-16",
       "winner": "Tjen J",
       "loser": "Golubic V",
@@ -29253,7 +29155,7 @@
       "round": "2nd Round"
     },
     {
-      "id": "result-2026-08-16-2089",
+      "id": "result-2026-08-16-2082",
       "date": "2026-08-16",
       "winner": "Wang Xin",
       "loser": "Vekic D",
@@ -29267,7 +29169,7 @@
       "round": "2nd Round"
     },
     {
-      "id": "result-2026-08-16-2090",
+      "id": "result-2026-08-16-2083",
       "date": "2026-08-16",
       "winner": "Wang Xiy",
       "loser": "Fernandez L",
@@ -29281,7 +29183,7 @@
       "round": "2nd Round"
     },
     {
-      "id": "result-2026-08-17-2091",
+      "id": "result-2026-08-17-2084",
       "date": "2026-08-17",
       "winner": "Boisson L",
       "loser": "Parry D",
@@ -29295,7 +29197,7 @@
       "round": "Round 3"
     },
     {
-      "id": "result-2026-08-17-2092",
+      "id": "result-2026-08-17-2085",
       "date": "2026-08-17",
       "winner": "Chwalinska M",
       "loser": "Shnaider D",
@@ -29309,7 +29211,7 @@
       "round": "Round 3"
     },
     {
-      "id": "result-2026-08-17-2093",
+      "id": "result-2026-08-17-2086",
       "date": "2026-08-17",
       "winner": "Sakkari M",
       "loser": "Swiatek I",
@@ -29323,7 +29225,7 @@
       "round": "Round 3"
     },
     {
-      "id": "result-2026-08-17-2094",
+      "id": "result-2026-08-17-2087",
       "date": "2026-08-17",
       "winner": "Tauson C",
       "loser": "Noskova L",
@@ -29337,7 +29239,7 @@
       "round": "Round 3"
     },
     {
-      "id": "result-2026-08-17-2095",
+      "id": "result-2026-08-17-2088",
       "date": "2026-08-17",
       "winner": "Cirstea S",
       "loser": "Kalinskaya A",
@@ -29351,7 +29253,7 @@
       "round": "3rd Round"
     },
     {
-      "id": "result-2026-08-17-2096",
+      "id": "result-2026-08-17-2089",
       "date": "2026-08-17",
       "winner": "Gauff C",
       "loser": "Samsonova L",
@@ -29365,7 +29267,7 @@
       "round": "2nd Round"
     },
     {
-      "id": "result-2026-08-17-2097",
+      "id": "result-2026-08-17-2090",
       "date": "2026-08-17",
       "winner": "Noskova L",
       "loser": "Tauson C",
@@ -29379,7 +29281,7 @@
       "round": "3rd Round"
     },
     {
-      "id": "result-2026-08-17-2098",
+      "id": "result-2026-08-17-2091",
       "date": "2026-08-17",
       "winner": "Parry D",
       "loser": "Boisson L",
@@ -29393,7 +29295,7 @@
       "round": "3rd Round"
     },
     {
-      "id": "result-2026-08-17-2099",
+      "id": "result-2026-08-17-2092",
       "date": "2026-08-17",
       "winner": "Rybakina E",
       "loser": "Frech M",
@@ -29407,7 +29309,7 @@
       "round": "3rd Round"
     },
     {
-      "id": "result-2026-08-17-2100",
+      "id": "result-2026-08-17-2093",
       "date": "2026-08-17",
       "winner": "Shnaider D",
       "loser": "Chwalinska M",
@@ -29421,7 +29323,7 @@
       "round": "3rd Round"
     },
     {
-      "id": "result-2026-08-17-2101",
+      "id": "result-2026-08-17-2094",
       "date": "2026-08-17",
       "winner": "Svitolina E",
       "loser": "Valentova T",
@@ -29435,7 +29337,7 @@
       "round": "2nd Round"
     },
     {
-      "id": "result-2026-08-17-2102",
+      "id": "result-2026-08-17-2095",
       "date": "2026-08-17",
       "winner": "Swiatek I",
       "loser": "Sakkari M",
@@ -29449,7 +29351,7 @@
       "round": "3rd Round"
     },
     {
-      "id": "result-2026-08-18-2103",
+      "id": "result-2026-08-18-2096",
       "date": "2026-08-18",
       "winner": "Alexandrova E",
       "loser": "Bejlek S",
@@ -29463,7 +29365,7 @@
       "round": "Round 3"
     },
     {
-      "id": "result-2026-08-18-2104",
+      "id": "result-2026-08-18-2097",
       "date": "2026-08-18",
       "winner": "Li A",
       "loser": "Gauff C",
@@ -29477,7 +29379,7 @@
       "round": "Round 3"
     },
     {
-      "id": "result-2026-08-18-2105",
+      "id": "result-2026-08-18-2098",
       "date": "2026-08-18",
       "winner": "Stephens S",
       "loser": "Kostyuk M",
@@ -29491,7 +29393,7 @@
       "round": "Round 3"
     },
     {
-      "id": "result-2026-08-18-2106",
+      "id": "result-2026-08-18-2099",
       "date": "2026-08-18",
       "winner": "Wang X",
       "loser": "Sabalenka A",
@@ -29505,7 +29407,7 @@
       "round": "Round 3"
     },
     {
-      "id": "result-2026-08-18-2107",
+      "id": "result-2026-08-18-2100",
       "date": "2026-08-18",
       "winner": "Andreeva M",
       "loser": "Tjen J",
@@ -29519,7 +29421,7 @@
       "round": "3rd Round"
     },
     {
-      "id": "result-2026-08-18-2108",
+      "id": "result-2026-08-18-2101",
       "date": "2026-08-18",
       "winner": "Anisimova A",
       "loser": "Eala A",
@@ -29533,7 +29435,7 @@
       "round": "3rd Round"
     },
     {
-      "id": "result-2026-08-18-2109",
+      "id": "result-2026-08-18-2102",
       "date": "2026-08-18",
       "winner": "Bejlek S",
       "loser": "Alexandrova E",
@@ -29547,7 +29449,7 @@
       "round": "3rd Round"
     },
     {
-      "id": "result-2026-08-18-2110",
+      "id": "result-2026-08-18-2103",
       "date": "2026-08-18",
       "winner": "Gauff C",
       "loser": "Li A",
@@ -29561,7 +29463,7 @@
       "round": "3rd Round"
     },
     {
-      "id": "result-2026-08-18-2111",
+      "id": "result-2026-08-18-2104",
       "date": "2026-08-18",
       "winner": "Keys M",
       "loser": "Siniakova K",
@@ -29575,7 +29477,7 @@
       "round": "3rd Round"
     },
     {
-      "id": "result-2026-08-18-2112",
+      "id": "result-2026-08-18-2105",
       "date": "2026-08-18",
       "winner": "Kostyuk M",
       "loser": "Stephens S",
@@ -29589,7 +29491,7 @@
       "round": "3rd Round"
     },
     {
-      "id": "result-2026-08-18-2113",
+      "id": "result-2026-08-18-2106",
       "date": "2026-08-18",
       "winner": "Pegula J",
       "loser": "Navarro E",
@@ -29603,7 +29505,7 @@
       "round": "3rd Round"
     },
     {
-      "id": "result-2026-08-18-2114",
+      "id": "result-2026-08-18-2107",
       "date": "2026-08-18",
       "winner": "Wang Xiy",
       "loser": "Svitolina E",
@@ -29617,7 +29519,7 @@
       "round": "3rd Round"
     },
     {
-      "id": "result-2026-08-19-2115",
+      "id": "result-2026-08-19-2108",
       "date": "2026-08-19",
       "winner": "Andreeva M",
       "loser": "Kostyuk M",
@@ -29631,7 +29533,7 @@
       "round": "Round 4"
     },
     {
-      "id": "result-2026-08-19-2116",
+      "id": "result-2026-08-19-2109",
       "date": "2026-08-19",
       "winner": "Bouzkova M",
       "loser": "Gauff C",
@@ -29645,7 +29547,7 @@
       "round": "Round 4"
     },
     {
-      "id": "result-2026-08-19-2117",
+      "id": "result-2026-08-19-2110",
       "date": "2026-08-19",
       "winner": "Jovic I",
       "loser": "Bouzkova M",
@@ -29659,7 +29561,7 @@
       "round": "Round 3"
     },
     {
-      "id": "result-2026-08-19-2118",
+      "id": "result-2026-08-19-2111",
       "date": "2026-08-19",
       "winner": "Parry D",
       "loser": "Swiatek I",
@@ -29673,7 +29575,7 @@
       "round": "Round 4"
     },
     {
-      "id": "result-2026-08-19-2119",
+      "id": "result-2026-08-19-2112",
       "date": "2026-08-19",
       "winner": "Wang X",
       "loser": "Keys M",
@@ -29687,7 +29589,7 @@
       "round": "Round 4"
     },
     {
-      "id": "result-2026-08-19-2120",
+      "id": "result-2026-08-19-2113",
       "date": "2026-08-19",
       "winner": "Anisimova A",
       "loser": "Noskova L",
@@ -29701,7 +29603,7 @@
       "round": "4th Round"
     },
     {
-      "id": "result-2026-08-19-2121",
+      "id": "result-2026-08-19-2114",
       "date": "2026-08-19",
       "winner": "Bouzkova M",
       "loser": "Jovic I",
@@ -29715,7 +29617,7 @@
       "round": "3rd Round"
     },
     {
-      "id": "result-2026-08-19-2122",
+      "id": "result-2026-08-19-2115",
       "date": "2026-08-19",
       "winner": "Gauff C",
       "loser": "Bouzkova M",
@@ -29729,7 +29631,7 @@
       "round": "4th Round"
     },
     {
-      "id": "result-2026-08-19-2123",
+      "id": "result-2026-08-19-2116",
       "date": "2026-08-19",
       "winner": "Kostyuk M",
       "loser": "Andreeva M",
@@ -29743,7 +29645,7 @@
       "round": "4th Round"
     },
     {
-      "id": "result-2026-08-19-2124",
+      "id": "result-2026-08-19-2117",
       "date": "2026-08-19",
       "winner": "Pegula J",
       "loser": "Cirstea S",
@@ -29757,7 +29659,7 @@
       "round": "4th Round"
     },
     {
-      "id": "result-2026-08-19-2125",
+      "id": "result-2026-08-19-2118",
       "date": "2026-08-19",
       "winner": "Rybakina E",
       "loser": "Shnaider D",
@@ -29771,7 +29673,7 @@
       "round": "4th Round"
     },
     {
-      "id": "result-2026-08-19-2126",
+      "id": "result-2026-08-19-2119",
       "date": "2026-08-19",
       "winner": "Sabalenka A",
       "loser": "Wang Xin",
@@ -29785,7 +29687,7 @@
       "round": "3rd Round"
     },
     {
-      "id": "result-2026-08-19-2127",
+      "id": "result-2026-08-19-2120",
       "date": "2026-08-19",
       "winner": "Swiatek I",
       "loser": "Parry D",
@@ -29799,7 +29701,7 @@
       "round": "4th Round"
     },
     {
-      "id": "result-2026-08-20-2128",
+      "id": "result-2026-08-20-2121",
       "date": "2026-08-20",
       "winner": "Bejlek S",
       "loser": "Sabalenka A",
@@ -29813,7 +29715,7 @@
       "round": "4th Round"
     },
     {
-      "id": "result-2026-08-20-2129",
+      "id": "result-2026-08-20-2122",
       "date": "2026-08-20",
       "winner": "Keys M",
       "loser": "Wang Xiy",
@@ -29827,7 +29729,7 @@
       "round": "4th Round"
     },
     {
-      "id": "result-2026-08-20-2130",
+      "id": "result-2026-08-20-2123",
       "date": "2026-08-20",
       "winner": "Pegula J",
       "loser": "Anisimova A",
@@ -29841,7 +29743,7 @@
       "round": "Quarterfinals"
     },
     {
-      "id": "result-2026-08-21-2131",
+      "id": "result-2026-08-21-2124",
       "date": "2026-08-21",
       "winner": "Keys M",
       "loser": "Bejlek S",
@@ -29855,7 +29757,7 @@
       "round": "Quarterfinals"
     },
     {
-      "id": "result-2026-08-21-2132",
+      "id": "result-2026-08-21-2125",
       "date": "2026-08-21",
       "winner": "Bejlek S",
       "loser": "Keys M",
@@ -29869,7 +29771,7 @@
       "round": "Quarterfinals"
     },
     {
-      "id": "result-2026-08-21-2133",
+      "id": "result-2026-08-21-2126",
       "date": "2026-08-21",
       "winner": "Swiatek I",
       "loser": "Rybakina E",
@@ -29883,7 +29785,7 @@
       "round": "Quarterfinals"
     },
     {
-      "id": "result-2026-08-22-2134",
+      "id": "result-2026-08-22-2127",
       "date": "2026-08-22",
       "winner": "Kostyuk M",
       "loser": "Gauff C",
@@ -29897,7 +29799,7 @@
       "round": "Quarterfinals"
     },
     {
-      "id": "result-2026-08-22-2135",
+      "id": "result-2026-08-22-2128",
       "date": "2026-08-22",
       "winner": "Swiatek I",
       "loser": "Pegula J",
@@ -29911,7 +29813,7 @@
       "round": "Semifinals"
     },
     {
-      "id": "result-2026-08-22-2136",
+      "id": "result-2026-08-22-2129",
       "date": "2026-08-22",
       "winner": "Arango E",
       "loser": "Udvardy P",
@@ -29925,7 +29827,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-08-22-2137",
+      "id": "result-2026-08-22-2130",
       "date": "2026-08-22",
       "winner": "Hinojosa Gomez J",
       "loser": "Joint M",
@@ -29939,7 +29841,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-08-22-2138",
+      "id": "result-2026-08-22-2131",
       "date": "2026-08-22",
       "winner": "Kraus S",
       "loser": "Liang E",
@@ -29953,7 +29855,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-08-22-2139",
+      "id": "result-2026-08-22-2132",
       "date": "2026-08-22",
       "winner": "Gauff C",
       "loser": "Kostyuk M",
@@ -29967,7 +29869,7 @@
       "round": "Quarterfinals"
     },
     {
-      "id": "result-2026-08-22-2140",
+      "id": "result-2026-08-22-2133",
       "date": "2026-08-22",
       "winner": "Pegula J",
       "loser": "Swiatek I",
@@ -29981,7 +29883,7 @@
       "round": "Semifinals"
     },
     {
-      "id": "result-2026-08-23-2141",
+      "id": "result-2026-08-23-2134",
       "date": "2026-08-23",
       "winner": "Pegula J",
       "loser": "Gauff C",
@@ -29995,7 +29897,7 @@
       "round": "Final"
     },
     {
-      "id": "result-2026-08-23-2142",
+      "id": "result-2026-08-23-2135",
       "date": "2026-08-23",
       "winner": "Jacquemot E",
       "loser": "Bondar A",
@@ -30009,7 +29911,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-08-23-2143",
+      "id": "result-2026-08-23-2136",
       "date": "2026-08-23",
       "winner": "Liang E",
       "loser": "Bondar A",
@@ -30023,7 +29925,7 @@
       "round": "Round 2"
     },
     {
-      "id": "result-2026-08-23-2144",
+      "id": "result-2026-08-23-2137",
       "date": "2026-08-23",
       "winner": "Rakhimova K",
       "loser": "Timofeeva M",
@@ -30037,7 +29939,7 @@
       "round": "Round 2"
     },
     {
-      "id": "result-2026-08-23-2145",
+      "id": "result-2026-08-23-2138",
       "date": "2026-08-23",
       "winner": "Blinkova A",
       "loser": "Zakharova A",
@@ -30051,7 +29953,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-08-23-2146",
+      "id": "result-2026-08-23-2139",
       "date": "2026-08-23",
       "winner": "Dang Y",
       "loser": "Daniel J",
@@ -30065,7 +29967,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-08-23-2147",
+      "id": "result-2026-08-23-2140",
       "date": "2026-08-23",
       "winner": "Jauffret C",
       "loser": "Seidel E",
@@ -30079,7 +29981,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-08-23-2148",
+      "id": "result-2026-08-23-2141",
       "date": "2026-08-23",
       "winner": "Koike E",
       "loser": "Wang X",
@@ -30093,7 +29995,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-08-23-2149",
+      "id": "result-2026-08-23-2142",
       "date": "2026-08-23",
       "winner": "Osborne A",
       "loser": "Arseneault A",
@@ -30107,7 +30009,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-08-23-2150",
+      "id": "result-2026-08-23-2143",
       "date": "2026-08-23",
       "winner": "Reasco Gonzalez M",
       "loser": "Pohankova M",
@@ -30121,7 +30023,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-08-23-2151",
+      "id": "result-2026-08-23-2144",
       "date": "2026-08-23",
       "winner": "Velaga E",
       "loser": "Ovcharenko E",
@@ -30135,7 +30037,7 @@
       "round": "Round 1"
     },
     {
-      "id": "result-2026-08-23-2152",
+      "id": "result-2026-08-23-2145",
       "date": "2026-08-23",
       "winner": "Gauff C",
       "loser": "Bejlek S",
@@ -30149,7 +30051,7 @@
       "round": "Semifinals"
     },
     {
-      "id": "result-2026-08-24-2153",
+      "id": "result-2026-08-24-2146",
       "date": "2026-08-24",
       "winner": "Putintseva Y",
       "loser": "Joint M",
@@ -30161,6 +30063,48 @@
       "tier": "WTA 500",
       "surface": "Hard",
       "round": "Round 2"
+    },
+    {
+      "id": "result-2026-08-24-2147",
+      "date": "2026-08-24",
+      "winner": "Perez Alarcon L",
+      "loser": "Tian F",
+      "player1": "Perez Alarcon L",
+      "player2": "Tian F",
+      "actual_winner": "Perez Alarcon L",
+      "tournament": "PHILADELPHIA 125",
+      "location": "PHILADELPHIA",
+      "tier": "WTA 125",
+      "surface": "Hard",
+      "round": "Round 1"
+    },
+    {
+      "id": "result-2026-08-24-2148",
+      "date": "2026-08-24",
+      "winner": "Preston T",
+      "loser": "Selekhmeteva O",
+      "player1": "Preston T",
+      "player2": "Selekhmeteva O",
+      "actual_winner": "Preston T",
+      "tournament": "PHILADELPHIA 125",
+      "location": "PHILADELPHIA",
+      "tier": "WTA 125",
+      "surface": "Hard",
+      "round": "Round 1"
+    },
+    {
+      "id": "result-2026-08-24-2149",
+      "date": "2026-08-24",
+      "winner": "Gauff C",
+      "loser": "Pegula J",
+      "player1": "Gauff C",
+      "player2": "Pegula J",
+      "actual_winner": "Gauff C",
+      "tournament": "Western & Southern Financial Group Women's Open",
+      "location": "Cincinnati",
+      "tier": "WTA1000",
+      "surface": "Hard",
+      "round": "The Final"
     }
   ]
 }
