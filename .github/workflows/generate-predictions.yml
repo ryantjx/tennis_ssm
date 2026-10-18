@@ -7,10 +7,6 @@ on:
         description: "Skip the Python test gate (recovery only)"
         type: boolean
         default: false
-      force_refresh_cache:
-        description: "Ignore the cached WTA workbooks and re-download"
-        type: boolean
-        default: false
   schedule:
     # Avoid the top-of-hour scheduler backlog and publish before the WTA day.
     - cron: "17 6 * * *"
@@ -43,14 +39,6 @@ jobs:
       - name: Install uv
         run: pip install uv
 
-      - name: Restore historical workbook cache
-        uses: actions/cache@v4
-        with:
-          path: local_data/raw
-          key: tennis-data-workbooks-${{ github.run_id }}
-          restore-keys: |
-            tennis-data-workbooks-
-
       - name: Create venv and install dependencies
         run: |
           uv venv .venv
@@ -63,9 +51,6 @@ jobs:
           python -m unittest discover -s tests -t .
 
       - name: Generate latest prediction data
-        env:
-          # A zero TTL forces a re-download instead of using the workbook cache.
-          TENNIS_DATA_CACHE_TTL_HOURS: ${{ inputs.force_refresh_cache && '0' || '6' }}
         run: |
           source .venv/bin/activate
           for attempt in 1 2 3; do

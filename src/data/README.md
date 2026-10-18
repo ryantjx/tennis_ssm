@@ -6,24 +6,36 @@ flows because they answer different questions.
 ## Historical Results
 
 Historical WTA match results are loaded by `data.py` from yearly Excel files on
-`tennis-data.co.uk`. The host no longer serves the legacy
-`http://www.tennis-data.co.uk/{year}w/{year}.xlsx` paths directly: it now
-advertises workbook links from a data index page under a hashed directory,
-and it rejects the default Python user agent with HTTP 403. The loader
-therefore:
+`tennis-data.co.uk`. The host has changed shape twice, so the loader is
+deliberately layered:
 
-- reads `https://tennis-data.co.uk/data.php` and extracts the `{year}w/{year}.xlsx`
-  links into a year-to-URL mapping;
-- fetches each workbook with browser-like `User-Agent` and `Accept` headers;
-- falls back to the legacy yearly URL template if discovery fails, and retries
-  transient failures;
-- caches downloaded workbooks under `local_data/raw/`.
+- it reads `https://tennis-data.co.uk/data.php` and extracts the
+  `{year}w/{year}.xlsx` links into a year-to-URL mapping, because the site
+  serves workbooks from a rotating hashed directory;
+- it fetches each workbook with browser-like `User-Agent` and `Accept` headers,
+  because the host rejects the default Python user agent;
+- it falls back to the legacy yearly URL template if discovery fails, and
+  retries transient failures;
+- it caches downloads under `local_data/raw`;
+- it falls back to the committed seed in `data/historical` when the host is
+  unreachable.
 
-Past seasons are immutable and are reused from the cache indefinitely. The
-current season is refreshed once `TENNIS_DATA_CACHE_TTL_HOURS` (default 6) has
-elapsed, because results accumulate through the season. If the host is
-unreachable, a stale cached workbook is used so daily generation degrades to
-slightly older results instead of failing outright.
+The seed is necessary rather than convenient: `tennis-data.co.uk` returns HTTP
+403 to datacenter IP ranges, so GitHub Actions runners can never download the
+workbooks. `data/historical` is therefore the base of the historical dataset in
+CI, and recently completed results are appended from the WTA API on top of it.
+Refresh the seed from a machine where the host is reachable:
+
+```bash
+python scripts/refresh_data_seed.py           # missing seasons only
+python scripts/refresh_data_seed.py --force   # re-download every season
+```
+
+Past seasons are immutable and cached indefinitely. The current season is
+refreshed once `TENNIS_DATA_CACHE_TTL_HOURS` (default 6) has elapsed, because
+results accumulate through the season. The WTA API backfill covers the last
+`WTA_COMPLETED_LOOKBACK_DAYS` (30) days, so refresh the seed if the current
+season spreadsheet falls further behind than that.
 
 These files are used for training and evaluation because they contain completed
 matches with known winners and losers. The loader:

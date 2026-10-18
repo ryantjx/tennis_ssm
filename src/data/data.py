@@ -54,6 +54,12 @@ DATA_REQUEST_HEADERS = {
 # indefinitely; the current season is refreshed according to a TTL because
 # results are appended throughout the season.
 DATA_CACHE_DIR = Path(os.environ.get("TENNIS_DATA_CACHE_DIR", "local_data/raw"))
+# tennis-data.co.uk returns HTTP 403 to datacenter IP ranges, so CI runners
+# cannot download the workbooks at all. A committed copy is therefore the base
+# of the historical dataset; the WTA API (which does work from CI) appends
+# recently completed results on top of it. Refresh the seed locally with
+# `python scripts/refresh_data_seed.py` when the spreadsheets are updated.
+DATA_SEED_DIR = Path(os.environ.get("TENNIS_DATA_SEED_DIR", "data/historical"))
 CURRENT_SEASON_CACHE_TTL_HOURS = float(
     os.environ.get("TENNIS_DATA_CACHE_TTL_HOURS", "6")
 )
@@ -243,6 +249,14 @@ def _workbook_cache_path(year: int) -> Path:
     return DATA_CACHE_DIR / f"{year}w.xlsx"
 
 
+def _workbook_seed_path(year: int) -> Path:
+    return DATA_SEED_DIR / f"{year}w.xlsx"
+
+
+def _read_workbook(path: Path) -> pl.DataFrame:
+    return pl.read_excel(path)
+
+
 def _cache_entry_is_fresh(path: Path, year: int) -> bool:
     if not path.exists() or path.stat().st_size == 0:
         return False
@@ -266,15 +280,26 @@ def _workbook_url_candidates(year: int, discovered_url: str | None) -> list[str]
 
 
 def load_wta_workbook(year: int, discovered_url: str | None = None) -> pl.DataFrame:
-    """Load one seasonal WTA workbook, preferring a fresh local cache.
+    """Load one seasonal WTA workbook.
 
-    The cache avoids re-downloading immutable past seasons and allows a stale
-    but valid copy to stand in when the upstream host is unavailable, so daily
-    prediction generation degrades rather than fails.
+    Precedence, most authoritative first:
+
+    1. A fresh local cache, so repeated runs are cheap and past seasons are not
+       re-downloaded.
+    2. A fresh download, when the host is reachable.
+    3. A stale local cache, or the committed seed copy.
+
+    Steps 3 exist because the host blocks datacenter IP ranges, which means CI
+    runners can never download anything. Falling back to the committed seed lets
+    the daily job run there, with recently completed results appended from the
+    WTA API on top.
+
+    Raises:
+        RuntimeError: when no cache, download, or seed is available.
     """
     cache_path = _workbook_cache_path(year)
     if _cache_entry_is_fresh(cache_path, year):
-        return pl.read_excel(cache_path)
+        return _read_workbook(cache_path)
 
     last_error: Exception | None = None
     for url in _workbook_url_candidates(year, discovered_url):
@@ -291,12 +316,17 @@ def load_wta_workbook(year: int, discovered_url: str | None = None) -> pl.DataFr
             print(f"Warning: could not cache WTA {year} workbook: {exc}")
         return frame
 
-    if cache_path.exists() and cache_path.stat().st_size > 0:
-        print(
-            f"Warning: using cached WTA {year} workbook after download "
-            f"failure: {last_error}"
-        )
-        return pl.read_excel(cache_path)
+    for fallback, label in (
+        (cache_path, "cached"),
+        (_workbook_seed_path(year), "committed seed"),
+    ):
+        if fallback.exists() and fallback.stat().st_size > 0:
+            print(
+                f"Warning: using {label} WTA {year} workbook after download "
+                f"failure: {last_error}"
+            )
+            return _read_workbook(fallback)
+
     raise RuntimeError(last_error or f"no download URL available for WTA {year}")
 
 

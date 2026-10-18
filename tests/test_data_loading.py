@@ -137,6 +137,58 @@ class WorkbookLoadingTest(unittest.TestCase):
         self.assertEqual(frame.height, 1)
         read_excel.assert_called_once_with(cached)
 
+    def test_falls_back_to_committed_seed_when_download_and_cache_fail(self):
+        # tennis-data.co.uk blocks datacenter IPs, so CI runners have neither a
+        # reachable host nor a warm cache. The committed seed is what makes the
+        # daily job work there.
+        seed_dir = Path(tempfile.mkdtemp())
+        seed_file = seed_dir / "2026w.xlsx"
+        seed_file.write_bytes(b"seed")
+
+        try:
+            with patch.object(data_module, "DATA_CACHE_DIR", self.cache_dir), patch.object(
+                data_module, "DATA_SEED_DIR", seed_dir
+            ), patch.object(
+                data_module,
+                "fetch_url_bytes",
+                side_effect=RuntimeError("HTTP Error 403: Forbidden"),
+            ), patch.object(
+                data_module.pl, "read_excel", return_value=SAMPLE_FRAME
+            ) as read_excel:
+                frame = data_module.load_wta_workbook(2026, None)
+        finally:
+            seed_file.unlink()
+            seed_dir.rmdir()
+
+        self.assertEqual(frame.height, 1)
+        read_excel.assert_called_once_with(seed_file)
+
+    def test_prefers_cache_over_seed_when_both_exist(self):
+        cached = self.cache_dir / "2026w.xlsx"
+        cached.write_bytes(b"cached")
+        seed_dir = Path(tempfile.mkdtemp())
+        seed_file = seed_dir / "2026w.xlsx"
+        seed_file.write_bytes(b"seed")
+
+        try:
+            with patch.object(data_module, "DATA_CACHE_DIR", self.cache_dir), patch.object(
+                data_module, "DATA_SEED_DIR", seed_dir
+            ), patch.object(
+                data_module,
+                "fetch_url_bytes",
+                side_effect=RuntimeError("HTTP Error 403: Forbidden"),
+            ), patch.object(
+                data_module, "_cache_entry_is_fresh", return_value=False
+            ), patch.object(
+                data_module.pl, "read_excel", return_value=SAMPLE_FRAME
+            ) as read_excel:
+                data_module.load_wta_workbook(2026, None)
+        finally:
+            seed_file.unlink()
+            seed_dir.rmdir()
+
+        read_excel.assert_called_once_with(cached)
+
     def test_fresh_cache_short_circuits_download(self):
         cached = self.cache_dir / "2026w.xlsx"
         cached.write_bytes(b"cached")
@@ -152,14 +204,20 @@ class WorkbookLoadingTest(unittest.TestCase):
 
         fetch.assert_not_called()
 
-    def test_raises_when_no_source_and_no_cache_available(self):
-        with patch.object(data_module, "DATA_CACHE_DIR", self.cache_dir), patch.object(
-            data_module,
-            "fetch_url_bytes",
-            side_effect=RuntimeError("HTTP Error 403: Forbidden"),
-        ):
-            with self.assertRaises(RuntimeError):
-                data_module.load_wta_workbook(2026, None)
+    def test_raises_when_no_source_and_no_fallback_available(self):
+        empty_seed_dir = Path(tempfile.mkdtemp())
+        try:
+            with patch.object(data_module, "DATA_CACHE_DIR", self.cache_dir), patch.object(
+                data_module, "DATA_SEED_DIR", empty_seed_dir
+            ), patch.object(
+                data_module,
+                "fetch_url_bytes",
+                side_effect=RuntimeError("HTTP Error 403: Forbidden"),
+            ):
+                with self.assertRaises(RuntimeError):
+                    data_module.load_wta_workbook(2026, None)
+        finally:
+            empty_seed_dir.rmdir()
 
     def test_candidate_urls_deduplicate_preserving_order(self):
         duplicated = data_module.DATA_URL_TEMPLATE.format(year=2025)

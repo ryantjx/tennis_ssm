@@ -91,8 +91,16 @@ filter is rerun over the latest historical data.
 
 ## Historical workbook cache
 
-`src/data/data.py` caches downloaded workbooks under `local_data/raw`, and the
-generation workflow persists that directory with `actions/cache`. Past seasons
-are immutable and reused indefinitely; the current season is refreshed after
-`TENNIS_DATA_CACHE_TTL_HOURS` (default 6). The `force_refresh_cache` dispatch
-input sets the TTL to zero to force a re-download.
+`src/data/data.py` caches downloaded workbooks under `local_data/raw`. Past
+seasons are immutable and reused indefinitely; the current season is refreshed
+after `TENNIS_DATA_CACHE_TTL_HOURS` (default 6).
+
+Caching alone is not sufficient in CI. `tennis-data.co.uk` returns HTTP 403 to
+datacenter IP ranges, so a runner can never download a workbook. The committed
+seed under `data/historical` is therefore the base of the historical dataset in
+CI, with recently completed results appended from the WTA API on top. Refresh
+the seed locally with `python scripts/refresh_data_seed.py` when the
+spreadsheets are updated; the workflow itself never modifies it.
+
+The WTA API backfill covers the last 30 days, so refresh the seed if the current
+season spreadsheet falls further behind than that.

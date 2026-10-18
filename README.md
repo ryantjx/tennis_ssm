@@ -68,10 +68,21 @@ Data is collected from https://tennis-data.co.uk/data.php (ATP and WTA seasonal
 workbooks), supplemented by completed singles results from the WTA API. The
 workbook links are discovered from the index page at run time because the host
 serves them from a rotating hashed directory and rejects default Python user
-agents. Downloaded workbooks are cached locally under `local_data/raw/`; past
-seasons are reused from cache and the current season is refreshed on a TTL, so a
-transient upstream outage degrades to slightly stale data instead of a failed
-run.
+agents.
+
+The host also returns HTTP 403 to datacenter IP ranges, so GitHub Actions
+cannot download the workbooks at all. The committed copies under
+`data/historical` are therefore the base of the historical dataset, and the
+daily job appends recently completed results from the WTA API on top. Refresh
+the seed from a machine where the host is reachable:
+
+```bash
+python scripts/refresh_data_seed.py
+```
+
+Downloads are cached under `local_data/raw` (past seasons indefinitely, the
+current season on a six-hour TTL), so an outage degrades to slightly stale data
+instead of a failed run.
 
 ## Results
 
