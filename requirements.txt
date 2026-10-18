@@ -1,11 +1,19 @@
-jax
-jaxlib
-cuthbert
-cuthbertlib
-polars
-pandas
+# Pinned to the versions the model was validated against.
+#
+# `cuthbert` 0.1.x removed the `get_init_params` argument from
+# `moments.build_filter` and changed how initial-state shapes are supplied,
+# so an unpinned install broke the test suite and the daily generation run on
+# 2026-10-18. Pin the inference stack and raise these deliberately, with a
+# test run, rather than by resolver drift.
+jax==0.10.2
+jaxlib==0.10.2
+cuthbert==0.0.13
+cuthbertlib==0.0.13
+polars==1.42.1
+pandas==3.0.3
+numpy==2.4.6
 openpyxl
-optax
+optax==0.2.8
 fastexcel
 requests
 altair
