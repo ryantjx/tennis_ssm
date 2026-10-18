@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-18T08:42:28.635498+00:00",
+  "generated_at": "2026-10-18T08:46:54.815446+00:00",
   "model_state_as_of": 1751,
   "model_state_as_of_date": "2026-10-17",
   "data_freshness": {
@@ -69003,7 +69003,7 @@
       "actual_winner": "Zavatska K",
       "correct": false,
       "confidence": 0.5897,
-      "log_score": -0.8907,
+      "log_score": -0.8908,
       "brier_score": 0.3477,
       "player1_skill": -0.6859,
       "player2_skill": 0.0,
