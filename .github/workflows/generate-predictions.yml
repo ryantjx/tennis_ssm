@@ -104,9 +104,14 @@ jobs:
             --body "$(printf 'Automated daily prediction update.\n\n- Run: %s/%s/actions/runs/%s\n- Data as of: %s\n' "${GITHUB_SERVER_URL}" "${GITHUB_REPOSITORY}" "${GITHUB_RUN_ID}" "${DATE}")"
 
           PR_NUMBER=$(gh pr view "${BRANCH}" --json number --jq .number)
-          for attempt in 1 2 3; do
-            if gh pr merge "${PR_NUMBER}" --squash --delete-branch; then
+          # Merge through the REST endpoint: `gh pr merge` pre-checks
+          # mergeStateStatus and refuses while it still reports a stale BLOCKED
+          # value, whereas the REST merge evaluates the ruleset directly.
+          for attempt in 1 2 3 4 5; do
+            if gh api -X PUT "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}/merge" \
+              -f merge_method=squash; then
               echo "Merged PR #${PR_NUMBER}"
+              gh api -X DELETE "repos/${GITHUB_REPOSITORY}/git/refs/heads/${BRANCH}" || true
               exit 0
             fi
             echo "Merge attempt ${attempt} failed; retrying"
