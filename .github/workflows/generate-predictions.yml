@@ -89,10 +89,9 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           # `main` is protected by a ruleset that only accepts merged pull
-          # requests. GitHub does not allow the Actions integration to bypass
-          # the rule on a user-owned repository, so the bot opens a pull
-          # request and merges it. The ruleset requires zero approvals and no
-          # status checks, so this completes unattended.
+          # requests. The write role is configured as a bypass actor for
+          # pull-request merges only, so this lands unattended while direct
+          # pushes to main stay blocked for everyone.
           BRANCH="predictions/${GITHUB_RUN_ID}"
           git push origin "HEAD:refs/heads/${BRANCH}"
 
@@ -105,8 +104,8 @@ jobs:
 
           PR_NUMBER=$(gh pr view "${BRANCH}" --json number --jq .number)
           # Merge through the REST endpoint: `gh pr merge` pre-checks
-          # mergeStateStatus and refuses while it still reports a stale BLOCKED
-          # value, whereas the REST merge evaluates the ruleset directly.
+          # mergeStateStatus and refuses while GitHub still reports a stale
+          # BLOCKED value, whereas the REST merge evaluates the ruleset itself.
           for attempt in 1 2 3 4 5; do
             if gh api -X PUT "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}/merge" \
               -f merge_method=squash; then
