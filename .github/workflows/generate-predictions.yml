@@ -14,6 +14,7 @@ on:
 permissions:
   contents: write
   issues: write
+  pull-requests: write
 
 concurrency:
   group: "daily-predictions"
@@ -69,24 +70,49 @@ jobs:
           python scripts/report_freshness.py
 
       - name: Commit prediction outputs
+        id: commit
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add outputs/tennis_factorial_state.json outputs/latest outputs/daily
-          git diff --cached --quiet || git commit -m "Update daily predictions"
+          if git diff --cached --quiet; then
+            echo "No output changes to commit"
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          git commit -m "Update daily predictions $(date -u +%Y-%m-%d)"
+          echo "changed=true" >> "$GITHUB_OUTPUT"
 
-      - name: Push prediction outputs
+      - name: Merge prediction pull request
+        if: steps.commit.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          # `main` is protected by a ruleset that only accepts merged pull
+          # requests. GitHub does not allow the Actions integration to bypass
+          # the rule on a user-owned repository, so the bot opens a pull
+          # request and merges it. The ruleset requires zero approvals and no
+          # status checks, so this completes unattended.
+          BRANCH="predictions/${GITHUB_RUN_ID}"
+          git push origin "HEAD:refs/heads/${BRANCH}"
+
+          DATE=$(date -u +%Y-%m-%d)
+          gh pr create \
+            --base "${GITHUB_REF_NAME}" \
+            --head "${BRANCH}" \
+            --title "Update daily predictions (${DATE})" \
+            --body "$(printf 'Automated daily prediction update.\n\n- Run: %s/%s/actions/runs/%s\n- Data as of: %s\n' "${GITHUB_SERVER_URL}" "${GITHUB_REPOSITORY}" "${GITHUB_RUN_ID}" "${DATE}")"
+
+          PR_NUMBER=$(gh pr view "${BRANCH}" --json number --jq .number)
           for attempt in 1 2 3; do
-            if git pull --rebase --autostash origin "${GITHUB_REF_NAME}" \
-              && git push origin "HEAD:${GITHUB_REF_NAME}"; then
+            if gh pr merge "${PR_NUMBER}" --squash --delete-branch; then
+              echo "Merged PR #${PR_NUMBER}"
               exit 0
             fi
-            git rebase --abort 2>/dev/null || true
-            echo "Push attempt ${attempt} failed; retrying"
-            sleep $((attempt * 10))
+            echo "Merge attempt ${attempt} failed; retrying"
+            sleep $((attempt * 15))
           done
-          echo "::error::Could not push prediction outputs after 3 attempts"
+          echo "::error::Could not merge prediction PR #${PR_NUMBER}"
           exit 1
 
       - name: Open or update failure issue

@@ -25,12 +25,21 @@ The job:
    - `outputs/daily/YYYY-MM-DD/predictions.json`
    - `outputs/daily/YYYY-MM-DD/results.json`
 10. Prunes dated snapshots older than 30 days.
-11. Commits the updated output files back to `main` when they changed.
+11. Commits the updated output files and merges them through a pull request.
 
 Generation retries up to three times so a transient upstream data error does
 not leave the daily snapshot stale. Retries only help against transient faults:
 a deterministic upstream change fails all three attempts, and the run then fails
 loudly so it can be investigated.
+
+### Why the bot merges a pull request
+
+`main` is protected by a ruleset that only accepts merged pull requests.
+GitHub does not permit the Actions integration to bypass that rule on a
+user-owned repository, so the job pushes a `predictions/<run_id>` branch, opens
+a pull request, and squash-merges it. The ruleset requires zero approvals and
+no status checks, so this completes unattended. Commits still land through the
+protected-branch path rather than bypassing it.
 
 ### Freshness reporting
 
