@@ -122,13 +122,19 @@ where $\phi_k = \exp(-\tau_d \cdot \Delta t)$ and $Q_k = \Sigma_0 - \phi_k \Sigm
 
 | Metric | Value |
 |-------|-------|
-| Training matches | 7,486 |
-| Test matches | 1,422 |
-| Accuracy | 63.84% |
+| Training matches | 7,391 |
+| Test matches | 2,464 |
+| Accuracy | 63.88% |
 | Avg log-score | -0.631 |
 | Uniform baseline | -0.6931 |
 | Avg Brier score | 0.2205 |
 | Brier uniform baseline | 0.25 |
+
+The split is chronological: training is reported through 2025-12-31, the 2025
+season is held out as the test set, and completed 2026 matches form the
+post-selection evaluation window. The filter itself always consumes the full
+history; the boundary is a reporting and scoring choice, so every completed
+2025 match still informs the 2026 state.
 
 Metrics as of the latest generation run are reported by `outputs/latest/predictions.json`
 and displayed on the dashboard; the table above records the original tuning run.

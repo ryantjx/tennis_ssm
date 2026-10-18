@@ -296,7 +296,7 @@ class PredictionExportTest(unittest.TestCase):
         self.assertEqual(payload["matches"][0]["brier_score"], 0.16)
         self.assertEqual(len(payload["top_players"]), 52)
         self.assertEqual(payload["data_windows"]["train_display_start"], "2022-01-01")
-        self.assertEqual(payload["data_windows"]["train_display_end"], "2024-12-31")
+        self.assertEqual(payload["data_windows"]["train_display_end"], "2025-12-31")
         self.assertEqual(payload["data_windows"]["test_display_start"], "2025-01-01")
         self.assertEqual(payload["data_windows"]["test_display_end"], "2025-12-31")
         self.assertEqual(payload["data_windows"]["test_match_start"], "2025-01-01")

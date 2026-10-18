@@ -8,9 +8,9 @@ const predictions: PredictionPayload = {
   generated_at: "2026-07-09T12:00:00Z",
   data_windows: {
     train_start: "2021-12-31",
-    train_end: "2024-12-31",
+    train_end: "2025-12-31",
     train_display_start: "2022-01-01",
-    train_display_end: "2024-12-31",
+    train_display_end: "2025-12-31",
     test_start: "2024-12-31",
     test_end: "2025-12-31",
     test_match_start: "2025-01-01",
@@ -191,7 +191,7 @@ describe("App", () => {
     expect(screen.getByText("Player Negative")).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Methodology" })).toBeInTheDocument();
     expect(screen.getByText("Model parameters")).toBeInTheDocument();
-    expect(screen.getByText("2022-01-01 to 2024-12-31")).toBeInTheDocument();
+    expect(screen.getByText("2022-01-01 to 2025-12-31")).toBeInTheDocument();
     expect(screen.getByText("2025-01-01 to 2025-12-31")).toBeInTheDocument();
     expect(screen.queryByText("2026-01-04 to 2026-06-27")).not.toBeInTheDocument();
     expect(screen.getByText("0.000000")).toBeInTheDocument();

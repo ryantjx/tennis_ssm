@@ -36,13 +36,17 @@ from src.model.gaussianfactorial_tennis import GaussianFactorialTennis, TennisMa
 
 ORIGIN_DATE = "2021-12-31"
 TRAIN_START = "2021-12-31"
-TRAIN_END = "2024-12-31"
+# The filter consumes the full history, so the boundary below is a reporting
+# and scoring choice rather than a cutoff on what the model sees. Training is
+# reported through the end of 2025 because every completed 2025 match informs
+# the state used for 2026 predictions.
+TRAIN_END = "2025-12-31"
 TEST_START = "2024-12-31"
 TEST_END = "2025-12-31"
 EVAL_START = "2025-12-31"
 EVAL_END = "2026-12-31"
 TRAIN_DISPLAY_START = "2022-01-01"
-TRAIN_DISPLAY_END = "2024-12-31"
+TRAIN_DISPLAY_END = "2025-12-31"
 TEST_DISPLAY_START = "2025-01-01"
 TEST_DISPLAY_END = "2025-12-31"
 EVAL_DISPLAY_START = "2026-01-01"
