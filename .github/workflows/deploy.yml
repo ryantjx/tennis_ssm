@@ -46,7 +46,7 @@ jobs:
         env:
           # Runtime data source for the built bundle. Override with a repository
           # variable if the repo, owner, or branch ever changes.
-          VITE_DATA_BASE_URL: ${{ vars.VITE_DATA_BASE_URL || format('https://raw.githubusercontent.com/{0}/{1}/main/outputs/latest', github.repository_owner, github.event.repository.name) }}
+          VITE_DATA_BASE_URL: ${{ vars.VITE_DATA_BASE_URL || format('https://raw.githubusercontent.com/{0}/{1}/data/outputs/latest', github.repository_owner, github.event.repository.name) }}
         run: npm run build
 
       - name: Setup Pages

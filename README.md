@@ -210,8 +210,11 @@ run closes. See [`docs/audit-2026-10-18.md`](docs/audit-2026-10-18.md) for the
 site and pipeline audit, including the 2026 outage.
 
 The production bundle reads its JSON from `VITE_DATA_BASE_URL`, defaulting to
-this repository's `outputs/latest` on `main`. Set the repository variable if the
-owner, repository, or branch is ever renamed.
+this repository's `outputs/latest` on the `data` branch. Generated prediction
+data is published there rather than to `main`, because `main` is protected by a
+ruleset that only accepts merged pull requests and a bot cannot satisfy it.
+Source code stays PR-gated on `main`. Set the repository variable if the owner,
+repository, or branch is ever renamed.
 
 ## Limitations
 

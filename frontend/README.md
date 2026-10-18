@@ -22,8 +22,9 @@ The app is deployed to GitHub Pages at <https://ryantjx.github.io/tennis_ssm/>.
 ## Data
 
 The production bundle fetches `predictions.json` and `results.json` at runtime
-from `VITE_DATA_BASE_URL`, which defaults to this repository's `outputs/latest`
-directory on `main`. Set the variable at build time to point elsewhere:
+from `VITE_DATA_BASE_URL`, which defaults to this repository's
+`outputs/latest` on the `data` branch (generated data is published there, not
+to `main`). Set the variable at build time to point elsewhere:
 
 ```bash
 VITE_DATA_BASE_URL=https://example.com/outputs/latest npm run build

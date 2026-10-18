@@ -25,21 +25,28 @@ The job:
    - `outputs/daily/YYYY-MM-DD/predictions.json`
    - `outputs/daily/YYYY-MM-DD/results.json`
 10. Prunes dated snapshots older than 30 days.
-11. Commits the updated output files and merges them through a pull request.
+11. Pushes the generated artifacts to the `data` branch.
 
 Generation retries up to three times so a transient upstream data error does
 not leave the daily snapshot stale. Retries only help against transient faults:
 a deterministic upstream change fails all three attempts, and the run then fails
 loudly so it can be investigated.
 
-### Why the bot merges a pull request
+### Why generated data goes to a `data` branch
 
-`main` is protected by a ruleset that only accepts merged pull requests.
-GitHub does not permit the Actions integration to bypass that rule on a
-user-owned repository, so the job pushes a `predictions/<run_id>` branch, opens
-a pull request, and squash-merges it. The ruleset requires zero approvals and
-no status checks, so this completes unattended. Commits still land through the
-protected-branch path rather than bypassing it.
+`main` is protected by a ruleset that only accepts merged pull requests. A
+write-level Actions token cannot bypass that rule on a user-owned repository:
+GitHub rejects the Actions integration as a bypass actor, and granting the
+write role a bypass would also open direct pushes to everyone with write
+access. Weakening the rule to let a bot through would remove the review gate
+for humans too.
+
+The job therefore publishes the generated artifacts to a dedicated, unprotected
+`data` branch, and the frontend reads `outputs/latest` from there. Source code
+stays PR-gated on `main`; only derived prediction data lives on `data`. The push
+is forced because the branch holds nothing but generated snapshots and each run
+writes a complete copy, which keeps its history from growing by one
+multi-megabyte payload per day.
 
 ### Freshness reporting
 
@@ -80,10 +87,10 @@ The production frontend fetches the latest data directly from:
 - `outputs/latest/predictions.json`
 - `outputs/latest/results.json`
 
-on `main`, so daily prediction updates do not require a Pages redeploy. The base
-URL comes from the `VITE_DATA_BASE_URL` repository variable and falls back to
-this repository's `outputs/latest` on `main`. Set the variable if the owner,
-repository, or branch is renamed.
+on the `data` branch, so daily prediction updates do not require a Pages
+redeploy. The base URL comes from the `VITE_DATA_BASE_URL` repository variable
+and falls back to this repository's `data` branch. Set the variable if the
+owner, repository, or branch is renamed.
 
 ## Site audit
 

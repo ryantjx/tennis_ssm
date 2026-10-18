@@ -26,7 +26,7 @@ import urllib.request
 
 DEFAULT_SITE_URL = "https://ryantjx.github.io/tennis_ssm/"
 DEFAULT_DATA_BASE_URL = (
-    "https://raw.githubusercontent.com/ryantjx/tennis_ssm/main/outputs/latest"
+    "https://raw.githubusercontent.com/ryantjx/tennis_ssm/data/outputs/latest"
 )
 DEFAULT_MAX_AGE_DAYS = 3
 REQUEST_TIMEOUT_SECONDS = 30

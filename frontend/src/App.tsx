@@ -22,7 +22,7 @@ const polymarketSource = {
 
 const rawOutputBaseUrl =
   import.meta.env.VITE_DATA_BASE_URL
-  ?? "https://raw.githubusercontent.com/ryantjx/tennis_ssm/main/outputs/latest";
+  ?? "https://raw.githubusercontent.com/ryantjx/tennis_ssm/data/outputs/latest";
 
 function dataUrl(filename: string): string {
   return import.meta.env.PROD

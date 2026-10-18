@@ -83,41 +83,23 @@ jobs:
           git commit -m "Update daily predictions $(date -u +%Y-%m-%d)"
           echo "changed=true" >> "$GITHUB_OUTPUT"
 
-      - name: Merge prediction pull request
+      - name: Publish prediction outputs
         if: steps.commit.outputs.changed == 'true'
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
           # `main` is protected by a ruleset that only accepts merged pull
-          # requests. The write role is configured as a bypass actor for
-          # pull-request merges only, so this lands unattended while direct
-          # pushes to main stay blocked for everyone.
-          BRANCH="predictions/${GITHUB_RUN_ID}"
-          git push origin "HEAD:refs/heads/${BRANCH}"
-
-          DATE=$(date -u +%Y-%m-%d)
-          gh pr create \
-            --base "${GITHUB_REF_NAME}" \
-            --head "${BRANCH}" \
-            --title "Update daily predictions (${DATE})" \
-            --body "$(printf 'Automated daily prediction update.\n\n- Run: %s/%s/actions/runs/%s\n- Data as of: %s\n' "${GITHUB_SERVER_URL}" "${GITHUB_REPOSITORY}" "${GITHUB_RUN_ID}" "${DATE}")"
-
-          PR_NUMBER=$(gh pr view "${BRANCH}" --json number --jq .number)
-          # Merge through the REST endpoint: `gh pr merge` pre-checks
-          # mergeStateStatus and refuses while GitHub still reports a stale
-          # BLOCKED value, whereas the REST merge evaluates the ruleset itself.
-          for attempt in 1 2 3 4 5; do
-            if gh api -X PUT "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}/merge" \
-              -f merge_method=squash; then
-              echo "Merged PR #${PR_NUMBER}"
-              gh api -X DELETE "repos/${GITHUB_REPOSITORY}/git/refs/heads/${BRANCH}" || true
-              exit 0
-            fi
-            echo "Merge attempt ${attempt} failed; retrying"
-            sleep $((attempt * 15))
-          done
-          echo "::error::Could not merge prediction PR #${PR_NUMBER}"
-          exit 1
+          # requests. A write-level Actions token cannot bypass it on a
+          # user-owned repository, and weakening the rule to let a bot through
+          # would remove the review gate for humans too. Instead the generated
+          # data is published on this dedicated, unprotected branch, which the
+          # frontend reads. Source code stays PR-gated on main.
+          DATA_BRANCH: data
+        run: |
+          # Force is safe here: the branch holds only generated artifacts, and
+          # each run is a complete snapshot. It keeps history from growing by
+          # one full multi-megabyte payload per day.
+          git push --force origin "HEAD:refs/heads/${DATA_BRANCH}"
+          echo "Published predictions to the ${DATA_BRANCH} branch"
+          echo "::notice::Data published to ${DATA_BRANCH}; main remains PR-gated."
 
       - name: Open or update failure issue
         if: failure()
