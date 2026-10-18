@@ -20,7 +20,9 @@ const polymarketSource = {
   metadataRefreshMs: 5 * 60_000,
 };
 
-const rawOutputBaseUrl = "https://raw.githubusercontent.com/ryantjx/tennis_ssm/main/outputs/latest";
+const rawOutputBaseUrl =
+  import.meta.env.VITE_DATA_BASE_URL
+  ?? "https://raw.githubusercontent.com/ryantjx/tennis_ssm/main/outputs/latest";
 
 function dataUrl(filename: string): string {
   return import.meta.env.PROD
@@ -46,14 +48,19 @@ function App() {
     let active = true;
     async function loadLatestModelDeployment() {
       try {
-        const [predictionPayload, resultPayload] = await Promise.all([
-          fetchJson<PredictionPayload>(dataUrl("predictions.json")),
-          fetchJson<ResultsPayload>(dataUrl("results.json")),
-        ]);
+        // predictions.json is the dashboard's substance, so a failure there is
+        // fatal. results.json only supplies a subtitle and footer attribution,
+        // so it is tolerated: losing it must not blank the whole page.
+        const predictionPayload = await fetchJson<PredictionPayload>(dataUrl("predictions.json"));
         if (!active) return;
         setData(predictionPayload);
-        setResults(resultPayload);
         setError(null);
+        try {
+          const resultPayload = await fetchJson<ResultsPayload>(dataUrl("results.json"));
+          if (active) setResults(resultPayload);
+        } catch {
+          if (active) setResults(null);
+        }
       } catch (err: unknown) {
         if (!active) return;
         setError(err instanceof Error ? err.message : String(err));
@@ -105,7 +112,7 @@ function App() {
     );
   }
 
-  if (!data || !results) {
+  if (!data) {
     return (
       <main className="load-state">
         <strong>Loading tennis forecasts</strong>
@@ -115,6 +122,7 @@ function App() {
   }
 
   const generatedAt = new Date(data.generated_at);
+  const staleness = describeStaleness(data);
   const testPerformance = getTestPerformance(data);
   const evalPerformance = getEvalPerformance(data);
   const upcoming = filteredMatches.filter((match) => match.is_future);
@@ -139,6 +147,13 @@ function App() {
         </div>
       </header>
       <PrimaryNav className="site-nav mobile-nav" label="Mobile primary navigation" />
+
+      {staleness ? (
+        <div className="staleness-banner" role="status">
+          <strong>This forecast may be out of date.</strong>
+          <span>{staleness}</span>
+        </div>
+      ) : null}
 
       <main id="top">
         <section className="dashboard" aria-labelledby="dashboard-title">
@@ -193,7 +208,7 @@ function App() {
         <CompletedResults
           matches={completed}
           onOpen={openMatch}
-          resultWindow={results.data_window}
+          resultWindow={results?.data_window}
         />
         <PlayerRankings players={filteredPlayers} />
         <section className="methodology-section" id="methodology" aria-labelledby="methodology-title">
@@ -237,7 +252,7 @@ function App() {
           <span>Gaussian factorial state-space model for tennis match outcomes.</span>
         </div>
         <p>
-          Completed results source: {results.source}. Latest result window starts {results.data_window ? formatDate(results.data_window.start) : "unknown"}.
+              Completed results source: {results?.source ?? "WTA completed results"}. Latest result window starts {results?.data_window ? formatDate(results.data_window.start) : "unknown"}.
         </p>
         <p>
           Repository: <a href="https://github.com/ryantjx/tennis_ssm" target="_blank" rel="noreferrer">ryantjx/tennis_ssm</a>
@@ -276,6 +291,31 @@ function getEvalPerformance(data: PredictionPayload): PerformanceMetrics {
     n_correct: nCorrect,
     accuracy: nMatches ? nCorrect / nMatches : 0,
   };
+}
+
+const STALENESS_WARNING_DAYS = 3;
+
+/**
+ * Describe why a payload looks stale, or return null when it is current.
+ *
+ * The generator records `data_freshness` alongside each payload. Older payloads
+ * predate that field, so the run timestamp is used as a fallback to avoid
+ * treating a legacy artifact as fresh.
+ */
+function describeStaleness(data: PredictionPayload): string | null {
+  const freshness = data.data_freshness;
+  const asOf = data.model_state_as_of_date ?? freshness?.as_of ?? null;
+  const ageDays = freshness?.age_days
+    ?? (asOf ? Math.floor((Date.now() - new Date(asOf).getTime()) / 86_400_000) : null);
+  const threshold = freshness?.threshold_days ?? STALENESS_WARNING_DAYS;
+  const isStale = freshness?.stale ?? (ageDays !== null && ageDays > threshold);
+
+  if (!isStale) return null;
+  const detail = asOf
+    ? `Latest completed result in the model is ${asOf}${ageDays !== null ? ` (${ageDays} days ago)` : ""}.`
+    : "The model state date is unknown.";
+  const warning = freshness?.warnings?.length ? ` ${freshness.warnings[0]}` : "";
+  return `${detail}${warning} The daily generation run may be failing.`;
 }
 
 function PrimaryNav({ className, label }: { className: string; label: string }) {

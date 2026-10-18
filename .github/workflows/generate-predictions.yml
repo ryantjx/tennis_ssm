@@ -2,22 +2,38 @@ name: Generate Daily Predictions
 
 on:
   workflow_dispatch:
+    inputs:
+      skip_tests:
+        description: "Skip the Python test gate (recovery only)"
+        type: boolean
+        default: false
+      force_refresh_cache:
+        description: "Ignore the cached WTA workbooks and re-download"
+        type: boolean
+        default: false
   schedule:
     # Avoid the top-of-hour scheduler backlog and publish before the WTA day.
     - cron: "17 6 * * *"
 
 permissions:
   contents: write
+  issues: write
 
 concurrency:
   group: "daily-predictions"
-  cancel-in-progress: true
+  # Queue rather than cancel: a cancelled run reports "cancelled" rather than
+  # "failed", which hides problems and can discard a completed-but-unpushed run.
+  cancel-in-progress: false
 
 jobs:
   generate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          # A full history keeps `git pull --rebase` reliable; a shallow clone
+          # can fail with "shallow update not allowed".
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -27,12 +43,29 @@ jobs:
       - name: Install uv
         run: pip install uv
 
+      - name: Restore historical workbook cache
+        uses: actions/cache@v4
+        with:
+          path: local_data/raw
+          key: tennis-data-workbooks-${{ github.run_id }}
+          restore-keys: |
+            tennis-data-workbooks-
+
       - name: Create venv and install dependencies
         run: |
           uv venv .venv
           uv pip install -r requirements.txt
 
+      - name: Run Python tests
+        if: ${{ !inputs.skip_tests }}
+        run: |
+          source .venv/bin/activate
+          python -m unittest discover -s tests -t .
+
       - name: Generate latest prediction data
+        env:
+          # A zero TTL forces a re-download instead of using the workbook cache.
+          TENNIS_DATA_CACHE_TTL_HOURS: ${{ inputs.force_refresh_cache && '0' || '6' }}
         run: |
           source .venv/bin/activate
           for attempt in 1 2 3; do
@@ -45,11 +78,99 @@ jobs:
           done
           exit 1
 
+      - name: Report generated data freshness
+        run: |
+          source .venv/bin/activate
+          python scripts/report_freshness.py
+
       - name: Commit prediction outputs
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add outputs/tennis_factorial_state.json outputs/latest outputs/daily
           git diff --cached --quiet || git commit -m "Update daily predictions"
-          git pull --rebase --autostash origin main
-          git push
+
+      - name: Push prediction outputs
+        run: |
+          for attempt in 1 2 3; do
+            if git pull --rebase --autostash origin "${GITHUB_REF_NAME}" \
+              && git push origin "HEAD:${GITHUB_REF_NAME}"; then
+              exit 0
+            fi
+            git rebase --abort 2>/dev/null || true
+            echo "Push attempt ${attempt} failed; retrying"
+            sleep $((attempt * 10))
+          done
+          echo "::error::Could not push prediction outputs after 3 attempts"
+          exit 1
+
+      - name: Open or update failure issue
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const label = "pipeline-failure";
+            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            const body = [
+              "The daily prediction workflow failed.",
+              "",
+              `- Run: ${runUrl}`,
+              `- Commit: \`${context.sha}\``,
+              `- Trigger: \`${context.eventName}\``,
+              "",
+              "Until this is fixed the deployed site keeps serving the previous snapshot.",
+            ].join("\n");
+
+            const open = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: "open",
+              labels: label,
+            });
+            if (open.data.length) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: open.data[0].number,
+                body: `Still failing: ${runUrl}`,
+              });
+              core.info(`Commented on existing issue #${open.data[0].number}`);
+            } else {
+              const created = await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: "Daily prediction generation is failing",
+                body,
+                labels: [label],
+              });
+              core.info(`Opened issue #${created.data.number}`);
+            }
+
+      - name: Close failure issue
+        if: success()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const label = "pipeline-failure";
+            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            const open = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: "open",
+              labels: label,
+            });
+            for (const issue of open.data) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                body: `Recovered: generation succeeded in ${runUrl}`,
+              });
+              await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                state: "closed",
+              });
+            }
+

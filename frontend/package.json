@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
-    "test": "vitest run"
+    "test": "vitest run",
+    "sync-data": "node -e \"const fs=require('fs');fs.mkdirSync('public/data',{recursive:true});for(const f of ['predictions.json','results.json'])fs.copyFileSync('../outputs/latest/'+f,'public/data/'+f);console.log('Copied outputs/latest into public/data')\""
   },
   "dependencies": {
     "react": "^19.1.0",

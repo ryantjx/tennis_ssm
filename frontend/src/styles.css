@@ -1408,6 +1408,29 @@ main {
   color: var(--muted);
 }
 
+.staleness-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin: 0 auto;
+  max-width: 1180px;
+  padding: 0.75rem 1.25rem;
+  border: 1px solid rgba(180, 83, 9, 0.35);
+  border-radius: 10px;
+  background: rgba(251, 191, 36, 0.12);
+  color: var(--ink);
+  font-size: 0.9rem;
+}
+
+.staleness-banner strong {
+  font-weight: 600;
+}
+
+.staleness-banner span {
+  color: var(--muted);
+}
+
 @media (max-width: 960px) {
   html {
     scroll-padding-top: 60px;

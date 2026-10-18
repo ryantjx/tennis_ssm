@@ -1,5 +1,11 @@
 # State-Space Models for WTA matches
 
+[![Generate Daily Predictions](https://github.com/ryantjx/tennis_ssm/actions/workflows/generate-predictions.yml/badge.svg)](https://github.com/ryantjx/tennis_ssm/actions/workflows/generate-predictions.yml)
+[![Deploy Predictions to GitHub Pages](https://github.com/ryantjx/tennis_ssm/actions/workflows/deploy.yml/badge.svg)](https://github.com/ryantjx/tennis_ssm/actions/workflows/deploy.yml)
+[![Audit Deployed Site](https://github.com/ryantjx/tennis_ssm/actions/workflows/audit.yml/badge.svg)](https://github.com/ryantjx/tennis_ssm/actions/workflows/audit.yml)
+
+Live dashboard: <https://ryantjx.github.io/tennis_ssm/>
+
 ## Model
 
 Following Duffield, Power and Rimella (2024), the model for tennis can be defined as follows:
@@ -58,7 +64,14 @@ $$G_{t+1} (y_{t+1} \mid x^{(i)}_t, x^{(j)}_t) = \begin{cases} \sigma(\frac{x^{(i
 
 ## Data
 
-Data is collected from http://www.tennis-data.co.uk/alldata.php.
+Data is collected from https://tennis-data.co.uk/data.php (ATP and WTA seasonal
+workbooks), supplemented by completed singles results from the WTA API. The
+workbook links are discovered from the index page at run time because the host
+serves them from a rotating hashed directory and rejects default Python user
+agents. Downloaded workbooks are cached locally under `local_data/raw/`; past
+seasons are reused from cache and the current season is refreshed on a TTL, so a
+transient upstream outage degrades to slightly stale data instead of a failed
+run.
 
 ## Results
 
@@ -105,6 +118,10 @@ where $\phi_k = \exp(-\tau_d \cdot \Delta t)$ and $Q_k = \Sigma_0 - \phi_k \Sigm
 | Uniform baseline | -0.6931 |
 | Avg Brier score | 0.2205 |
 | Brier uniform baseline | 0.25 |
+
+Metrics as of the latest generation run are reported by `outputs/latest/predictions.json`
+and displayed on the dashboard; the table above records the original tuning run.
+
 **Trained parameters (OU):** $\tau=0.000267$, $s=1.228$, $\Sigma_0=1.242$
 
 Prediction exports also report the mean binary Brier score for the held-out
@@ -131,6 +148,59 @@ It also stores dated snapshots under:
 
 - `outputs/daily/YYYY-MM-DD/predictions.json`
 - `outputs/daily/YYYY-MM-DD/results.json`
+
+Dated snapshots are pruned to the last 30 days
+(`TENNIS_DAILY_RETENTION_DAYS` is available to override this). Each snapshot is
+a complete copy of the payload, so retaining them indefinitely would grow the
+repository by roughly 3 MB per day.
+
+Every payload records a `data_freshness` block with the date of the newest
+completed observation, its age in days, and any warnings. If the newest
+observation is older than `TENNIS_STALENESS_WARNING_DAYS` (default 3), the run
+is flagged and the dashboard shows a staleness banner. Staleness warns rather
+than blocks: refusing to publish would hide the last known-good forecast.
+
+## Running the pipeline locally
+
+```bash
+uv venv .venv
+source .venv/bin/activate
+uv pip install -r requirements.txt
+
+python main.py                      # regenerate outputs/
+python -m unittest discover -s tests -t .
+```
+
+Regenerating writes `outputs/latest`, `outputs/daily/YYYY-MM-DD`, and local
+copies under `frontend/public/data` for development. Run the dashboard with:
+
+```bash
+cd frontend
+npm ci
+npm run sync-data                   # copy outputs/latest into public/data
+npm run dev                         # http://localhost:5173/tennis_ssm/
+npm test && npm run build
+```
+
+## Deployment
+
+Two workflows run from `main`:
+
+- `generate-predictions.yml` runs the test suite, regenerates the forecasts at
+  06:17 UTC, and commits the outputs.
+- `deploy.yml` builds and publishes the dashboard to GitHub Pages when frontend
+  code changes. Data is fetched at runtime, so a data-only commit needs no
+  redeploy.
+- `audit.yml` checks the live site daily and fails if the published data is more
+  than three days old.
+
+Failed runs open an issue labelled `pipeline-failure`, which the next successful
+run closes. See [`docs/audit-2026-10-18.md`](docs/audit-2026-10-18.md) for the
+site and pipeline audit, including the 2026 outage.
+
+The production bundle reads its JSON from `VITE_DATA_BASE_URL`, defaulting to
+this repository's `outputs/latest` on `main`. Set the repository variable if the
+owner, repository, or branch is ever renamed.
 
 ## Limitations
 

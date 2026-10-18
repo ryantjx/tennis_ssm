@@ -6,11 +6,24 @@ flows because they answer different questions.
 ## Historical Results
 
 Historical WTA match results are loaded by `data.py` from yearly Excel files on
-`tennis-data.co.uk`, using URLs of the form:
+`tennis-data.co.uk`. The host no longer serves the legacy
+`http://www.tennis-data.co.uk/{year}w/{year}.xlsx` paths directly: it now
+advertises workbook links from a data index page under a hashed directory,
+and it rejects the default Python user agent with HTTP 403. The loader
+therefore:
 
-```text
-http://www.tennis-data.co.uk/{year}w/{year}.xlsx
-```
+- reads `https://tennis-data.co.uk/data.php` and extracts the `{year}w/{year}.xlsx`
+  links into a year-to-URL mapping;
+- fetches each workbook with browser-like `User-Agent` and `Accept` headers;
+- falls back to the legacy yearly URL template if discovery fails, and retries
+  transient failures;
+- caches downloaded workbooks under `local_data/raw/`.
+
+Past seasons are immutable and are reused from the cache indefinitely. The
+current season is refreshed once `TENNIS_DATA_CACHE_TTL_HOURS` (default 6) has
+elapsed, because results accumulate through the season. If the host is
+unreachable, a stale cached workbook is used so daily generation degrades to
+slightly older results instead of failing outright.
 
 These files are used for training and evaluation because they contain completed
 matches with known winners and losers. The loader:

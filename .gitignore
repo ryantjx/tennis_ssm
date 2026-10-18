@@ -10,7 +10,9 @@ outputs/*
 local_data/
 frontend/dist/
 frontend/node_modules/
-frontend/public/data/predictions.json
+# Runtime data is fetched from outputs/latest (production) or copied by
+# `npm run sync-data` for local development; it is never committed.
+frontend/public/data/*.json
 *_fixtures.csv
 *.npy
 *.json.bak

@@ -68,10 +68,19 @@ export interface PlayerRanking {
   variance: number;
 }
 
+export interface DataFreshness {
+  as_of?: string | null;
+  age_days?: number | null;
+  threshold_days?: number;
+  stale?: boolean;
+  warnings?: string[];
+}
+
 export interface PredictionPayload {
   generated_at: string;
   model_state_as_of?: number | null;
   model_state_as_of_date?: string | null;
+  data_freshness?: DataFreshness;
   data_windows?: Record<string, string>;
   model_params: {
     tau: number;

@@ -64,6 +64,15 @@ POLYMARKET_TENNIS_URL = "https://polymarket.com/predictions/tennis"
 POLYMARKET_TAG_SLUG = "tennis"
 WTA_COMPLETED_LOOKBACK_DAYS = 30
 
+# Dated snapshots under ``outputs/daily`` grow by roughly 3 MB per day, so old
+# snapshots are pruned to keep the repository small. Recent results remain
+# available through ``outputs/latest`` and the frontend results artifact.
+DAILY_RETENTION_DAYS = int(os.environ.get("TENNIS_DAILY_RETENTION_DAYS", "30"))
+# A run whose newest observation is older than this is reported as stale. The
+# check warns rather than fails: tour breaks and upstream publication lags are
+# legitimate, and blocking the commit would hide the last known-good forecast.
+STALENESS_WARNING_DAYS = int(os.environ.get("TENNIS_STALENESS_WARNING_DAYS", "3"))
+
 
 def main() -> None:
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
@@ -188,6 +197,8 @@ def main() -> None:
         result_update_status=result_update_status,
     )
     validate_predictions_payload(output_json)
+    for warning in output_json["data_freshness"]["warnings"]:
+        print(f"  Warning: {warning}")
 
     PREDICTIONS_FILE.write_text(json.dumps(output_json, indent=2) + "\n")
     LATEST_PREDICTIONS_FILE.write_text(json.dumps(output_json, indent=2) + "\n")
@@ -207,9 +218,123 @@ def main() -> None:
     print(f"  Saved dated prediction data to {daily_output_dir}")
     print(f"  Copied frontend runtime predictions to {FRONTEND_PREDICTIONS_FILE}")
     print(f"  Saved committed completed results to {RESULTS_FILE}")
+    pruned = prune_daily_snapshots()
+    if pruned:
+        print(
+            f"  Pruned {len(pruned)} dated snapshot(s) older than "
+            f"{DAILY_RETENTION_DAYS} days"
+        )
     print("=" * 70)
     print("Done")
     print("=" * 70)
+
+
+def prune_daily_snapshots(
+    keep_days: int = DAILY_RETENTION_DAYS,
+    daily_dir: Path = DAILY_OUTPUT_DIR,
+    today: dt.date | None = None,
+) -> list[str]:
+    """Delete dated snapshot directories older than ``keep_days``.
+
+    Each snapshot is a full copy of the prediction payload (a few megabytes), so
+    retaining them indefinitely makes the repository grow without bound. The
+    newest snapshots are kept so recent history stays available for comparison.
+    Directories whose names are not ISO dates are left untouched.
+
+    Args:
+        keep_days: Number of days of history to retain.
+        daily_dir: Directory containing ``YYYY-MM-DD`` snapshot subdirectories.
+        today: Reference date, defaulting to the current UTC date.
+
+    Returns:
+        Names of the snapshot directories that were removed.
+    """
+    if not daily_dir.is_dir():
+        return []
+    reference = today or dt.datetime.now(dt.timezone.utc).date()
+    cutoff = reference - dt.timedelta(days=max(keep_days, 0))
+    removed: list[str] = []
+    for entry in sorted(daily_dir.iterdir()):
+        if not entry.is_dir():
+            continue
+        try:
+            snapshot_date = dt.date.fromisoformat(entry.name)
+        except ValueError:
+            continue
+        if snapshot_date >= cutoff:
+            continue
+        shutil.rmtree(entry, ignore_errors=True)
+        removed.append(entry.name)
+    return removed
+
+
+def compute_data_freshness(
+    model_state_as_of_date: str | None,
+    result_update_status: dict[str, Any] | None = None,
+    fixture_status: dict[str, Any] | None = None,
+    market_status: dict[str, Any] | None = None,
+    future_matches: list[dict[str, Any]] | None = None,
+    today: dt.date | None = None,
+) -> dict[str, Any]:
+    """Classify how current a generated payload is.
+
+    A structurally valid payload is not necessarily current, so this supplies the
+    recency signal that shape validation cannot. Warnings are informational:
+    they are recorded in the payload and surfaced by the frontend, but never
+    block publication of the last known-good forecast.
+
+    Returns:
+        Dictionary with ``as_of``, ``age_days``, ``threshold_days``, ``stale``,
+        and a list of human-readable ``warnings``.
+    """
+    reference = today or dt.datetime.now(dt.timezone.utc).date()
+    warnings: list[str] = []
+    age_days: int | None = None
+    if model_state_as_of_date:
+        try:
+            age_days = (reference - dt.date.fromisoformat(model_state_as_of_date)).days
+        except ValueError:
+            warnings.append(
+                "model_state_as_of_date is not a valid ISO date: "
+                f"{model_state_as_of_date!r}"
+            )
+    else:
+        warnings.append("model_state_as_of_date is missing, so data recency is unknown")
+
+    if age_days is not None and age_days > STALENESS_WARNING_DAYS:
+        warnings.append(
+            f"newest completed observation is {age_days} days old "
+            f"(threshold {STALENESS_WARNING_DAYS} days)"
+        )
+
+    statuses = {
+        "result_update_status": result_update_status or {},
+        "fixture_status": fixture_status or {},
+        "market_status": market_status or {},
+    }
+    for name, status in statuses.items():
+        error = status.get("error")
+        if error:
+            warnings.append(f"{name} reported an error: {error}")
+
+    if future_matches is not None and not future_matches:
+        warnings.append("no future fixture predictions were produced")
+
+    fixtures = fixture_status or {}
+    if (
+        "matched_model_players" in fixtures
+        and not fixtures.get("matched_model_players")
+        and not fixtures.get("error")
+    ):
+        warnings.append("no WTA fixtures matched trained model players")
+
+    return {
+        "as_of": model_state_as_of_date,
+        "age_days": age_days,
+        "threshold_days": STALENESS_WARNING_DAYS,
+        "stale": bool(age_days is not None and age_days > STALENESS_WARNING_DAYS),
+        "warnings": warnings,
+    }
 
 
 def fit_and_sync_model(
@@ -990,12 +1115,21 @@ def build_predictions_payload(
         "eval": eval_metrics,
         "n_future_matches": len(future_matches),
     }
+    model_state_as_of_date = (
+        dt.date.fromisoformat(ORIGIN_DATE) + dt.timedelta(days=int(model_state_as_of))
+    ).isoformat() if model_state_as_of is not None else None
+    data_freshness = compute_data_freshness(
+        model_state_as_of_date,
+        result_update_status=result_update_status,
+        fixture_status=fixture_status,
+        market_status=market_status,
+        future_matches=future_matches,
+    )
     return {
         "generated_at": dt.datetime.now(dt.timezone.utc).isoformat(),
         "model_state_as_of": model_state_as_of,
-        "model_state_as_of_date": (
-            dt.date.fromisoformat(ORIGIN_DATE) + dt.timedelta(days=int(model_state_as_of))
-        ).isoformat() if model_state_as_of is not None else None,
+        "model_state_as_of_date": model_state_as_of_date,
+        "data_freshness": data_freshness,
         "data_windows": {
             "origin_date": ORIGIN_DATE,
             "train_start": TRAIN_START,
@@ -1035,6 +1169,7 @@ def validate_predictions_payload(payload: dict[str, Any]) -> None:
     required = {
         "generated_at",
         "data_windows",
+        "data_freshness",
         "model_params",
         "optimization",
         "metrics",
@@ -1049,6 +1184,19 @@ def validate_predictions_payload(payload: dict[str, Any]) -> None:
         raise TypeError("Prediction payload matches must be a list")
     if not isinstance(payload["future_matches"], list):
         raise TypeError("Prediction payload future_matches must be a list")
+    freshness = payload["data_freshness"]
+    if not isinstance(freshness, dict):
+        raise TypeError("Prediction payload data_freshness must be an object")
+    missing_freshness_fields = {"as_of", "age_days", "stale", "warnings"} - set(freshness)
+    if missing_freshness_fields:
+        raise ValueError(
+            "Prediction payload data_freshness missing required fields: "
+            f"{sorted(missing_freshness_fields)}"
+        )
+    if not isinstance(freshness["warnings"], list):
+        raise TypeError("Prediction payload data_freshness warnings must be a list")
+    if not isinstance(freshness["stale"], bool):
+        raise TypeError("Prediction payload data_freshness stale must be a boolean")
     metrics = payload["metrics"]
     if not isinstance(metrics, dict):
         raise TypeError("Prediction payload metrics must be an object")

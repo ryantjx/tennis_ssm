@@ -20,15 +20,33 @@ concurrency:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
 
       - name: Install frontend dependencies
         working-directory: frontend
         run: npm ci
 
+      - name: Run frontend tests
+        working-directory: frontend
+        run: npm test
+
       - name: Build frontend
         working-directory: frontend
+        env:
+          # Runtime data source for the built bundle. Override with a repository
+          # variable if the repo, owner, or branch ever changes.
+          VITE_DATA_BASE_URL: ${{ vars.VITE_DATA_BASE_URL || format('https://raw.githubusercontent.com/{0}/{1}/main/outputs/latest', github.repository_owner, github.event.repository.name) }}
         run: npm run build
 
       - name: Setup Pages
@@ -40,4 +58,5 @@ jobs:
           path: frontend/dist
 
       - name: Deploy to GitHub Pages
+        id: deployment
         uses: actions/deploy-pages@v4

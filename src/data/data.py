@@ -17,6 +17,13 @@ the pattern in ``references/process_data.py`` (previous-match-timestamp via
 self-join).
 """
 
+import io
+import os
+import re
+import time
+import urllib.parse
+import urllib.request
+from pathlib import Path
 from typing import NamedTuple
 
 import polars as pl
@@ -24,8 +31,35 @@ from jax import numpy as jnp
 
 from src.data.data_types import WTATennisResults, TennisMatchMetadata
 
-# Base URL for yearly Excel files
-DATA_URL_TEMPLATE = "http://www.tennis-data.co.uk/{year}w/{year}.xlsx"
+# tennis-data.co.uk now serves workbook links from a hashed directory that is
+# only advertised on its data index page, and it rejects the default Python
+# user agent with HTTP 403. Links are therefore discovered from the index page
+# and fetched with browser-like headers. The legacy yearly path is retained as
+# a fallback in case the index page changes shape again.
+DATA_INDEX_URL = "https://tennis-data.co.uk/data.php"
+DATA_URL_TEMPLATE = "https://www.tennis-data.co.uk/{year}w/{year}.xlsx"
+DATA_REQUEST_HEADERS = {
+    "User-Agent": (
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36"
+    ),
+    "Accept": (
+        "text/html,application/xhtml+xml,application/xml;q=0.9,"
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,*/*;q=0.8"
+    ),
+    "Accept-Language": "en-GB,en;q=0.9",
+}
+# Downloaded workbooks are cached locally so a transient upstream outage does not
+# leave the daily snapshot stale. Past seasons are immutable and cached
+# indefinitely; the current season is refreshed according to a TTL because
+# results are appended throughout the season.
+DATA_CACHE_DIR = Path(os.environ.get("TENNIS_DATA_CACHE_DIR", "local_data/raw"))
+CURRENT_SEASON_CACHE_TTL_HOURS = float(
+    os.environ.get("TENNIS_DATA_CACHE_TTL_HOURS", "6")
+)
+WORKBOOK_LINK_PATTERN = re.compile(
+    r"[\"']([^\"']*?/(\d{4})w/\2\.xlsx)[\"']", re.IGNORECASE
+)
 
 
 class TennisData(NamedTuple):
@@ -100,28 +134,25 @@ def load_wta(
         # tennis-data.co.uk files start from 2019 onwards for WTA
         years = list(range(max(start_year, 2019), end_year + 1))
 
-    # Download and concatenate yearly Excel files (with retry for flaky server)
-    import time
+    discovered_urls = discover_wta_workbook_urls()
 
+    # Download and concatenate yearly Excel files (with retry for flaky server)
     frames = []
     for year in years:
-        url = DATA_URL_TEMPLATE.format(year=year)
         df = None
-        for attempt in range(3):
-            try:
-                df = pl.read_excel(url)
-                frames.append(df)
-                break
-            except Exception as e:
-                if attempt < 2:
-                    time.sleep(2)
-                else:
-                    print(f"Warning: could not load {url}: {e}")
+        try:
+            df = load_wta_workbook(year, discovered_urls.get(year))
+        except Exception as e:
+            print(f"Warning: could not load WTA {year}: {e}")
         if df is not None:
+            frames.append(df)
             print(f"  Loaded {year}: {df.height} matches")
 
     if not frames:
-        raise RuntimeError("No data could be downloaded. Check network / URLs.")
+        raise RuntimeError(
+            "No data could be downloaded. Check network / URLs "
+            f"(index page: {DATA_INDEX_URL})."
+        )
 
     data = pl.concat(frames, how="diagonal_relaxed")
 
@@ -164,6 +195,109 @@ def load_wta(
         raise RuntimeError("No matches found in the specified date range.")
 
     return build_tennis_data(data, origin_date=origin_date)
+
+
+def fetch_url_bytes(url: str, timeout: int = 60, attempts: int = 3) -> bytes:
+    """Fetch ``url`` with browser-like headers, retrying transient failures.
+
+    The upstream host returns HTTP 403 for the default ``Python-urllib`` user
+    agent, so identification headers are always supplied.
+    """
+    last_error: Exception | None = None
+    for attempt in range(attempts):
+        try:
+            request = urllib.request.Request(url, headers=DATA_REQUEST_HEADERS)
+            with urllib.request.urlopen(request, timeout=timeout) as response:
+                return response.read()
+        except Exception as exc:  # noqa: BLE001 - retried below
+            last_error = exc
+            if attempt + 1 < attempts:
+                time.sleep(2 * (attempt + 1))
+    raise RuntimeError(f"could not download {url}: {last_error}")
+
+
+def discover_wta_workbook_urls(
+    index_url: str = DATA_INDEX_URL,
+) -> dict[int, str]:
+    """Map season year to workbook URL using the current data index page.
+
+    The site serves workbooks from a hashed directory that changes over time,
+    so the links are read from the index page rather than hard-coded. Returns an
+    empty mapping when discovery fails; callers then fall back to the legacy
+    yearly URL template.
+    """
+    try:
+        html = fetch_url_bytes(index_url).decode("utf-8", errors="replace")
+    except Exception as exc:  # noqa: BLE001 - discovery is best effort
+        print(f"Warning: could not read {index_url}: {exc}")
+        return {}
+
+    urls: dict[int, str] = {}
+    for match in WORKBOOK_LINK_PATTERN.finditer(html):
+        relative_url, year_text = match.group(1), match.group(2)
+        urls[int(year_text)] = urllib.parse.urljoin(index_url, relative_url)
+    return urls
+
+
+def _workbook_cache_path(year: int) -> Path:
+    return DATA_CACHE_DIR / f"{year}w.xlsx"
+
+
+def _cache_entry_is_fresh(path: Path, year: int) -> bool:
+    if not path.exists() or path.stat().st_size == 0:
+        return False
+    if year >= time.gmtime().tm_year:
+        age_hours = (time.time() - path.stat().st_mtime) / 3600.0
+        return age_hours < CURRENT_SEASON_CACHE_TTL_HOURS
+    return True
+
+
+def _workbook_url_candidates(year: int, discovered_url: str | None) -> list[str]:
+    """Return candidate download URLs for ``year``, most reliable first."""
+    candidates: list[str] = []
+    if discovered_url:
+        candidates.append(discovered_url)
+    candidates.append(DATA_URL_TEMPLATE.format(year=year))
+    unique: list[str] = []
+    for url in candidates:
+        if url not in unique:
+            unique.append(url)
+    return unique
+
+
+def load_wta_workbook(year: int, discovered_url: str | None = None) -> pl.DataFrame:
+    """Load one seasonal WTA workbook, preferring a fresh local cache.
+
+    The cache avoids re-downloading immutable past seasons and allows a stale
+    but valid copy to stand in when the upstream host is unavailable, so daily
+    prediction generation degrades rather than fails.
+    """
+    cache_path = _workbook_cache_path(year)
+    if _cache_entry_is_fresh(cache_path, year):
+        return pl.read_excel(cache_path)
+
+    last_error: Exception | None = None
+    for url in _workbook_url_candidates(year, discovered_url):
+        try:
+            payload = fetch_url_bytes(url)
+            frame = pl.read_excel(io.BytesIO(payload))
+        except Exception as exc:  # noqa: BLE001 - try the next candidate URL
+            last_error = exc
+            continue
+        try:
+            cache_path.parent.mkdir(parents=True, exist_ok=True)
+            cache_path.write_bytes(payload)
+        except OSError as exc:  # noqa: BLE001 - caching is optional
+            print(f"Warning: could not cache WTA {year} workbook: {exc}")
+        return frame
+
+    if cache_path.exists() and cache_path.stat().st_size > 0:
+        print(
+            f"Warning: using cached WTA {year} workbook after download "
+            f"failure: {last_error}"
+        )
+        return pl.read_excel(cache_path)
+    raise RuntimeError(last_error or f"no download URL available for WTA {year}")
 
 
 def append_completed_results(

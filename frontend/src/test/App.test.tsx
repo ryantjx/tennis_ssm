@@ -339,4 +339,105 @@ describe("App", () => {
     await user.clear(search);
     await waitFor(() => expect(within(completedSection).getAllByRole("article")).toHaveLength(105));
   });
+
+  it("shows an error state when the prediction payload cannot be fetched", async () => {
+    vi.stubGlobal("fetch", vi.fn(() => Promise.resolve({
+      ok: false,
+      status: 404,
+      statusText: "Not Found",
+      json: () => Promise.resolve({}),
+    })));
+
+    render(<App />);
+
+    await waitFor(() => expect(screen.getByText("Prediction data could not be loaded.")).toBeInTheDocument());
+    expect(screen.getByText("404 Not Found")).toBeInTheDocument();
+  });
+
+  it("still renders the dashboard when only results.json fails", async () => {
+    // results.json only supplies a subtitle and footer attribution, so losing it
+    // must not blank the whole page.
+    vi.stubGlobal("fetch", vi.fn((url: string) => {
+      if (url.includes("results")) {
+        return Promise.resolve({
+          ok: false,
+          status: 503,
+          statusText: "Service Unavailable",
+          json: () => Promise.resolve({}),
+        });
+      }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve(predictions) });
+    }));
+
+    render(<App />);
+
+    await waitFor(() => expect(screen.getByText("Upcoming predictions")).toBeInTheDocument());
+    expect(screen.queryByText("Prediction data could not be loaded.")).not.toBeInTheDocument();
+    expect(screen.getByText(/Latest result window starts unknown/)).toBeInTheDocument();
+  });
+
+  it("warns when the published data is stale", async () => {
+    const stalePredictions: PredictionPayload = {
+      ...predictions,
+      model_state_as_of_date: "2026-06-01",
+      data_freshness: {
+        as_of: "2026-06-01",
+        age_days: 38,
+        threshold_days: 3,
+        stale: true,
+        warnings: ["newest completed observation is 38 days old (threshold 3 days)"],
+      },
+    };
+    vi.stubGlobal("fetch", vi.fn((url: string) => Promise.resolve({
+      ok: true,
+      json: () => Promise.resolve(url.includes("results") ? results : stalePredictions),
+    })));
+
+    render(<App />);
+
+    await waitFor(() => expect(screen.getByText("This forecast may be out of date.")).toBeInTheDocument());
+    expect(screen.getByText(/Latest completed result in the model is 2026-06-01/)).toBeInTheDocument();
+    expect(screen.getByText(/38 days ago/)).toBeInTheDocument();
+  });
+
+  it("does not warn when the data is current", async () => {
+    const freshPredictions: PredictionPayload = {
+      ...predictions,
+      model_state_as_of_date: "2026-07-09",
+      data_freshness: {
+        as_of: "2026-07-09",
+        age_days: 0,
+        threshold_days: 3,
+        stale: false,
+        warnings: [],
+      },
+    };
+    vi.stubGlobal("fetch", vi.fn((url: string) => Promise.resolve({
+      ok: true,
+      json: () => Promise.resolve(url.includes("results") ? results : freshPredictions),
+    })));
+
+    render(<App />);
+
+    await waitFor(() => expect(screen.getByText("Upcoming predictions")).toBeInTheDocument());
+    expect(screen.queryByText("This forecast may be out of date.")).not.toBeInTheDocument();
+  });
+
+  it("falls back to the run date for legacy payloads without data_freshness", async () => {
+    // Payloads published before data_freshness existed still need a staleness
+    // signal, otherwise an old artifact would look current.
+    const legacyStale: PredictionPayload = {
+      ...predictions,
+      generated_at: "2026-01-01T12:00:00Z",
+      model_state_as_of_date: "2026-01-01",
+    };
+    vi.stubGlobal("fetch", vi.fn((url: string) => Promise.resolve({
+      ok: true,
+      json: () => Promise.resolve(url.includes("results") ? results : legacyStale),
+    })));
+
+    render(<App />);
+
+    await waitFor(() => expect(screen.getByText("This forecast may be out of date.")).toBeInTheDocument());
+  });
 });
