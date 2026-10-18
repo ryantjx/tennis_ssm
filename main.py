@@ -73,6 +73,34 @@ DAILY_RETENTION_DAYS = int(os.environ.get("TENNIS_DAILY_RETENTION_DAYS", "30"))
 # legitimate, and blocking the commit would hide the last known-good forecast.
 STALENESS_WARNING_DAYS = int(os.environ.get("TENNIS_STALENESS_WARNING_DAYS", "3"))
 
+# Historical rank trajectories shown on the dashboard. Ranking is derived from
+# the model posterior only: ``build_top_players_json`` orders players by current
+# skill, and this window supplies the history behind that ordering. Official
+# WTA ranking points are not ingested or displayed.
+SKILL_HISTORY_DAYS = int(os.environ.get("TENNIS_SKILL_HISTORY_DAYS", "365"))
+SKILL_HISTORY_TOP_PLAYERS = 10
+
+GRAND_SLAMS: tuple[dict[str, str], ...] = (
+    {"key": "aus-open", "name": "Australian Open", "short": "AO", "surface": "Hard"},
+    {"key": "french-open", "name": "French Open", "short": "RG", "surface": "Clay"},
+    {"key": "wimbledon", "name": "Wimbledon", "short": "WIM", "surface": "Grass"},
+    {"key": "us-open", "name": "US Open", "short": "USO", "surface": "Hard"},
+)
+
+# The historical spreadsheet uses short event names while the WTA API reports
+# official titles (``group.name``), so both spellings map to the same band.
+# Keys are normalised by ``_normalise_event_name``.
+GRAND_SLAM_NAME_ALIASES: dict[str, str] = {
+    "australian open": "aus-open",
+    "french open": "french-open",
+    "roland garros": "french-open",
+    "wimbledon": "wimbledon",
+    "the championships wimbledon": "wimbledon",
+    "wimbledon championships": "wimbledon",
+    "us open": "us-open",
+    "united states open": "us-open",
+}
+
 
 def main() -> None:
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
@@ -175,7 +203,25 @@ def main() -> None:
         player_rankings_by_id=player_rankings_by_id,
     )
     test_window_json = build_data_window_json(test_data)
-    top_players_json = build_top_players_json(historical_data, skill_means, skill_vars)
+    # Reuse the timestamps already computed for synchronisation so the ranking
+    # can report how long each player has been without a match.
+    most_recent_ts = most_recent_timestamp_by_player(
+        historical_data.polars_data,
+        historical_data.num_players,
+    )
+    top_players_json = build_top_players_json(
+        historical_data,
+        skill_means,
+        skill_vars,
+        most_recent_timestamps=most_recent_ts,
+        current_time=current_time,
+    )
+    skill_history_json = build_skill_history_json(
+        data=historical_data,
+        predictions=historical_predictions,
+        current_time=current_time,
+        top_players=top_players_json,
+    )
     polymarket_matches, market_status = load_polymarket_tennis_markets()
     market_status["matched_model_matches"] = apply_market_predictions(
         [*future_matches_json, *matches_json],
@@ -193,6 +239,7 @@ def main() -> None:
         future_matches=future_matches_json,
         fixture_status=fixture_status,
         market_status=market_status,
+        skill_history=skill_history_json,
         model_state_as_of=current_time,
         result_update_status=result_update_status,
     )
@@ -1062,24 +1109,195 @@ def build_top_players_json(
     train_data: TennisData,
     skill_means: jnp.ndarray,
     skill_vars: jnp.ndarray,
+    most_recent_timestamps: jnp.ndarray | None = None,
+    current_time: int | None = None,
 ) -> list[dict[str, Any]]:
+    """Rank every player by current posterior skill.
+
+    Ranking uses the model posterior alone, not any external ranking table. Each
+    record also carries how recently the player last appeared, because the filter
+    propagates a player's skill forward with no observation when they stop
+    playing. Without that, an inactive player keeps a stale rank with no visible
+    explanation.
+
+    Args:
+        train_data: Loaded match history.
+        skill_means: Posterior mean skill per player.
+        skill_vars: Posterior skill variance per player.
+        most_recent_timestamps: Days-since-origin of each player's newest match.
+        current_time: Reference timestamp used to measure inactivity.
+
+    Returns:
+        Ranked records, highest current skill first.
+    """
+    origin = dt.date.fromisoformat(ORIGIN_DATE)
     top_players_json = []
     all_indices = jnp.argsort(-skill_means)
     for rank, idx in enumerate(all_indices, start=1):
         idx_int = int(idx)
-        top_players_json.append(
-            {
-                "rank": rank,
-                "name": train_data.id_to_name.get(idx_int, f"Unknown({idx_int})"),
-                "skill": round(float(skill_means[idx]), 4),
-                "variance": round(float(skill_vars[idx]), 4),
-            }
-        )
+        record: dict[str, Any] = {
+            "rank": rank,
+            "name": train_data.id_to_name.get(idx_int, f"Unknown({idx_int})"),
+            "skill": round(float(skill_means[idx]), 4),
+            "variance": round(float(skill_vars[idx]), 4),
+        }
+        if most_recent_timestamps is not None and current_time is not None:
+            last_timestamp = int(most_recent_timestamps[idx])
+            if last_timestamp > 0:
+                record["last_match_date"] = (
+                    origin + dt.timedelta(days=last_timestamp)
+                ).isoformat()
+                record["days_inactive"] = max(int(current_time) - last_timestamp, 0)
+        top_players_json.append(record)
     return top_players_json
 
 
 def build_data_window_json(data: TennisData) -> list[dict[str, str]]:
     return [{"date": row["Date"].isoformat()} for row in data.polars_data.iter_rows(named=True)]
+
+
+def _normalise_event_name(name: str) -> str:
+    """Fold an event title to a comparable key.
+
+    Punctuation and case vary between data sources (``The Championships,
+    Wimbledon`` versus ``Wimbledon``), so both are reduced to lowercase words.
+    """
+    words = "".join(char if char.isalnum() else " " for char in name.lower()).split()
+    return " ".join(words)
+
+
+def grand_slam_key(tournament: str) -> str | None:
+    """Return the Grand Slam identifier for ``tournament``, if it is one.
+
+    Detection deliberately ignores the ``Tier`` column: the historical
+    spreadsheet labels these events ``Grand Slam``, but the WTA API path reports
+    the tournament title without a guaranteed tier, so the name is the stable
+    signal.
+    """
+    return GRAND_SLAM_NAME_ALIASES.get(_normalise_event_name(tournament))
+
+
+def build_skill_history_json(
+    data: TennisData,
+    predictions: Any,
+    current_time: int,
+    top_players: list[dict[str, Any]],
+    window_days: int = SKILL_HISTORY_DAYS,
+    top_n: int = SKILL_HISTORY_TOP_PLAYERS,
+) -> dict[str, Any]:
+    """Build the historical skill series behind the current model ranking.
+
+    Ranking is taken from the model posterior alone: ``top_players`` is already
+    ordered by current skill, so the chart's line ordering and its rank labels
+    describe the model's own estimate rather than any external ranking table.
+
+    Values come from the predictive skill mean that the filter produces *before*
+    each match outcome is incorporated. That is the causally valid quantity — the
+    skill the model held going into the match — and it is the same value already
+    exported as ``player1_skill``/``player2_skill`` on completed match rows, so
+    the chart cannot disagree with the rest of the dashboard.
+
+    Row alignment relies on ``build_tennis_data`` sorting by date, tournament and
+    players before assigning ``match_index``, which makes scan step ``i`` exactly
+    polars row ``i``.
+
+    Args:
+        data: Loaded match history.
+        predictions: Per-match predictions returned by
+            ``filter_and_predict_matches``, ordered like ``data.polars_data``.
+        current_time: Timestamp of the newest observation, in days since origin.
+        top_players: Ranked player records, highest current skill first.
+        window_days: Length of the trailing window to export.
+        top_n: Number of ranked players to include.
+
+    Returns:
+        Mapping with ``window``, ``players`` and ``slams`` keys. Each player
+        carries ``{date, skill}`` points sorted by date; each Slam carries the
+        date span of its matches inside the window.
+    """
+    start_timestamp = int(current_time) - int(window_days)
+    selected = top_players[: max(int(top_n), 0)]
+    name_to_id = data.name_to_id
+
+    # Collect points per player id in a single pass over the in-window rows.
+    points_by_player: dict[int, list[dict[str, Any]]] = {
+        int(name_to_id[player["name"]]): []
+        for player in selected
+        if player["name"] in name_to_id
+    }
+    slam_spans: dict[str, dict[str, Any]] = {}
+    dates = data.polars_data.select(pl.col("Date")).to_series().to_list()
+    timestamps = data.polars_data.select(pl.col("timestamp")).to_series().to_list()
+
+    # Mean arrays are (T, 1, 1) while variances are (T, 1); only the means are
+    # read here, so the trailing factor axes are stripped.
+    player1_mean = predictions.player1_mean[:, 0, 0]
+    player2_mean = predictions.player2_mean[:, 0, 0]
+    tournament_by_row = data.match_metadata.tournament
+
+    for index in range(data.num_matches):
+        if timestamps[index] < start_timestamp:
+            continue
+
+        date = dates[index].isoformat()
+        for player_id, mean in (
+            (int(data.jax_data.player1_id[index]), float(player1_mean[index])),
+            (int(data.jax_data.player2_id[index]), float(player2_mean[index])),
+        ):
+            if player_id in points_by_player:
+                points_by_player[player_id].append({"date": date, "skill": round(mean, 4)})
+
+        slam_key = grand_slam_key(tournament_by_row[index])
+        if slam_key is None:
+            continue
+        span = slam_spans.get(slam_key)
+        if span is None:
+            slam_spans[slam_key] = {"start": date, "end": date, "matches": 1}
+        else:
+            span["start"] = min(span["start"], date)
+            span["end"] = max(span["end"], date)
+            span["matches"] += 1
+
+    slam_metadata = {slam["key"]: slam for slam in GRAND_SLAMS}
+    slams = [
+        {
+            "key": key,
+            "name": slam_metadata[key]["name"],
+            "short": slam_metadata[key]["short"],
+            "surface": slam_metadata[key]["surface"],
+            "start": span["start"],
+            "end": span["end"],
+            "matches": span["matches"],
+        }
+        for key, span in slam_spans.items()
+        if key in slam_metadata
+    ]
+    # Chronological order keeps the bands and their labels predictable on the axis.
+    slams.sort(key=lambda slam: slam["start"])
+
+    players_json = []
+    for player in selected:
+        player_id = name_to_id.get(player["name"])
+        points = points_by_player.get(int(player_id), []) if player_id is not None else []
+        points.sort(key=lambda point: point["date"])
+        players_json.append(
+            {
+                "id": int(player_id) if player_id is not None else None,
+                "name": player["name"],
+                "rank": player["rank"],
+                "points": points,
+            }
+        )
+
+    return {
+        "window": {
+            "start": (dt.date.fromisoformat(ORIGIN_DATE) + dt.timedelta(days=start_timestamp)).isoformat(),
+            "end": (dt.date.fromisoformat(ORIGIN_DATE) + dt.timedelta(days=int(current_time))).isoformat(),
+            "days": int(window_days),
+        },
+        "players": players_json,
+        "slams": slams,
+    }
 
 
 def evaluated_match_window(matches: list[dict[str, Any]], prefix: str) -> dict[str, str]:
@@ -1109,6 +1327,7 @@ def build_predictions_payload(
     market_status: dict[str, Any] | None = None,
     model_state_as_of: float | None = None,
     result_update_status: dict[str, Any] | None = None,
+    skill_history: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     metrics = {
         "test": test_metrics,
@@ -1160,6 +1379,7 @@ def build_predictions_payload(
         "market_status": market_status or {"source": "polymarket", "loaded": 0, "matched_model_matches": 0},
         "metrics": metrics,
         "top_players": top_players,
+        "skill_history": skill_history or {"window": {}, "players": [], "slams": []},
         "matches": matches,
         "future_matches": future_matches,
     }
@@ -1260,6 +1480,43 @@ def validate_predictions_payload(payload: dict[str, Any]) -> None:
         raise ValueError(
             f"Prediction payload future match IDs must be unique: {duplicate_future_ids}"
         )
+    history = payload["skill_history"]
+    if not isinstance(history, dict):
+        raise TypeError("Prediction payload skill_history must be an object")
+    history_players = history.get("players")
+    if not isinstance(history_players, list):
+        raise TypeError("Prediction payload skill_history players must be a list")
+    if not isinstance(history.get("slams"), list):
+        raise TypeError("Prediction payload skill_history slams must be a list")
+    for player in history_players:
+        if not player.get("name"):
+            raise ValueError("Prediction payload skill_history players need names")
+        points = player.get("points")
+        if not isinstance(points, list):
+            raise TypeError(
+                "Prediction payload skill_history player points must be a list"
+            )
+        if not points:
+            # A ranked player can legitimately be absent from the trailing
+            # window (long injury lay-off), so this is reported, not rejected.
+            print(
+                "  Warning: skill_history has no points for "
+                f"{player['name']} in the export window"
+            )
+        for point in points:
+            skill = point.get("skill")
+            if (
+                isinstance(skill, bool)
+                or not isinstance(skill, (int, float))
+                or not math.isfinite(skill)
+            ):
+                raise ValueError(
+                    "Prediction payload skill_history skill values must be finite numbers"
+                )
+            if not point.get("date"):
+                raise ValueError(
+                    "Prediction payload skill_history points need ISO dates"
+                )
 
 
 def build_results_json(

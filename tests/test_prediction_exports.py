@@ -12,10 +12,13 @@ from main import (
     build_match_predictions_json,
     build_predictions_payload,
     build_results_json,
+    build_skill_history_json,
+    build_top_players_json,
     compute_data_freshness,
     evaluate_predictions,
     extract_polymarket_moneylines,
     generate_fixture_predictions,
+    grand_slam_key,
     prune_daily_snapshots,
     validate_predictions_payload,
 )
@@ -339,6 +342,7 @@ class PredictionExportTest(unittest.TestCase):
             "top_players": [],
             "matches": [{"brier_score": 1.1}],
             "future_matches": [],
+            "skill_history": {"window": {}, "players": [], "slams": []},
         }
 
         with self.assertRaisesRegex(ValueError, "brier_score must be finite"):
@@ -460,6 +464,7 @@ def _complete_payload(**overrides):
         "top_players": [],
         "matches": [],
         "future_matches": [],
+        "skill_history": {"window": {}, "players": [], "slams": []},
     }
     payload.update(overrides)
     return payload
@@ -591,6 +596,210 @@ class DailySnapshotRetentionTest(unittest.TestCase):
 
         self.assertEqual(removed, [])
         self.assertEqual(len(list(self.daily_dir.iterdir())), 2)
+
+
+class PlayerActivityExportTest(unittest.TestCase):
+    def test_reports_last_match_date_and_inactivity(self):
+        data = TennisData(
+            jax_data=None,
+            polars_data=pl.DataFrame(),
+            id_to_name={0: "Recent A", 1: "Lapsed B"},
+            name_to_id={"Recent A": 0, "Lapsed B": 1},
+            num_players=2,
+            num_matches=0,
+            match_metadata=TennisMatchMetadata(
+                tournament=[], location=[], tier=[], surface=[], round=[]
+            ),
+        )
+        # Origin is 2021-12-31; day 1751 is 2026-10-17, day 1690 is 2026-08-17.
+        exported = build_top_players_json(
+            data,
+            jnp.array([1.0, 0.9]),
+            jnp.array([0.1, 0.1]),
+            most_recent_timestamps=jnp.array([1751, 1690]),
+            current_time=1751,
+        )
+
+        self.assertEqual(exported[0]["last_match_date"], "2026-10-17")
+        self.assertEqual(exported[0]["days_inactive"], 0)
+        self.assertEqual(exported[1]["last_match_date"], "2026-08-17")
+        self.assertEqual(exported[1]["days_inactive"], 61)
+
+    def test_omits_activity_when_timestamps_are_unavailable(self):
+        data = TennisData(
+            jax_data=None,
+            polars_data=pl.DataFrame(),
+            id_to_name={0: "Only Player"},
+            name_to_id={"Only Player": 0},
+            num_players=1,
+            num_matches=0,
+            match_metadata=TennisMatchMetadata(
+                tournament=[], location=[], tier=[], surface=[], round=[]
+            ),
+        )
+
+        exported = build_top_players_json(data, jnp.array([1.0]), jnp.array([0.1]))
+
+        self.assertNotIn("days_inactive", exported[0])
+        self.assertNotIn("last_match_date", exported[0])
+
+
+class GrandSlamDetectionTest(unittest.TestCase):
+    def test_detects_canonical_tournament_names(self):
+
+        self.assertEqual(grand_slam_key("Australian Open"), "aus-open")
+        self.assertEqual(grand_slam_key("French Open"), "french-open")
+        self.assertEqual(grand_slam_key("Wimbledon"), "wimbledon")
+        self.assertEqual(grand_slam_key("US Open"), "us-open")
+
+    def test_accepts_aliases_from_the_wta_api_naming(self):
+        self.assertEqual(grand_slam_key("Roland Garros"), "french-open")
+        self.assertEqual(grand_slam_key("The Championships, Wimbledon"), "wimbledon")
+        self.assertEqual(grand_slam_key("wimbledon championships"), "wimbledon")
+        self.assertEqual(grand_slam_key("US  Open"), "us-open")
+
+    def test_ignores_non_slam_and_qualifying_events(self):
+        self.assertIsNone(grand_slam_key("ASB Classic"))
+        self.assertIsNone(grand_slam_key("Wimbledon Qualifying"))
+        self.assertIsNone(grand_slam_key(""))
+
+
+class SkillHistoryExportTest(unittest.TestCase):
+    def _data(self, rows: list[dict], origin_date: str = "2021-12-31") -> TennisData:
+        """Build a TennisData whose predictions align with the sorted rows."""
+        frame = pl.DataFrame(
+            [
+                {
+                    "Date": dt.date.fromisoformat(row["date"]),
+                    "Winner": row["winner"],
+                    "Loser": row["loser"],
+                    "Tournament": row["tournament"],
+                    "Location": row.get("location", "Unknown"),
+                    "Tier": row.get("tier", "WTA250"),
+                    "Surface": row.get("surface", "Hard"),
+                    "Round": row.get("round", "1st Round"),
+                }
+                for row in rows
+            ]
+        )
+        from src.data.data import build_tennis_data
+
+        return build_tennis_data(frame, origin_date=origin_date)
+
+    def _predictions(self, means: list[tuple[float, float]]):
+        from types import SimpleNamespace
+
+        # Mirrors TennisMatchPrediction: means are (T, 1, 1) and variances (T, 1).
+        player1 = [pair[0] for pair in means]
+        player2 = [pair[1] for pair in means]
+        return SimpleNamespace(
+            player1_mean=jnp.array(player1, dtype=float).reshape(-1, 1, 1),
+            player2_mean=jnp.array(player2, dtype=float).reshape(-1, 1, 1),
+        )
+
+    def test_exports_points_for_ranked_players_sorted_by_date(self):
+        data = self._data(
+            [
+                {"date": "2026-05-01", "winner": "Player A", "loser": "Player B", "tournament": "Rome"},
+                {"date": "2026-04-01", "winner": "Player A", "loser": "Player C", "tournament": "Madrid"},
+            ]
+        )
+        predictions = self._predictions([[1.0, -2.0], [0.5, -3.0]])
+
+        history = build_skill_history_json(
+            data=data,
+            predictions=predictions,
+            current_time=int(data.polars_data["timestamp"].max()),
+            top_players=[{"rank": 1, "name": "Player A", "skill": 1.0, "variance": 0.1}],
+        )
+
+        player = history["players"][0]
+        self.assertEqual(player["name"], "Player A")
+        self.assertEqual(player["rank"], 1)
+        # Rows are sorted by date, so the April match is scan step 0.
+        self.assertEqual([point["date"] for point in player["points"]], ["2026-04-01", "2026-05-01"])
+        self.assertEqual([point["skill"] for point in player["points"]], [1.0, 0.5])
+        self.assertNotIn("sd", player["points"][0])
+
+    def test_limits_to_requested_number_of_players(self):
+        rows = [
+            {
+                "date": "2026-05-01",
+                "winner": f"Player {index}",
+                "loser": "Filler",
+                "tournament": "Rome",
+            }
+            for index in range(3)
+        ]
+        data = self._data(rows)
+        ranked = [
+            {"rank": rank, "name": name, "skill": 1.0, "variance": 0.1}
+            for rank, name in enumerate(data.name_to_id, start=1)
+        ]
+
+        history = build_skill_history_json(
+            data=data,
+            predictions=self._predictions([[1.0, -1.0]] * data.num_matches),
+            current_time=int(data.polars_data["timestamp"].max()),
+            top_players=ranked,
+            top_n=2,
+        )
+
+        self.assertEqual(len(history["players"]), 2)
+
+    def test_excludes_matches_before_the_window(self):
+        data = self._data(
+            [
+                {"date": "2025-01-01", "winner": "Player A", "loser": "Player B", "tournament": "Rome"},
+                {"date": "2026-05-01", "winner": "Player A", "loser": "Player B", "tournament": "Rome"},
+            ]
+        )
+        current_time = int(data.polars_data["timestamp"].max())
+
+        history = build_skill_history_json(
+            data=data,
+            predictions=self._predictions([[1.0, -1.0], [2.0, -2.0]]),
+            current_time=current_time,
+            top_players=[{"rank": 1, "name": "Player A", "skill": 2.0, "variance": 0.1}],
+            window_days=365,
+        )
+
+        self.assertEqual(history["window"]["start"], "2025-05-01")
+        self.assertEqual(history["window"]["end"], "2026-05-01")
+        self.assertEqual(
+            [point["date"] for point in history["players"][0]["points"]],
+            ["2026-05-01"],
+        )
+
+    def test_records_grand_slam_spans_in_chronological_order(self):
+        data = self._data(
+            [
+                {"date": "2026-01-19", "winner": "Player A", "loser": "Player B", "tournament": "Australian Open"},
+                {"date": "2026-01-26", "winner": "Player A", "loser": "Player C", "tournament": "Australian Open"},
+                {"date": "2026-05-25", "winner": "Player A", "loser": "Player B", "tournament": "French Open"},
+                {"date": "2026-06-30", "winner": "Player A", "loser": "Player B", "tournament": "Wimbledon"},
+                {"date": "2026-08-31", "winner": "Player A", "loser": "Player B", "tournament": "US Open"},
+                {"date": "2026-04-01", "winner": "Player A", "loser": "Player B", "tournament": "Rome"},
+            ]
+        )
+
+        history = build_skill_history_json(
+            data=data,
+            predictions=self._predictions([[1.0, -1.0]] * data.num_matches),
+            current_time=int(data.polars_data["timestamp"].max()),
+            top_players=[{"rank": 1, "name": "Player A", "skill": 1.0, "variance": 0.1}],
+        )
+
+        self.assertEqual(
+            [slam["key"] for slam in history["slams"]],
+            ["aus-open", "french-open", "wimbledon", "us-open"],
+        )
+        first = history["slams"][0]
+        self.assertEqual(first["start"], "2026-01-19")
+        self.assertEqual(first["end"], "2026-01-26")
+        self.assertEqual(first["matches"], 2)
+        self.assertEqual(first["short"], "AO")
+        self.assertEqual(first["surface"], "Hard")
 
 
 class PayloadFreshnessContractTest(unittest.TestCase):

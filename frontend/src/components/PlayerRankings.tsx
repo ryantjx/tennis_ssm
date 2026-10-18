@@ -2,6 +2,15 @@ import { useMemo } from "react";
 import type { PlayerRanking } from "../types";
 import { formatSigned } from "../utils";
 
+/**
+ * Threshold for flagging a ranked player as inactive.
+ *
+ * The filter propagates skill forward with no observation, so a player who stops
+ * playing keeps their rank. The badge exists so that rank is not mistaken for a
+ * current estimate.
+ */
+const INACTIVE_DAYS = 30;
+
 interface PlayerRankingsProps {
   players: PlayerRanking[];
 }
@@ -27,6 +36,11 @@ export function PlayerRankings({ players }: PlayerRankingsProps) {
             <span className="ranking-row__rank">#{player.rank ?? index + 1}</span>
             <strong className="ranking-row__player">
               <span>{player.name}</span>
+              {isInactive(player) ? (
+                <small className="ranking-row__stale">
+                  Inactive &middot; {player.days_inactive}d
+                </small>
+              ) : null}
             </strong>
             <SkillScale player={player} domain={domain} />
             <b>
@@ -38,6 +52,10 @@ export function PlayerRankings({ players }: PlayerRankingsProps) {
       </div>
     </section>
   );
+}
+
+function isInactive(player: PlayerRanking): boolean {
+  return typeof player.days_inactive === "number" && player.days_inactive > INACTIVE_DAYS;
 }
 
 function SkillScale({ player, domain }: { player: PlayerRanking; domain: number }) {

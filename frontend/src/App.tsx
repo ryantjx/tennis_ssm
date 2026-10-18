@@ -3,6 +3,7 @@ import { CompletedResults } from "./components/CompletedResults";
 import { FilterControls } from "./components/FilterControls";
 import { MatchDetailDrawer } from "./components/MatchDetailDrawer";
 import { PlayerRankings } from "./components/PlayerRankings";
+import { SkillHistoryChart } from "./components/SkillHistoryChart";
 import { UpcomingMatches } from "./components/UpcomingMatches";
 import type { MatchFilters, MatchPrediction, PerformanceMetrics, PredictionPayload, ResultsPayload } from "./types";
 import { applyMatchFilters, formatDate, formatPercent, matchKey } from "./utils";
@@ -211,6 +212,19 @@ function App() {
           resultWindow={results?.data_window}
         />
         <PlayerRankings players={filteredPlayers} />
+        <section className="section" id="skill-history" aria-labelledby="skill-history-title">
+          <div className="section-heading">
+            <div>
+              <span className="eyebrow">Twelve-month trajectory</span>
+              <h2 id="skill-history-title">Ranking history</h2>
+            </div>
+            <p>
+              Model skill for the current top ten, marked with the four Grand Slam tournaments.
+              Rank order comes from the model posterior, not the official WTA ranking.
+            </p>
+          </div>
+          <SkillHistoryChart history={data.skill_history} />
+        </section>
         <section className="methodology-section" id="methodology" aria-labelledby="methodology-title">
           <div className="section-heading">
             <div>
@@ -324,6 +338,7 @@ function PrimaryNav({ className, label }: { className: string; label: string }) 
       <a href="#upcoming">Upcoming</a>
       <a href="#completed">Results</a>
       <a href="#rankings">Rankings</a>
+      <a href="#skill-history">History</a>
       <a href="#methodology">Methodology</a>
     </nav>
   );
