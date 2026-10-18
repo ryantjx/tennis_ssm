@@ -40,6 +40,9 @@ REQUIRED_PAYLOAD_KEYS = (
     "metrics",
     "matches",
     "future_matches",
+    # The ranking history chart reads this. Without it the chart silently falls
+    # back to an empty state, which a shape-only check would not catch.
+    "skill_history",
 )
 
 

@@ -66,6 +66,42 @@ export interface PlayerRanking {
   name: string;
   skill: number;
   variance: number;
+  /** ISO date of the player's newest completed match, when exported. */
+  last_match_date?: string;
+  /** Days between the newest match and the model state date. */
+  days_inactive?: number;
+}
+
+export interface SkillHistoryPoint {
+  date: string;
+  skill: number;
+}
+
+export interface SkillHistoryPlayer {
+  id: number | null;
+  name: string;
+  rank: number;
+  points: SkillHistoryPoint[];
+}
+
+export interface SkillHistorySlam {
+  key: string;
+  name: string;
+  short: string;
+  surface: string;
+  start: string;
+  end: string;
+  matches?: number;
+}
+
+export interface SkillHistory {
+  window: {
+    start?: string;
+    end?: string;
+    days?: number;
+  };
+  players: SkillHistoryPlayer[];
+  slams: SkillHistorySlam[];
 }
 
 export interface DataFreshness {
@@ -138,6 +174,12 @@ export interface PredictionPayload {
     uniform_baseline?: number;
   };
   top_players: PlayerRanking[];
+  /**
+   * Historical skill series behind the current ranking. Optional because the
+   * deployed payload only gains it after the next generation run; the chart
+   * falls back to an empty state until then.
+   */
+  skill_history?: SkillHistory;
   matches: MatchPrediction[];
   future_matches: MatchPrediction[];
 }
